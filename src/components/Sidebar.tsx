@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useLocation, Link } from 'react-router-dom';
 import { cn } from "@/lib/utils";
@@ -51,7 +52,7 @@ export const Sidebar = ({ isOpen }: SidebarProps) => {
         className={cn(
           "fixed left-0 top-0 z-50 h-full w-64 bg-white border-r border-gray-200 px-6 py-4 transition-transform transform-none",
           isOpen ? "translate-x-0" : "-translate-x-full",
-          "hidden lg:block" // Esconde em telas pequenas, mostra em telas grandes
+          "hidden lg:block"
         )}
       >
         <div className="flex items-center justify-center h-16">
@@ -78,7 +79,7 @@ export const Sidebar = ({ isOpen }: SidebarProps) => {
 
       {/* Sheet (Sidebar) para telas menores */}
       <Sheet>
-        <SheetTrigger asChild className="lg:hidden"> {/* Esconde o trigger em telas grandes */}
+        <SheetTrigger className="lg:hidden">
           <Button variant="outline" size="icon">
             <Menu className="h-[1.2rem] w-[1.2rem]" />
           </Button>
