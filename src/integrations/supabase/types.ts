@@ -9,6 +9,96 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      comparativos_temporais: {
+        Row: {
+          candidato_nome: string
+          created_at: string
+          id: string
+          metrica: string
+          observacoes: string | null
+          periodo_final: string
+          periodo_inicial: string
+          tipo_dado: string
+          updated_at: string
+          user_id: string
+          valor_final: number | null
+          valor_inicial: number | null
+          variacao_absoluta: number | null
+          variacao_percentual: number | null
+        }
+        Insert: {
+          candidato_nome: string
+          created_at?: string
+          id?: string
+          metrica: string
+          observacoes?: string | null
+          periodo_final: string
+          periodo_inicial: string
+          tipo_dado: string
+          updated_at?: string
+          user_id: string
+          valor_final?: number | null
+          valor_inicial?: number | null
+          variacao_absoluta?: number | null
+          variacao_percentual?: number | null
+        }
+        Update: {
+          candidato_nome?: string
+          created_at?: string
+          id?: string
+          metrica?: string
+          observacoes?: string | null
+          periodo_final?: string
+          periodo_inicial?: string
+          tipo_dado?: string
+          updated_at?: string
+          user_id?: string
+          valor_final?: number | null
+          valor_inicial?: number | null
+          variacao_absoluta?: number | null
+          variacao_percentual?: number | null
+        }
+        Relationships: []
+      }
+      configuracoes_monitoramento: {
+        Row: {
+          ativo: boolean | null
+          candidato_nome: string
+          configuracoes_extras: Json | null
+          created_at: string
+          frequencia_atualizacao: string | null
+          id: string
+          tipo_monitoramento: string
+          ultima_atualizacao: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          ativo?: boolean | null
+          candidato_nome: string
+          configuracoes_extras?: Json | null
+          created_at?: string
+          frequencia_atualizacao?: string | null
+          id?: string
+          tipo_monitoramento: string
+          ultima_atualizacao?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          ativo?: boolean | null
+          candidato_nome?: string
+          configuracoes_extras?: Json | null
+          created_at?: string
+          frequencia_atualizacao?: string | null
+          id?: string
+          tipo_monitoramento?: string
+          ultima_atualizacao?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       contatos: {
         Row: {
           created_at: string | null
@@ -48,6 +138,138 @@ export type Database = {
           updated_at?: string | null
           user_id?: string
           zona?: string | null
+        }
+        Relationships: []
+      }
+      dados_eleitorais: {
+        Row: {
+          ano_eleicao: number
+          bairro: string | null
+          candidato_nome: string
+          candidato_numero: string | null
+          cargo: string
+          created_at: string
+          estado: string
+          id: string
+          is_candidato_proprio: boolean | null
+          municipio: string
+          partido: string | null
+          percentual_votos: number | null
+          posicao_ranking: number | null
+          secao_eleitoral: string | null
+          situacao: string | null
+          total_votos: number | null
+          updated_at: string
+          user_id: string
+          votos_legenda: number | null
+          votos_nominais: number | null
+          zona_eleitoral: string | null
+        }
+        Insert: {
+          ano_eleicao: number
+          bairro?: string | null
+          candidato_nome: string
+          candidato_numero?: string | null
+          cargo: string
+          created_at?: string
+          estado: string
+          id?: string
+          is_candidato_proprio?: boolean | null
+          municipio: string
+          partido?: string | null
+          percentual_votos?: number | null
+          posicao_ranking?: number | null
+          secao_eleitoral?: string | null
+          situacao?: string | null
+          total_votos?: number | null
+          updated_at?: string
+          user_id: string
+          votos_legenda?: number | null
+          votos_nominais?: number | null
+          zona_eleitoral?: string | null
+        }
+        Update: {
+          ano_eleicao?: number
+          bairro?: string | null
+          candidato_nome?: string
+          candidato_numero?: string | null
+          cargo?: string
+          created_at?: string
+          estado?: string
+          id?: string
+          is_candidato_proprio?: boolean | null
+          municipio?: string
+          partido?: string | null
+          percentual_votos?: number | null
+          posicao_ranking?: number | null
+          secao_eleitoral?: string | null
+          situacao?: string | null
+          total_votos?: number | null
+          updated_at?: string
+          user_id?: string
+          votos_legenda?: number | null
+          votos_nominais?: number | null
+          zona_eleitoral?: string | null
+        }
+        Relationships: []
+      }
+      dados_redes_sociais: {
+        Row: {
+          candidato_nome: string
+          comentarios_totais: number | null
+          compartilhamentos_totais: number | null
+          created_at: string
+          curtidas_totais: number | null
+          data_coleta: string
+          engajamento_medio: number | null
+          handle_usuario: string | null
+          id: string
+          is_candidato_proprio: boolean | null
+          publicacoes: number | null
+          rede_social: string
+          seguidores: number | null
+          seguindo: number | null
+          updated_at: string
+          url_perfil: string | null
+          user_id: string
+        }
+        Insert: {
+          candidato_nome: string
+          comentarios_totais?: number | null
+          compartilhamentos_totais?: number | null
+          created_at?: string
+          curtidas_totais?: number | null
+          data_coleta: string
+          engajamento_medio?: number | null
+          handle_usuario?: string | null
+          id?: string
+          is_candidato_proprio?: boolean | null
+          publicacoes?: number | null
+          rede_social: string
+          seguidores?: number | null
+          seguindo?: number | null
+          updated_at?: string
+          url_perfil?: string | null
+          user_id: string
+        }
+        Update: {
+          candidato_nome?: string
+          comentarios_totais?: number | null
+          compartilhamentos_totais?: number | null
+          created_at?: string
+          curtidas_totais?: number | null
+          data_coleta?: string
+          engajamento_medio?: number | null
+          handle_usuario?: string | null
+          id?: string
+          is_candidato_proprio?: boolean | null
+          publicacoes?: number | null
+          rede_social?: string
+          seguidores?: number | null
+          seguindo?: number | null
+          updated_at?: string
+          url_perfil?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -350,6 +572,22 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      calcular_comparativo_temporal: {
+        Args: {
+          target_user_id: string
+          candidato: string
+          tipo: string
+          metrica_nome: string
+          data_inicio: string
+          data_fim: string
+        }
+        Returns: {
+          variacao_absoluta: number
+          variacao_percentual: number
+          valor_inicial: number
+          valor_final: number
+        }[]
+      }
       current_user_has_role: {
         Args: { _role: Database["public"]["Enums"]["app_role"] }
         Returns: boolean
