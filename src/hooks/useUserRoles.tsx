@@ -5,14 +5,6 @@ import { useAuth } from '@/contexts/AuthContext';
 
 export type UserRole = 'admin' | 'moderator' | 'user';
 
-interface UserRoleData {
-  id: string;
-  user_id: string;
-  role: UserRole;
-  granted_by: string | null;
-  granted_at: string;
-}
-
 export const useUserRoles = () => {
   const [roles, setRoles] = useState<UserRole[]>([]);
   const [loading, setLoading] = useState(true);

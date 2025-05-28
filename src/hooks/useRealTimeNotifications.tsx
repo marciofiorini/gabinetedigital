@@ -4,12 +4,14 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
+type NotificationType = 'info' | 'success' | 'warning' | 'error';
+
 interface Notification {
   id: string;
   user_id: string;
   title: string;
   message: string;
-  type: 'info' | 'success' | 'warning' | 'error';
+  type: NotificationType;
   read: boolean;
   action_url: string | null;
   created_at: string;
@@ -36,10 +38,9 @@ export const useRealTimeNotifications = () => {
 
       if (error) throw error;
       
-      // Type assertion to ensure data matches our Notification interface
       const typedNotifications = (data || []).map(item => ({
         ...item,
-        type: item.type as 'info' | 'success' | 'warning' | 'error'
+        type: item.type as NotificationType
       }));
       
       setNotifications(typedNotifications);
@@ -106,7 +107,6 @@ export const useRealTimeNotifications = () => {
 
     fetchNotifications();
 
-    // Configurar realtime para notificações
     const channel = supabase
       .channel('notifications-changes')
       .on(
@@ -120,12 +120,11 @@ export const useRealTimeNotifications = () => {
         (payload) => {
           const newNotification = {
             ...payload.new,
-            type: payload.new.type as 'info' | 'success' | 'warning' | 'error'
+            type: payload.new.type as NotificationType
           } as Notification;
           
           setNotifications(prev => [newNotification, ...prev]);
           
-          // Mostrar toast para nova notificação
           toast({
             title: newNotification.title,
             description: newNotification.message,
@@ -144,7 +143,7 @@ export const useRealTimeNotifications = () => {
         (payload) => {
           const updatedNotification = {
             ...payload.new,
-            type: payload.new.type as 'info' | 'success' | 'warning' | 'error'
+            type: payload.new.type as NotificationType
           } as Notification;
           
           setNotifications(prev =>

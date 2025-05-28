@@ -12,7 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRoles } from '@/hooks/useUserRoles';
 import { useToast } from '@/hooks/use-toast';
-import { Shield, Users, Bell, Plus, Trash2, UserCheck } from 'lucide-react';
+import { Shield, Users, Bell, UserCheck } from 'lucide-react';
 
 interface User {
   id: string;
@@ -21,6 +21,9 @@ interface User {
   created_at: string;
   roles: string[];
 }
+
+type NotificationType = 'info' | 'success' | 'warning' | 'error';
+type UserRole = 'admin' | 'moderator' | 'user';
 
 export const AdminPanel = () => {
   const [users, setUsers] = useState<User[]>([]);
@@ -34,7 +37,7 @@ export const AdminPanel = () => {
   const [notificationForm, setNotificationForm] = useState({
     title: '',
     message: '',
-    type: 'info' as 'info' | 'success' | 'warning' | 'error',
+    type: 'info' as NotificationType,
     user_id: 'all'
   });
 
@@ -84,7 +87,7 @@ export const AdminPanel = () => {
           .from('user_roles')
           .insert({
             user_id: userId,
-            role: newRole,
+            role: newRole as UserRole,
             granted_by: user?.id
           });
 
@@ -99,7 +102,7 @@ export const AdminPanel = () => {
           .from('user_roles')
           .delete()
           .eq('user_id', userId)
-          .eq('role', newRole);
+          .eq('role', newRole as UserRole);
 
         if (error) throw error;
 
@@ -265,7 +268,7 @@ export const AdminPanel = () => {
                   <Label htmlFor="type">Tipo</Label>
                   <Select
                     value={notificationForm.type}
-                    onValueChange={(value: 'info' | 'success' | 'warning' | 'error') => 
+                    onValueChange={(value: NotificationType) => 
                       setNotificationForm({ ...notificationForm, type: value })
                     }
                   >
