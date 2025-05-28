@@ -4,22 +4,58 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAuth } from '@/contexts/AuthContext';
-import { useToast } from '@/hooks/use-toast';
-import { User, Bell, Shield, Database } from 'lucide-react';
+import { useUserSettings } from '@/hooks/useUserSettings';
+import { useUpdateProfile } from '@/hooks/useUpdateProfile';
+import { useUserRoles } from '@/hooks/useUserRoles';
+import { User, Bell, Shield, Database, Eye, Lock, Globe } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 
 export default function Configuracoes() {
   const { user, profile } = useAuth();
-  const { toast } = useToast();
+  const { settings, updateSettings, loading: settingsLoading } = useUserSettings();
+  const { updateProfile, updatePassword, loading: profileLoading } = useUpdateProfile();
+  const { roles, isAdmin, isModerator } = useUserRoles();
+  
   const [name, setName] = useState(profile?.name || '');
-  const [email, setEmail] = useState(user?.email || '');
+  const [email] = useState(user?.email || '');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPasswordSection, setShowPasswordSection] = useState(false);
 
-  const handleSaveProfile = () => {
-    toast({
-      title: 'Perfil atualizado',
-      description: 'Suas informações foram salvas com sucesso.',
-    });
+  const handleSaveProfile = async () => {
+    if (name.trim()) {
+      await updateProfile(name.trim());
+      // A page will automatically update via AuthContext
+    }
+  };
+
+  const handleUpdatePassword = async () => {
+    if (newPassword !== confirmPassword) {
+      return;
+    }
+    
+    if (newPassword.length < 6) {
+      return;
+    }
+
+    const success = await updatePassword(newPassword);
+    if (success) {
+      setNewPassword('');
+      setConfirmPassword('');
+      setShowPasswordSection(false);
+    }
+  };
+
+  const getRoleColor = (role: string) => {
+    switch (role) {
+      case 'admin': return 'bg-red-100 text-red-800';
+      case 'moderator': return 'bg-yellow-100 text-yellow-800';
+      default: return 'bg-blue-100 text-blue-800';
+    }
   };
 
   return (
@@ -42,6 +78,16 @@ export default function Configuracoes() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            <div className="flex items-center gap-2 mb-4">
+              <span className="text-sm font-medium">Papéis:</span>
+              {roles.map((role) => (
+                <Badge key={role} className={getRoleColor(role)}>
+                  {role === 'admin' ? 'Administrador' : 
+                   role === 'moderator' ? 'Moderador' : 'Usuário'}
+                </Badge>
+              ))}
+            </div>
+            
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Nome completo</Label>
@@ -57,45 +103,17 @@ export default function Configuracoes() {
                 <Input
                   id="email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="seu@email.com"
                   disabled
+                  className="bg-gray-100"
                 />
               </div>
             </div>
-            <Button onClick={handleSaveProfile}>
-              Salvar alterações
+            <Button 
+              onClick={handleSaveProfile} 
+              disabled={profileLoading || !name.trim()}
+            >
+              {profileLoading ? 'Salvando...' : 'Salvar alterações'}
             </Button>
-          </CardContent>
-        </Card>
-
-        {/* Notificações */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Bell className="w-5 h-5" />
-              Notificações
-            </CardTitle>
-            <CardDescription>
-              Configure suas preferências de notificação
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium">Email de notificações</p>
-                <p className="text-sm text-gray-600">Receber emails sobre demandas e agenda</p>
-              </div>
-              <Button variant="outline">Configurar</Button>
-            </div>
-            <Separator />
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium">Notificações push</p>
-                <p className="text-sm text-gray-600">Alertas em tempo real no navegador</p>
-              </div>
-              <Button variant="outline">Ativar</Button>
-            </div>
           </CardContent>
         </Card>
 
@@ -116,15 +134,143 @@ export default function Configuracoes() {
                 <p className="font-medium">Alterar senha</p>
                 <p className="text-sm text-gray-600">Atualize sua senha regularmente</p>
               </div>
-              <Button variant="outline">Alterar</Button>
+              <Button 
+                variant="outline" 
+                onClick={() => setShowPasswordSection(!showPasswordSection)}
+              >
+                {showPasswordSection ? 'Cancelar' : 'Alterar'}
+              </Button>
+            </div>
+            
+            {showPasswordSection && (
+              <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
+                <div className="space-y-2">
+                  <Label htmlFor="newPassword">Nova senha</Label>
+                  <Input
+                    id="newPassword"
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="Nova senha (mínimo 6 caracteres)"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="confirmPassword">Confirmar nova senha</Label>
+                  <Input
+                    id="confirmPassword"
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="Confirme a nova senha"
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <Button 
+                    onClick={handleUpdatePassword}
+                    disabled={
+                      profileLoading || 
+                      !newPassword || 
+                      newPassword !== confirmPassword ||
+                      newPassword.length < 6
+                    }
+                  >
+                    {profileLoading ? 'Atualizando...' : 'Atualizar senha'}
+                  </Button>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Notificações */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Bell className="w-5 h-5" />
+              Notificações
+            </CardTitle>
+            <CardDescription>
+              Configure suas preferências de notificação
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium">Notificações por email</p>
+                <p className="text-sm text-gray-600">Receber emails sobre demandas e agenda</p>
+              </div>
+              <Switch
+                checked={settings?.email_notifications ?? true}
+                onCheckedChange={(checked) => 
+                  updateSettings({ email_notifications: checked })
+                }
+                disabled={settingsLoading}
+              />
             </div>
             <Separator />
             <div className="flex items-center justify-between">
               <div>
-                <p className="font-medium">Autenticação de dois fatores</p>
-                <p className="text-sm text-gray-600">Adicione uma camada extra de segurança</p>
+                <p className="font-medium">Notificações push</p>
+                <p className="text-sm text-gray-600">Alertas em tempo real no navegador</p>
               </div>
-              <Button variant="outline">Configurar</Button>
+              <Switch
+                checked={settings?.push_notifications ?? true}
+                onCheckedChange={(checked) => 
+                  updateSettings({ push_notifications: checked })
+                }
+                disabled={settingsLoading}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Preferências */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Globe className="w-5 h-5" />
+              Preferências
+            </CardTitle>
+            <CardDescription>
+              Configure idioma, tema e fuso horário
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Tema</Label>
+                <Select 
+                  value={settings?.theme ?? 'light'}
+                  onValueChange={(value) => updateSettings({ theme: value })}
+                  disabled={settingsLoading}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="light">Claro</SelectItem>
+                    <SelectItem value="dark">Escuro</SelectItem>
+                    <SelectItem value="system">Sistema</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Idioma</Label>
+                <Select 
+                  value={settings?.language ?? 'pt-BR'}
+                  onValueChange={(value) => updateSettings({ language: value })}
+                  disabled={settingsLoading}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="pt-BR">Português (Brasil)</SelectItem>
+                    <SelectItem value="en-US">English (US)</SelectItem>
+                    <SelectItem value="es-ES">Español</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </CardContent>
         </Card>
