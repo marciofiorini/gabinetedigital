@@ -1,6 +1,8 @@
+
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { useNavigate, useLocation } from "react-router-dom";
 import { 
   Users, 
   MessageSquare, 
@@ -21,7 +23,8 @@ interface SidebarProps {
 }
 
 export const Sidebar = ({ isOpen }: SidebarProps) => {
-  const [activeItem, setActiveItem] = useState("dashboard");
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const menuItems = [
     {
@@ -103,13 +106,15 @@ export const Sidebar = ({ isOpen }: SidebarProps) => {
       <div className="flex items-center justify-center h-16 border-b border-gray-200">
         {isOpen ? (
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+            <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
               <BarChart3 className="w-5 h-5 text-white" />
             </div>
-            <span className="font-bold text-lg text-gray-900">Gabinete Digital</span>
+            <span className="font-bold text-lg bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              Gabinete Digital
+            </span>
           </div>
         ) : (
-          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+          <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
             <BarChart3 className="w-5 h-5 text-white" />
           </div>
         )}
@@ -120,20 +125,20 @@ export const Sidebar = ({ isOpen }: SidebarProps) => {
         <div className="space-y-1">
           {menuItems.map((item) => {
             const Icon = item.icon;
-            const isActive = activeItem === item.id;
+            const isActive = location.pathname === item.path;
             
             return (
               <Button
                 key={item.id}
                 variant={isActive ? "default" : "ghost"}
                 className={cn(
-                  "w-full justify-start gap-3 h-11",
+                  "w-full justify-start gap-3 h-11 transition-all duration-200",
                   isActive 
-                    ? "bg-blue-600 text-white hover:bg-blue-700" 
-                    : "text-gray-700 hover:bg-gray-100",
+                    ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 shadow-lg" 
+                    : "text-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 hover:text-blue-700",
                   !isOpen && "justify-center px-2"
                 )}
-                onClick={() => setActiveItem(item.id)}
+                onClick={() => navigate(item.path)}
               >
                 <Icon className="w-5 h-5 flex-shrink-0" />
                 {isOpen && <span className="font-medium">{item.title}</span>}
