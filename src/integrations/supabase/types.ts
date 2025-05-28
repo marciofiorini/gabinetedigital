@@ -9,7 +9,246 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      contatos: {
+        Row: {
+          created_at: string | null
+          email: string | null
+          endereco: string | null
+          id: string
+          nome: string
+          observacoes: string | null
+          tags: string[] | null
+          telefone: string | null
+          updated_at: string | null
+          user_id: string
+          zona: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email?: string | null
+          endereco?: string | null
+          id?: string
+          nome: string
+          observacoes?: string | null
+          tags?: string[] | null
+          telefone?: string | null
+          updated_at?: string | null
+          user_id: string
+          zona?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string | null
+          endereco?: string | null
+          id?: string
+          nome?: string
+          observacoes?: string | null
+          tags?: string[] | null
+          telefone?: string | null
+          updated_at?: string | null
+          user_id?: string
+          zona?: string | null
+        }
+        Relationships: []
+      }
+      demandas: {
+        Row: {
+          categoria: string | null
+          created_at: string | null
+          data_limite: string | null
+          descricao: string | null
+          id: string
+          prioridade: string | null
+          solicitante: string | null
+          status: string | null
+          titulo: string
+          updated_at: string | null
+          user_id: string
+          zona: string | null
+        }
+        Insert: {
+          categoria?: string | null
+          created_at?: string | null
+          data_limite?: string | null
+          descricao?: string | null
+          id?: string
+          prioridade?: string | null
+          solicitante?: string | null
+          status?: string | null
+          titulo: string
+          updated_at?: string | null
+          user_id: string
+          zona?: string | null
+        }
+        Update: {
+          categoria?: string | null
+          created_at?: string | null
+          data_limite?: string | null
+          descricao?: string | null
+          id?: string
+          prioridade?: string | null
+          solicitante?: string | null
+          status?: string | null
+          titulo?: string
+          updated_at?: string | null
+          user_id?: string
+          zona?: string | null
+        }
+        Relationships: []
+      }
+      eventos: {
+        Row: {
+          created_at: string | null
+          data_hora: string
+          descricao: string | null
+          google_event_id: string | null
+          id: string
+          sincronizado: boolean | null
+          tipo: string | null
+          titulo: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          data_hora: string
+          descricao?: string | null
+          google_event_id?: string | null
+          id?: string
+          sincronizado?: boolean | null
+          tipo?: string | null
+          titulo: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          data_hora?: string
+          descricao?: string | null
+          google_event_id?: string | null
+          id?: string
+          sincronizado?: boolean | null
+          tipo?: string | null
+          titulo?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      leads: {
+        Row: {
+          created_at: string | null
+          email: string | null
+          fonte: string | null
+          id: string
+          interesse: string | null
+          nome: string
+          observacoes: string | null
+          status: string | null
+          telefone: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          email?: string | null
+          fonte?: string | null
+          id?: string
+          interesse?: string | null
+          nome: string
+          observacoes?: string | null
+          status?: string | null
+          telefone?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          email?: string | null
+          fonte?: string | null
+          id?: string
+          interesse?: string | null
+          nome?: string
+          observacoes?: string | null
+          status?: string | null
+          telefone?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      lideres: {
+        Row: {
+          created_at: string | null
+          email: string | null
+          id: string
+          influencia: number | null
+          nome: string
+          observacoes: string | null
+          status: string | null
+          telefone: string | null
+          updated_at: string | null
+          user_id: string
+          zona: string
+        }
+        Insert: {
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          influencia?: number | null
+          nome: string
+          observacoes?: string | null
+          status?: string | null
+          telefone?: string | null
+          updated_at?: string | null
+          user_id: string
+          zona: string
+        }
+        Update: {
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          influencia?: number | null
+          nome?: string
+          observacoes?: string | null
+          status?: string | null
+          telefone?: string | null
+          updated_at?: string | null
+          user_id?: string
+          zona?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          email: string
+          id: string
+          name: string
+          role: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          email: string
+          id: string
+          name: string
+          role?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          email?: string
+          id?: string
+          name?: string
+          role?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

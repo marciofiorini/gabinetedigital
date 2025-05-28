@@ -19,10 +19,12 @@ import {
 import { Bell, User, LogOut, Settings } from 'lucide-react';
 
 export const UserMenu = () => {
-  const { user, signOut } = useAuth();
+  const { user, profile, signOut } = useAuth();
   const { notifications, unreadCount, markAsRead } = useNotifications();
 
   if (!user) return null;
+
+  const displayName = profile?.name || user.email?.split('@')[0] || 'Usuário';
 
   return (
     <div className="flex items-center gap-3">
@@ -70,16 +72,24 @@ export const UserMenu = () => {
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
-              <User className="w-4 h-4 text-white" />
-            </div>
-            <span className="hidden md:block">{user.name}</span>
+            {profile?.avatar_url ? (
+              <img 
+                src={profile.avatar_url} 
+                alt="Avatar" 
+                className="w-8 h-8 rounded-full"
+              />
+            ) : (
+              <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+                <User className="w-4 h-4 text-white" />
+              </div>
+            )}
+            <span className="hidden md:block">{displayName}</span>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-56">
           <DropdownMenuLabel>
             <div>
-              <p className="font-medium">{user.name}</p>
+              <p className="font-medium">{displayName}</p>
               <p className="text-sm text-gray-500">{user.email}</p>
             </div>
           </DropdownMenuLabel>

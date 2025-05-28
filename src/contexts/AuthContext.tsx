@@ -1,17 +1,25 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { User, Session } from '@supabase/supabase-js';
+import { useToast } from '@/hooks/use-toast';
 
-interface User {
+interface Profile {
   id: string;
-  email: string;
   name: string;
-  avatar?: string;
+  email: string;
+  avatar_url?: string;
+  role: string;
 }
 
 interface AuthContextType {
   user: User | null;
+  profile: Profile | null;
+  session: Session | null;
   loading: boolean;
   signInWithGoogle: () => Promise<void>;
+  signInWithEmail: (email: string, password: string) => Promise<void>;
+  signUpWithEmail: (email: string, password: string, name: string) => Promise<void>;
   signOut: () => Promise<void>;
 }
 
@@ -19,44 +27,176 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
   useEffect(() => {
-    // Simular verificação de usuário logado
-    // Aqui seria integrado com Supabase Auth
-    const checkUser = async () => {
-      // Simular delay de carregamento
-      setTimeout(() => {
+    // Configurar listener de mudanças de autenticação
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log('Auth state changed:', event, session);
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        if (session?.user) {
+          // Buscar perfil do usuário
+          setTimeout(async () => {
+            await fetchUserProfile(session.user.id);
+          }, 0);
+        } else {
+          setProfile(null);
+        }
+        
         setLoading(false);
-      }, 1000);
-    };
+      }
+    );
 
-    checkUser();
+    // Verificar sessão existente
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        fetchUserProfile(session.user.id);
+      }
+      setLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
+  const fetchUserProfile = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      if (error) throw error;
+      setProfile(data);
+    } catch (error) {
+      console.error('Erro ao buscar perfil:', error);
+    }
+  };
+
   const signInWithGoogle = async () => {
-    console.log('Iniciando login com Google...');
-    // Aqui seria implementado o login real com Supabase
-    // const { data, error } = await supabase.auth.signInWithOAuth({ provider: 'google' });
-    
-    // Simulando usuário logado
-    setUser({
-      id: '1',
-      email: 'usuario@exemplo.com',
-      name: 'Usuário Exemplo',
-      avatar: 'https://via.placeholder.com/40'
-    });
+    try {
+      setLoading(true);
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin
+        }
+      });
+
+      if (error) throw error;
+    } catch (error: any) {
+      console.error('Erro no login com Google:', error);
+      toast({
+        title: 'Erro no login',
+        description: error.message || 'Erro ao fazer login com Google',
+        variant: 'destructive'
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const signInWithEmail = async (email: string, password: string) => {
+    try {
+      setLoading(true);
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: 'Login realizado com sucesso!',
+        description: 'Bem-vindo de volta!'
+      });
+    } catch (error: any) {
+      console.error('Erro no login:', error);
+      toast({
+        title: 'Erro no login',
+        description: error.message || 'Email ou senha incorretos',
+        variant: 'destructive'
+      });
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const signUpWithEmail = async (email: string, password: string, name: string) => {
+    try {
+      setLoading(true);
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            name: name
+          }
+        }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: 'Conta criada com sucesso!',
+        description: 'Verifique seu email para confirmar a conta.'
+      });
+    } catch (error: any) {
+      console.error('Erro no cadastro:', error);
+      toast({
+        title: 'Erro no cadastro',
+        description: error.message || 'Erro ao criar conta',
+        variant: 'destructive'
+      });
+      throw error;
+    } finally {
+      setLoading(false);
+    }
   };
 
   const signOut = async () => {
-    console.log('Fazendo logout...');
-    // Aqui seria implementado o logout real com Supabase
-    // await supabase.auth.signOut();
-    setUser(null);
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+
+      setUser(null);
+      setProfile(null);
+      setSession(null);
+
+      toast({
+        title: 'Logout realizado',
+        description: 'Até logo!'
+      });
+    } catch (error: any) {
+      console.error('Erro no logout:', error);
+      toast({
+        title: 'Erro',
+        description: 'Erro ao fazer logout',
+        variant: 'destructive'
+      });
+    }
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, signInWithGoogle, signOut }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      profile, 
+      session, 
+      loading, 
+      signInWithGoogle, 
+      signInWithEmail, 
+      signUpWithEmail, 
+      signOut 
+    }}>
       {children}
     </AuthContext.Provider>
   );
