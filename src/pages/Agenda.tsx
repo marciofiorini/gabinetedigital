@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,32 +7,41 @@ import { Badge } from "@/components/ui/badge";
 import { Sidebar } from "@/components/Sidebar";
 import { Header } from "@/components/Header";
 import { Calendar } from "@/components/ui/calendar"
-import { Plus, Calendar as CalendarIcon, Clock, X } from "lucide-react";
+import { Plus, Calendar as CalendarIcon, Clock, X, RefreshCw, Settings } from "lucide-react";
 
 const Agenda = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const [isGoogleCalendarConnected, setIsGoogleCalendarConnected] = useState(false);
+  const [lastSync, setLastSync] = useState<Date | null>(null);
+  
   const [eventos, setEventos] = useState([
     {
       id: 1,
       titulo: "Reunião com a equipe",
       dataHora: "2024-05-30T10:00",
       tipo: "reuniao",
-      descricao: "Discussão sobre o planejamento estratégico"
+      descricao: "Discussão sobre o planejamento estratégico",
+      googleEventId: null,
+      sincronizado: false
     },
     {
       id: 2,
       titulo: "Evento de lançamento",
       dataHora: "2024-06-05T19:00",
       tipo: "evento",
-      descricao: "Lançamento do novo projeto"
+      descricao: "Lançamento do novo projeto",
+      googleEventId: null,
+      sincronizado: false
     },
     {
       id: 3,
       titulo: "Ligação para o cliente",
       dataHora: "2024-05-31T14:30",
       tipo: "ligacao",
-      descricao: "Apresentação da proposta"
+      descricao: "Apresentação da proposta",
+      googleEventId: null,
+      sincronizado: false
     }
   ]);
 
@@ -39,18 +49,44 @@ const Agenda = () => {
     titulo: "",
     dataHora: "",
     tipo: "reuniao",
-    descricao: ""
+    descricao: "",
+    sincronizarGoogle: true
   });
 
   const adicionarEvento = () => {
     const novoId = eventos.length > 0 ? eventos[eventos.length - 1].id + 1 : 1;
-    const novoEventoCompleto = { ...novoEvento, id: novoId };
+    const novoEventoCompleto = { 
+      ...novoEvento, 
+      id: novoId,
+      googleEventId: null,
+      sincronizado: false
+    };
     setEventos([...eventos, novoEventoCompleto]);
-    setNovoEvento({ titulo: "", dataHora: "", tipo: "reuniao", descricao: "" });
+    setNovoEvento({ titulo: "", dataHora: "", tipo: "reuniao", descricao: "", sincronizarGoogle: true });
   };
 
   const removerEvento = (id: number) => {
     setEventos(eventos.filter(evento => evento.id !== id));
+  };
+
+  const sincronizarComGoogle = async () => {
+    console.log("Iniciando sincronização com Google Calendar...");
+    // Aqui seria implementada a lógica de sincronização
+    // Por enquanto, simulamos uma sincronização
+    setTimeout(() => {
+      setLastSync(new Date());
+      setEventos(eventos.map(evento => ({
+        ...evento,
+        sincronizado: true,
+        googleEventId: `google_${Math.random().toString(36).substr(2, 9)}`
+      })));
+    }, 2000);
+  };
+
+  const conectarGoogleCalendar = () => {
+    console.log("Conectando com Google Calendar...");
+    // Aqui seria implementada a autenticação OAuth do Google
+    setIsGoogleCalendarConnected(true);
   };
 
   const eventosHoje = eventos.filter(evento => {
@@ -84,11 +120,49 @@ const Agenda = () => {
                   Gerencie seus compromissos e eventos
                 </p>
               </div>
-              <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-200">
-                <Plus className="w-4 h-4 mr-2" />
-                Novo Evento
-              </Button>
+              <div className="flex gap-3">
+                {!isGoogleCalendarConnected ? (
+                  <Button 
+                    onClick={conectarGoogleCalendar}
+                    variant="outline"
+                    className="border-blue-500 text-blue-600 hover:bg-blue-50"
+                  >
+                    <Settings className="w-4 h-4 mr-2" />
+                    Conectar Google Calendar
+                  </Button>
+                ) : (
+                  <Button 
+                    onClick={sincronizarComGoogle}
+                    variant="outline"
+                    className="border-green-500 text-green-600 hover:bg-green-50"
+                  >
+                    <RefreshCw className="w-4 h-4 mr-2" />
+                    Sincronizar
+                  </Button>
+                )}
+                <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-200">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Novo Evento
+                </Button>
+              </div>
             </div>
+            
+            {/* Status da sincronização */}
+            {isGoogleCalendarConnected && (
+              <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                    <span className="text-sm text-green-700">Google Calendar conectado</span>
+                  </div>
+                  {lastSync && (
+                    <span className="text-xs text-green-600">
+                      Última sincronização: {lastSync.toLocaleString()}
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Calendar */}
@@ -149,6 +223,20 @@ const Agenda = () => {
                     value={novoEvento.descricao}
                     onChange={(e) => setNovoEvento({...novoEvento, descricao: e.target.value})}
                   />
+                  {isGoogleCalendarConnected && (
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id="sincronizarGoogle"
+                        checked={novoEvento.sincronizarGoogle}
+                        onChange={(e) => setNovoEvento({...novoEvento, sincronizarGoogle: e.target.checked})}
+                        className="rounded"
+                      />
+                      <label htmlFor="sincronizarGoogle" className="text-sm text-gray-600">
+                        Sincronizar com Google Calendar
+                      </label>
+                    </div>
+                  )}
                   <Button 
                     onClick={adicionarEvento}
                     className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
@@ -175,9 +263,16 @@ const Agenda = () => {
                             <h4 className="font-semibold text-sm">{evento.titulo}</h4>
                             <p className="text-xs text-gray-600">{evento.dataHora}</p>
                           </div>
-                          <Badge className="bg-blue-100 text-blue-800 border-blue-200">
-                            {evento.tipo}
-                          </Badge>
+                          <div className="flex items-center gap-2">
+                            <Badge className="bg-blue-100 text-blue-800 border-blue-200">
+                              {evento.tipo}
+                            </Badge>
+                            {evento.sincronizado && (
+                              <Badge className="bg-green-100 text-green-800 border-green-200">
+                                Sync
+                              </Badge>
+                            )}
+                          </div>
                         </div>
                       </div>
                     ))}
@@ -193,7 +288,7 @@ const Agenda = () => {
           </div>
 
           {/* Upcoming Events */}
-          <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+          <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm mt-6">
             <CardHeader>
               <CardTitle className="text-xl bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 Próximos Eventos
@@ -219,9 +314,16 @@ const Agenda = () => {
                         <Clock className="w-3 h-3 mr-1" />
                         {evento.dataHora}
                       </div>
-                      <Badge className="bg-purple-100 text-purple-800 border-purple-200">
-                        {evento.tipo}
-                      </Badge>
+                      <div className="flex gap-1">
+                        <Badge className="bg-purple-100 text-purple-800 border-purple-200">
+                          {evento.tipo}
+                        </Badge>
+                        {evento.sincronizado && (
+                          <Badge className="bg-green-100 text-green-800 border-green-200">
+                            Sync
+                          </Badge>
+                        )}
+                      </div>
                     </div>
                   </div>
                 ))}
