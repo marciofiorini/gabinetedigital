@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,10 +5,12 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Sidebar } from "@/components/Sidebar";
 import { Header } from "@/components/Header";
+import { NovaDemandaModal } from "@/components/NovaDemandaModal";
 import { Plus, Search, Filter, MapPin, Camera, Mic, Clock, User } from "lucide-react";
 
 const Demandas = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const demandas = [
     {
@@ -91,7 +92,10 @@ const Demandas = () => {
                   Gerencie todas as demandas da sua base eleitoral
                 </p>
               </div>
-              <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-200">
+              <Button 
+                onClick={() => setIsModalOpen(true)}
+                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+              >
                 <Plus className="w-4 h-4 mr-2" />
                 Nova Demanda
               </Button>
@@ -210,6 +214,11 @@ const Demandas = () => {
           </div>
         </main>
       </div>
+
+      <NovaDemandaModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+      />
     </div>
   );
 };

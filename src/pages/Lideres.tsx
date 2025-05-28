@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,10 +5,12 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Sidebar } from "@/components/Sidebar";
 import { Header } from "@/components/Header";
+import { NovoLiderModal } from "@/components/NovoLiderModal";
 import { Plus, Search, Filter, Phone, Mail, MapPin, Users, Star } from "lucide-react";
 
 const Lideres = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const lideres = [
     {
@@ -82,7 +83,10 @@ const Lideres = () => {
                   Gerencie suas lideranças locais e regionais
                 </p>
               </div>
-              <Button className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-200">
+              <Button 
+                onClick={() => setIsModalOpen(true)}
+                className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+              >
                 <Plus className="w-4 h-4 mr-2" />
                 Novo Líder
               </Button>
@@ -206,6 +210,11 @@ const Lideres = () => {
           </div>
         </main>
       </div>
+
+      <NovoLiderModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+      />
     </div>
   );
 };
