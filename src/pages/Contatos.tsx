@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,6 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Sidebar } from "@/components/Sidebar";
 import { Header } from "@/components/Header";
+import { LeadDetailsModal } from "@/components/LeadDetailsModal";
+import { NovoLeadModal } from "@/components/NovoLeadModal";
 import { 
   Table, 
   TableBody, 
@@ -26,11 +27,17 @@ import {
   Award,
   Users,
   Target,
-  Activity
+  Activity,
+  MessageCircle,
+  Instagram,
+  Calendar
 } from "lucide-react";
 
 const Contatos = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [selectedLead, setSelectedLead] = useState(null);
+  const [isLeadModalOpen, setIsLeadModalOpen] = useState(false);
+  const [isNovoLeadModalOpen, setIsNovoLeadModalOpen] = useState(false);
 
   const contatos = [
     {
@@ -131,6 +138,11 @@ const Contatos = () => {
   // Ordenar por lead score (maior para menor)
   const contatosOrdenados = [...contatos].sort((a, b) => b.leadScore - a.leadScore);
 
+  const handleVerLead = (lead) => {
+    setSelectedLead(lead);
+    setIsLeadModalOpen(true);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-indigo-50 to-purple-100 flex">
       <Sidebar isOpen={sidebarOpen} />
@@ -150,7 +162,10 @@ const Contatos = () => {
                   Gerencie todos seus contatos com ranking de engajamento
                 </p>
               </div>
-              <Button className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-200">
+              <Button 
+                onClick={() => setIsNovoLeadModalOpen(true)}
+                className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+              >
                 <Plus className="w-4 h-4 mr-2" />
                 Novo Contato
               </Button>
@@ -222,6 +237,7 @@ const Contatos = () => {
                     <TableHead>Região</TableHead>
                     <TableHead>Interações</TableHead>
                     <TableHead>Última Interação</TableHead>
+                    <TableHead>Canais</TableHead>
                     <TableHead>Ações</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -286,12 +302,30 @@ const Contatos = () => {
                         <span className="text-sm text-gray-600">{contato.ultimaInteracao}</span>
                       </TableCell>
                       <TableCell>
+                        <div className="flex gap-1">
+                          <Button size="sm" variant="outline" className="p-1 h-7 w-7">
+                            <MessageCircle className="w-3 h-3 text-green-600" />
+                          </Button>
+                          <Button size="sm" variant="outline" className="p-1 h-7 w-7">
+                            <Instagram className="w-3 h-3 text-pink-600" />
+                          </Button>
+                          <Button size="sm" variant="outline" className="p-1 h-7 w-7">
+                            <Calendar className="w-3 h-3 text-blue-600" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                      <TableCell>
                         <div className="flex gap-2">
-                          <Button variant="outline" size="sm" className="hover:bg-indigo-50">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="hover:bg-indigo-50"
+                            onClick={() => handleVerLead(contato)}
+                          >
                             Ver
                           </Button>
                           <Button size="sm" className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700">
-                            Editar
+                            Chat
                           </Button>
                         </div>
                       </TableCell>
@@ -303,6 +337,21 @@ const Contatos = () => {
           </Card>
         </main>
       </div>
+
+      {/* Modals */}
+      <LeadDetailsModal 
+        lead={selectedLead}
+        isOpen={isLeadModalOpen}
+        onClose={() => {
+          setIsLeadModalOpen(false);
+          setSelectedLead(null);
+        }}
+      />
+      
+      <NovoLeadModal 
+        isOpen={isNovoLeadModalOpen}
+        onClose={() => setIsNovoLeadModalOpen(false)}
+      />
     </div>
   );
 };
