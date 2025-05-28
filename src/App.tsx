@@ -13,6 +13,7 @@ import NotFound from './pages/NotFound';
 import Planos from './pages/Planos';
 import Contatos from './pages/Contatos';
 import WhatsApp from './pages/WhatsApp';
+import Configuracoes from './pages/Configuracoes';
 import { Toaster } from "@/components/ui/toaster";
 import './App.css';
 
@@ -33,6 +34,7 @@ function App() {
               <Route path="/planos" element={<Planos />} />
               <Route path="/contatos" element={<Contatos />} />
               <Route path="/whatsapp" element={<WhatsApp />} />
+              <Route path="/configuracoes" element={<Configuracoes />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </ProtectedLayout>

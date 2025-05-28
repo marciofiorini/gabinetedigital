@@ -17,6 +17,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { Bell, User, LogOut, Settings } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export const UserMenu = () => {
   const { user, profile, signOut } = useAuth();
@@ -94,9 +95,11 @@ export const UserMenu = () => {
             </div>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <DropdownMenuItem>
-            <Settings className="w-4 h-4 mr-2" />
-            Configurações
+          <DropdownMenuItem asChild>
+            <Link to="/configuracoes" className="flex items-center w-full">
+              <Settings className="w-4 h-4 mr-2" />
+              Configurações
+            </Link>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={signOut} className="text-red-600">

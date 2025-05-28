@@ -63,7 +63,14 @@ export default function Demandas() {
         return;
       }
 
-      setDemandas(data || []);
+      // Type assertion to ensure compatibility with our Demanda interface
+      const typedDemandas = (data || []).map(item => ({
+        ...item,
+        prioridade: item.prioridade as 'baixa' | 'media' | 'alta' | 'urgente',
+        status: item.status as 'pendente' | 'em_andamento' | 'concluida' | 'cancelada'
+      }));
+
+      setDemandas(typedDemandas);
     } catch (error) {
       console.error('Erro ao buscar demandas:', error);
       toast({
