@@ -16,6 +16,7 @@ import Planos from './pages/Planos';
 import Contatos from './pages/Contatos';
 import WhatsApp from './pages/WhatsApp';
 import Configuracoes from './pages/Configuracoes';
+import Analytics from './pages/Analytics';
 import { Toaster } from "@/components/ui/toaster";
 import './App.css';
 
@@ -39,6 +40,7 @@ function App() {
               <Route path="/contatos" element={<Contatos />} />
               <Route path="/whatsapp" element={<WhatsApp />} />
               <Route path="/configuracoes" element={<Configuracoes />} />
+              <Route path="/analytics" element={<Analytics />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </ProtectedLayout>
