@@ -47,6 +47,12 @@ export const Sidebar = ({ isOpen }: SidebarProps) => {
       path: "/lideres"
     },
     {
+      id: "contatos",
+      title: "Contatos",
+      icon: MessageSquare,
+      path: "/contatos"
+    },
+    {
       id: "crm",
       title: "CRM Kanban",
       icon: Kanban,

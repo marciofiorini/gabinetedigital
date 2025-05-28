@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import Demandas from "./pages/Demandas";
 import Lideres from "./pages/Lideres";
+import Contatos from "./pages/Contatos";
 import CrmKanban from "./pages/CrmKanban";
 import WhatsApp from "./pages/WhatsApp";
 import Instagram from "./pages/Instagram";
@@ -27,6 +28,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/demandas" element={<Demandas />} />
           <Route path="/lideres" element={<Lideres />} />
+          <Route path="/contatos" element={<Contatos />} />
           <Route path="/crm" element={<CrmKanban />} />
           <Route path="/whatsapp" element={<WhatsApp />} />
           <Route path="/instagram" element={<Instagram />} />
