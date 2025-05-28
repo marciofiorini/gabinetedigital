@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,38 +7,40 @@ import { Progress } from "@/components/ui/progress";
 import { Users, MessageSquare, Calendar, MessageCircle, Instagram, TrendingUp, AlertCircle, CheckCircle2, Clock } from "lucide-react";
 import { Sidebar } from "@/components/Sidebar";
 import { Header } from "@/components/Header";
+import { useDashboardStats } from "@/hooks/useDashboardStats";
 
 const Index = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const { stats, loading } = useDashboardStats();
 
-  const stats = [
+  const statsCards = [
     {
-      title: "Demandas Ativas",
-      value: "47",
+      title: "Demandas Pendentes",
+      value: loading ? "..." : stats.demandas_pendentes.toString(),
       change: "+12%",
       icon: AlertCircle,
       color: "text-orange-600",
       bgColor: "bg-orange-100"
     },
     {
-      title: "Líderes Cadastrados",
-      value: "234",
+      title: "Leads Novos",
+      value: loading ? "..." : stats.leads_novos.toString(),
       change: "+8%",
       icon: Users,
       color: "text-blue-600",
       bgColor: "bg-blue-100"
     },
     {
-      title: "Grupos WhatsApp",
-      value: "18",
+      title: "Novos Contatos Hoje",
+      value: loading ? "..." : stats.novos_contatos_hoje.toString(),
       change: "+2",
       icon: MessageCircle,
       color: "text-green-600",
       bgColor: "bg-green-100"
     },
     {
-      title: "Eventos do Mês",
-      value: "12",
+      title: "Eventos Hoje",
+      value: loading ? "..." : stats.eventos_hoje.toString(),
       change: "+4",
       icon: Calendar,
       color: "text-purple-600",
@@ -92,7 +95,7 @@ const Index = () => {
 
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            {stats.map((stat, index) => {
+            {statsCards.map((stat, index) => {
               const Icon = stat.icon;
               return (
                 <Card key={index} className="hover:shadow-lg transition-shadow duration-200">

@@ -254,7 +254,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_dashboard_stats: {
+        Args: { target_user_id: string }
+        Returns: {
+          demandas_pendentes: number
+          eventos_hoje: number
+          novos_contatos_hoje: number
+          leads_novos: number
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

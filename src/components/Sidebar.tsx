@@ -30,6 +30,7 @@ import {
   CheckCircle
 } from "lucide-react";
 import { useAuth } from '@/contexts/AuthContext';
+import { useDashboardStats } from '@/hooks/useDashboardStats';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -38,6 +39,7 @@ interface SidebarProps {
 export const Sidebar = ({ isOpen }: SidebarProps) => {
   const location = useLocation();
   const { profile } = useAuth();
+  const { stats, loading } = useDashboardStats();
 
   const menuItems = [
     { name: 'Dashboard', icon: LayoutDashboard, path: '/' },
@@ -84,20 +86,36 @@ export const Sidebar = ({ isOpen }: SidebarProps) => {
               <h4 className="text-sm font-semibold text-blue-900">Resumo Hoje</h4>
               <TrendingUp className="w-4 h-4 text-blue-600" />
             </div>
-            <div className="space-y-1 text-xs text-blue-800">
-              <div className="flex justify-between">
-                <span>Demandas pendentes:</span>
-                <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">5</Badge>
+            {loading ? (
+              <div className="text-xs text-blue-800">Carregando...</div>
+            ) : (
+              <div className="space-y-1 text-xs text-blue-800">
+                <div className="flex justify-between">
+                  <span>Demandas pendentes:</span>
+                  <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
+                    {stats.demandas_pendentes}
+                  </Badge>
+                </div>
+                <div className="flex justify-between">
+                  <span>Eventos hoje:</span>
+                  <Badge variant="secondary" className="bg-green-100 text-green-800">
+                    {stats.eventos_hoje}
+                  </Badge>
+                </div>
+                <div className="flex justify-between">
+                  <span>Novos contatos:</span>
+                  <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                    {stats.novos_contatos_hoje}
+                  </Badge>
+                </div>
+                <div className="flex justify-between">
+                  <span>Leads novos:</span>
+                  <Badge variant="secondary" className="bg-purple-100 text-purple-800">
+                    {stats.leads_novos}
+                  </Badge>
+                </div>
               </div>
-              <div className="flex justify-between">
-                <span>Eventos hoje:</span>
-                <Badge variant="secondary" className="bg-green-100 text-green-800">3</Badge>
-              </div>
-              <div className="flex justify-between">
-                <span>Novos contatos:</span>
-                <Badge variant="secondary" className="bg-blue-100 text-blue-800">12</Badge>
-              </div>
-            </div>
+            )}
           </CardContent>
         </Card>
 
