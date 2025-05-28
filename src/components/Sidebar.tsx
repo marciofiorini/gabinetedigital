@@ -15,7 +15,8 @@ import {
   AlertCircle,
   Mail,
   Clock,
-  Kanban
+  Kanban,
+  CreditCard
 } from "lucide-react";
 
 interface SidebarProps {
@@ -88,6 +89,12 @@ export const Sidebar = ({ isOpen }: SidebarProps) => {
       path: "/relatorios"
     },
     {
+      id: "planos",
+      title: "Planos",
+      icon: CreditCard,
+      path: "/planos"
+    },
+    {
       id: "configuracoes",
       title: "Configurações",
       icon: Settings,
@@ -153,11 +160,11 @@ export const Sidebar = ({ isOpen }: SidebarProps) => {
         <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center">
-              <span className="text-white font-semibold text-sm">DE</span>
+              <span className="text-white font-semibold text-sm">PL</span>
             </div>
             <div className="flex-1">
-              <p className="font-semibold text-sm text-gray-900">Deputado</p>
-              <p className="text-xs text-gray-600">Estadual</p>
+              <p className="font-semibold text-sm text-gray-900">Político</p>
+              <p className="text-xs text-gray-600">Configurar perfil</p>
             </div>
           </div>
         </div>

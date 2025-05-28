@@ -12,6 +12,7 @@ import WhatsApp from "./pages/WhatsApp";
 import Instagram from "./pages/Instagram";
 import Email from "./pages/Email";
 import Agenda from "./pages/Agenda";
+import Planos from "./pages/Planos";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -31,6 +32,7 @@ const App = () => (
           <Route path="/instagram" element={<Instagram />} />
           <Route path="/email" element={<Email />} />
           <Route path="/agenda" element={<Agenda />} />
+          <Route path="/planos" element={<Planos />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

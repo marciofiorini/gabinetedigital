@@ -59,7 +59,7 @@ export const Header = ({ onToggleSidebar }: HeaderProps) => {
 
         {/* User Avatar */}
         <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center">
-          <span className="text-white font-semibold text-sm">DE</span>
+          <span className="text-white font-semibold text-sm">PL</span>
         </div>
       </div>
     </header>
