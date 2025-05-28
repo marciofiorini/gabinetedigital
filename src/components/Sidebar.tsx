@@ -27,7 +27,8 @@ import {
   Menu,
   TrendingUp,
   AlertCircle,
-  CheckCircle
+  CheckCircle,
+  BarChart3
 } from "lucide-react";
 import { useAuth } from '@/contexts/AuthContext';
 import { useDashboardStats } from '@/hooks/useDashboardStats';
@@ -51,6 +52,7 @@ export const Sidebar = ({ isOpen }: SidebarProps) => {
     { name: 'Instagram', icon: Instagram, path: '/instagram' },
     { name: 'E-mail', icon: Mail, path: '/email' },
     { name: 'Demandas', icon: FileText, path: '/demandas' },
+    { name: 'Analytics', icon: BarChart3, path: '/analytics' },
     { name: 'Planos', icon: BookOpen, path: '/planos' },
   ];
 
