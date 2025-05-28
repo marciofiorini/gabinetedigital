@@ -16,7 +16,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { Bell, User, LogOut, Settings, MarkAsReadIcon } from 'lucide-react';
+import { Bell, User, LogOut, Settings, CheckCheck } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -58,7 +58,7 @@ export const UserMenu = () => {
               <h4 className="font-semibold">Notificações</h4>
               {unreadCount > 0 && (
                 <Button variant="ghost" size="sm" onClick={markAllAsRead}>
-                  <MarkAsReadIcon className="w-4 h-4 mr-1" />
+                  <CheckCheck className="w-4 h-4 mr-1" />
                   Marcar todas como lidas
                 </Button>
               )}

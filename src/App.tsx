@@ -4,7 +4,9 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import { ProtectedLayout } from '@/components/ProtectedLayout';
 import Index from './pages/Index';
 import Agenda from './pages/Agenda';
+import AgendaCompleta from './pages/AgendaCompleta';
 import CrmKanban from './pages/CrmKanban';
+import CrmCompleto from './pages/CrmCompleto';
 import Demandas from './pages/Demandas';
 import Email from './pages/Email';
 import Instagram from './pages/Instagram';
@@ -26,7 +28,9 @@ function App() {
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/agenda" element={<Agenda />} />
+              <Route path="/agenda-completa" element={<AgendaCompleta />} />
               <Route path="/crm" element={<CrmKanban />} />
+              <Route path="/crm-completo" element={<CrmCompleto />} />
               <Route path="/demandas" element={<Demandas />} />
               <Route path="/email" element={<Email />} />
               <Route path="/instagram" element={<Instagram />} />

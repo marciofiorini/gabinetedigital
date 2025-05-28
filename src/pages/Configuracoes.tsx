@@ -11,7 +11,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useUserSettings } from '@/hooks/useUserSettings';
 import { useUpdateProfile } from '@/hooks/useUpdateProfile';
 import { useUserRoles } from '@/hooks/useUserRoles';
-import { User, Bell, Shield, Database, Eye, Lock, Globe } from 'lucide-react';
+import { AdminPanel } from '@/components/AdminPanel';
+import { User, Bell, Shield, Database, Globe, Lock } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
 export default function Configuracoes() {
@@ -29,7 +30,6 @@ export default function Configuracoes() {
   const handleSaveProfile = async () => {
     if (name.trim()) {
       await updateProfile(name.trim());
-      // A page will automatically update via AuthContext
     }
   };
 
@@ -58,6 +58,14 @@ export default function Configuracoes() {
     }
   };
 
+  const getRoleLabel = (role: string) => {
+    switch (role) {
+      case 'admin': return 'Administrador';
+      case 'moderator': return 'Moderador';
+      default: return 'Usuário';
+    }
+  };
+
   return (
     <div className="p-6 space-y-6 max-w-4xl mx-auto">
       <div>
@@ -82,8 +90,7 @@ export default function Configuracoes() {
               <span className="text-sm font-medium">Papéis:</span>
               {roles.map((role) => (
                 <Badge key={role} className={getRoleColor(role)}>
-                  {role === 'admin' ? 'Administrador' : 
-                   role === 'moderator' ? 'Moderador' : 'Usuário'}
+                  {getRoleLabel(role)}
                 </Badge>
               ))}
             </div>
@@ -121,7 +128,7 @@ export default function Configuracoes() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Shield className="w-5 h-5" />
+              <Lock className="w-5 h-5" />
               Segurança
             </CardTitle>
             <CardDescription>
@@ -274,6 +281,24 @@ export default function Configuracoes() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Painel Administrativo - apenas para admins */}
+        {isAdmin() && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Shield className="w-5 h-5" />
+                Administração
+              </CardTitle>
+              <CardDescription>
+                Ferramentas administrativas do sistema
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <AdminPanel />
+            </CardContent>
+          </Card>
+        )}
 
         {/* Dados */}
         <Card>

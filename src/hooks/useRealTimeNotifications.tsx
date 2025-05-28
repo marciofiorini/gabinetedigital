@@ -35,7 +35,14 @@ export const useRealTimeNotifications = () => {
         .limit(50);
 
       if (error) throw error;
-      setNotifications(data || []);
+      
+      // Type assertion to ensure data matches our Notification interface
+      const typedNotifications = (data || []).map(item => ({
+        ...item,
+        type: item.type as 'info' | 'success' | 'warning' | 'error'
+      }));
+      
+      setNotifications(typedNotifications);
     } catch (error) {
       console.error('Erro ao buscar notificações:', error);
     } finally {
@@ -111,7 +118,11 @@ export const useRealTimeNotifications = () => {
           filter: `user_id=eq.${user.id}`
         },
         (payload) => {
-          const newNotification = payload.new as Notification;
+          const newNotification = {
+            ...payload.new,
+            type: payload.new.type as 'info' | 'success' | 'warning' | 'error'
+          } as Notification;
+          
           setNotifications(prev => [newNotification, ...prev]);
           
           // Mostrar toast para nova notificação
@@ -131,7 +142,11 @@ export const useRealTimeNotifications = () => {
           filter: `user_id=eq.${user.id}`
         },
         (payload) => {
-          const updatedNotification = payload.new as Notification;
+          const updatedNotification = {
+            ...payload.new,
+            type: payload.new.type as 'info' | 'success' | 'warning' | 'error'
+          } as Notification;
+          
           setNotifications(prev =>
             prev.map(notif =>
               notif.id === updatedNotification.id ? updatedNotification : notif
