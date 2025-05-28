@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -6,7 +5,7 @@ import {
   Users, 
   MessageSquare, 
   Calendar, 
-  WhatsApp, 
+  MessageCircle, 
   Instagram, 
   BarChart3, 
   Settings, 
@@ -52,7 +51,7 @@ export const Sidebar = ({ isOpen }: SidebarProps) => {
     {
       id: "whatsapp",
       title: "WhatsApp",
-      icon: WhatsApp,
+      icon: MessageCircle,
       path: "/whatsapp"
     },
     {

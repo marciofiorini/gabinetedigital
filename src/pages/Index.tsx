@@ -1,10 +1,9 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Users, MessageSquare, Calendar, WhatsApp, Instagram, TrendingUp, AlertCircle, CheckCircle2, Clock } from "lucide-react";
+import { Users, MessageSquare, Calendar, MessageCircle, Instagram, TrendingUp, AlertCircle, CheckCircle2, Clock } from "lucide-react";
 import { Sidebar } from "@/components/Sidebar";
 import { Header } from "@/components/Header";
 
@@ -32,7 +31,7 @@ const Index = () => {
       title: "Grupos WhatsApp",
       value: "18",
       change: "+2",
-      icon: WhatsApp,
+      icon: MessageCircle,
       color: "text-green-600",
       bgColor: "bg-green-100"
     },
