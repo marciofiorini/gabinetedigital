@@ -1,22 +1,27 @@
-
 import { useState } from "react";
+import { useLocation, Link } from 'react-router-dom';
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { useNavigate, useLocation } from "react-router-dom";
 import { 
-  Users, 
-  MessageSquare, 
+  Sheet, 
+  SheetContent, 
+  SheetDescription, 
+  SheetHeader, 
+  SheetTitle, 
+  SheetTrigger 
+} from "@/components/ui/sheet";
+import { 
+  LayoutDashboard, 
   Calendar, 
+  Target, 
+  Users, 
+  Crown, 
   MessageCircle, 
   Instagram, 
-  BarChart3, 
-  Settings, 
-  Home,
-  AlertCircle,
-  Mail,
-  Clock,
-  Kanban,
-  CreditCard
+  Mail, 
+  FileText, 
+  BookOpen,
+  Menu
 } from "lucide-react";
 
 interface SidebarProps {
@@ -24,157 +29,84 @@ interface SidebarProps {
 }
 
 export const Sidebar = ({ isOpen }: SidebarProps) => {
-  const navigate = useNavigate();
   const location = useLocation();
 
   const menuItems = [
-    {
-      id: "dashboard",
-      title: "Dashboard",
-      icon: Home,
-      path: "/"
-    },
-    {
-      id: "demandas",
-      title: "Demandas",
-      icon: AlertCircle,
-      path: "/demandas"
-    },
-    {
-      id: "lideres",
-      title: "Líderes",
-      icon: Users,
-      path: "/lideres"
-    },
-    {
-      id: "contatos",
-      title: "Contatos",
-      icon: MessageSquare,
-      path: "/contatos"
-    },
-    {
-      id: "crm",
-      title: "CRM Kanban",
-      icon: Kanban,
-      path: "/crm"
-    },
-    {
-      id: "whatsapp",
-      title: "WhatsApp",
-      icon: MessageCircle,
-      path: "/whatsapp"
-    },
-    {
-      id: "instagram",
-      title: "Instagram",
-      icon: Instagram,
-      path: "/instagram"
-    },
-    {
-      id: "email",
-      title: "E-mail",
-      icon: Mail,
-      path: "/email"
-    },
-    {
-      id: "agenda",
-      title: "Agenda",
-      icon: Calendar,
-      path: "/agenda"
-    },
-    {
-      id: "agendamentos",
-      title: "Agendamentos",
-      icon: Clock,
-      path: "/agendamentos"
-    },
-    {
-      id: "relatorios",
-      title: "Relatórios",
-      icon: BarChart3,
-      path: "/relatorios"
-    },
-    {
-      id: "planos",
-      title: "Planos",
-      icon: CreditCard,
-      path: "/planos"
-    },
-    {
-      id: "configuracoes",
-      title: "Configurações",
-      icon: Settings,
-      path: "/configuracoes"
-    }
+    { name: 'Dashboard', icon: LayoutDashboard, path: '/' },
+    { name: 'Agenda', icon: Calendar, path: '/agenda' },
+    { name: 'CRM', icon: Target, path: '/crm' },
+    { name: 'Contatos', icon: Users, path: '/contatos' },
+    { name: 'Líderes', icon: Crown, path: '/lideres' },
+    { name: 'WhatsApp', icon: MessageCircle, path: '/whatsapp' },
+    { name: 'Instagram', icon: Instagram, path: '/instagram' },
+    { name: 'E-mail', icon: Mail, path: '/email' },
+    { name: 'Demandas', icon: FileText, path: '/demandas' },
+    { name: 'Planos', icon: BookOpen, path: '/planos' },
   ];
 
   return (
-    <div
-      className={cn(
-        "fixed left-0 top-0 z-50 h-full bg-white border-r border-gray-200 transition-all duration-300",
-        isOpen ? "w-64" : "w-16"
-      )}
-    >
-      {/* Logo */}
-      <div className="flex items-center justify-center h-16 border-b border-gray-200">
-        {isOpen ? (
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-              <BarChart3 className="w-5 h-5 text-white" />
-            </div>
-            <span className="font-bold text-lg bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              Gabinete Digital
-            </span>
-          </div>
-        ) : (
-          <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-            <BarChart3 className="w-5 h-5 text-white" />
-          </div>
+    <>
+      {/* Sidebar para telas maiores */}
+      <aside
+        className={cn(
+          "fixed left-0 top-0 z-50 h-full w-64 bg-white border-r border-gray-200 px-6 py-4 transition-transform transform-none",
+          isOpen ? "translate-x-0" : "-translate-x-full",
+          "hidden lg:block" // Esconde em telas pequenas, mostra em telas grandes
         )}
-      </div>
+      >
+        <div className="flex items-center justify-center h-16">
+          <span className="text-lg font-bold text-indigo-700">
+            Painel Político
+          </span>
+        </div>
+        <nav className="mt-6">
+          {menuItems.map((item) => (
+            <Link
+              to={item.path}
+              key={item.name}
+              className={cn(
+                "flex items-center px-4 py-2 text-gray-700 rounded-md hover:bg-gray-100 transition-colors",
+                location.pathname === item.path ? "bg-gray-100 font-semibold" : ""
+              )}
+            >
+              <item.icon className="w-5 h-5 mr-3" />
+              <span>{item.name}</span>
+            </Link>
+          ))}
+        </nav>
+      </aside>
 
-      {/* Navigation */}
-      <nav className="mt-6 px-3">
-        <div className="space-y-1">
-          {menuItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = location.pathname === item.path;
-            
-            return (
-              <Button
-                key={item.id}
-                variant={isActive ? "default" : "ghost"}
+      {/* Sheet (Sidebar) para telas menores */}
+      <Sheet>
+        <SheetTrigger asChild className="lg:hidden"> {/* Esconde o trigger em telas grandes */}
+          <Button variant="outline" size="icon">
+            <Menu className="h-[1.2rem] w-[1.2rem]" />
+          </Button>
+        </SheetTrigger>
+        <SheetContent side="left" className="sm:max-w-sm">
+          <SheetHeader>
+            <SheetTitle>Painel Político</SheetTitle>
+            <SheetDescription>
+              Navegue pelas opções do sistema.
+            </SheetDescription>
+          </SheetHeader>
+          <nav className="mt-6">
+            {menuItems.map((item) => (
+              <Link
+                to={item.path}
+                key={item.name}
                 className={cn(
-                  "w-full justify-start gap-3 h-11 transition-all duration-200",
-                  isActive 
-                    ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 shadow-lg" 
-                    : "text-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 hover:text-blue-700",
-                  !isOpen && "justify-center px-2"
+                  "flex items-center px-4 py-2 text-gray-700 rounded-md hover:bg-gray-100 transition-colors",
+                  location.pathname === item.path ? "bg-gray-100 font-semibold" : ""
                 )}
-                onClick={() => navigate(item.path)}
               >
-                <Icon className="w-5 h-5 flex-shrink-0" />
-                {isOpen && <span className="font-medium">{item.title}</span>}
-              </Button>
-            );
-          })}
-        </div>
-      </nav>
-
-      {/* User Info */}
-      {isOpen && (
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center">
-              <span className="text-white font-semibold text-sm">PL</span>
-            </div>
-            <div className="flex-1">
-              <p className="font-semibold text-sm text-gray-900">Político</p>
-              <p className="text-xs text-gray-600">Configurar perfil</p>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+                <item.icon className="w-5 h-5 mr-3" />
+                <span>{item.name}</span>
+              </Link>
+            ))}
+          </nav>
+        </SheetContent>
+      </Sheet>
+    </>
   );
 };
