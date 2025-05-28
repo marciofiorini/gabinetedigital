@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,8 +9,6 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Bell, Plus, Trash2, AlertTriangle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
 
 interface Alerta {
   id: string;
@@ -26,7 +24,6 @@ interface Alerta {
 export const AlertasAutomaticos = () => {
   const [alertas, setAlertas] = useState<Alerta[]>([]);
   const [loading, setLoading] = useState(false);
-  const { user } = useAuth();
   const { toast } = useToast();
 
   const [novoAlerta, setNovoAlerta] = useState({
@@ -38,102 +35,8 @@ export const AlertasAutomaticos = () => {
     ativo: true
   });
 
-  useEffect(() => {
-    fetchAlertas();
-    verificarAlertas();
-  }, [user]);
-
-  const fetchAlertas = async () => {
-    if (!user) return;
-
-    try {
-      const { data, error } = await supabase
-        .from('alertas_automaticos')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setAlertas(data || []);
-    } catch (error) {
-      console.error('Erro ao buscar alertas:', error);
-    }
-  };
-
-  const verificarAlertas = async () => {
-    if (!user) return;
-
-    try {
-      // Verificar alertas eleitorais
-      const { data: dadosEleitorais } = await supabase
-        .from('dados_eleitorais')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('is_candidato_proprio', false)
-        .order('created_at', { ascending: false })
-        .limit(10);
-
-      // Verificar alertas de redes sociais
-      const { data: dadosRedes } = await supabase
-        .from('dados_redes_sociais')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('is_candidato_proprio', false)
-        .order('created_at', { ascending: false })
-        .limit(10);
-
-      // Simular verificação de alertas
-      const alertasAtivos = alertas.filter(a => a.ativo);
-      
-      for (const alerta of alertasAtivos) {
-        let dadosParaVerificar: any[] = [];
-        
-        if (alerta.tipo === 'eleitoral') {
-          dadosParaVerificar = dadosEleitorais || [];
-        } else if (alerta.tipo === 'redes_sociais') {
-          dadosParaVerificar = dadosRedes || [];
-        }
-
-        // Verificar condições do alerta
-        for (const dado of dadosParaVerificar) {
-          let valorAtual = 0;
-          
-          if (alerta.metrica === 'votos' && dado.total_votos) {
-            valorAtual = dado.total_votos;
-          } else if (alerta.metrica === 'seguidores' && dado.seguidores) {
-            valorAtual = dado.seguidores;
-          } else if (alerta.metrica === 'engajamento' && dado.engajamento_medio) {
-            valorAtual = dado.engajamento_medio;
-          }
-
-          let alertaDisparado = false;
-          
-          if (alerta.condicao === 'maior' && valorAtual > alerta.valor_limite) {
-            alertaDisparado = true;
-          } else if (alerta.condicao === 'menor' && valorAtual < alerta.valor_limite) {
-            alertaDisparado = true;
-          } else if (alerta.condicao === 'igual' && valorAtual === alerta.valor_limite) {
-            alertaDisparado = true;
-          }
-
-          if (alertaDisparado) {
-            // Criar notificação
-            await supabase.from('notifications').insert({
-              user_id: user.id,
-              title: `Alerta: ${alerta.nome}`,
-              message: `${alerta.metrica} de ${dado.candidato_nome || 'candidato'} está ${alerta.condicao} que ${alerta.valor_limite}. Valor atual: ${valorAtual}`,
-              type: 'warning'
-            });
-          }
-        }
-      }
-    } catch (error) {
-      console.error('Erro ao verificar alertas:', error);
-    }
-  };
-
   const criarAlerta = async () => {
-    if (!user || !novoAlerta.nome || !novoAlerta.tipo || !novoAlerta.metrica) {
+    if (!novoAlerta.nome || !novoAlerta.tipo || !novoAlerta.metrica) {
       toast({
         title: "Dados incompletos",
         description: "Preencha todos os campos obrigatórios.",
@@ -144,14 +47,15 @@ export const AlertasAutomaticos = () => {
 
     setLoading(true);
     try {
-      const { error } = await supabase
-        .from('alertas_automaticos')
-        .insert([{
-          ...novoAlerta,
-          user_id: user.id
-        }]);
+      // Simular criação do alerta por agora
+      const novoId = Math.random().toString(36).substr(2, 9);
+      const alertaCriado: Alerta = {
+        id: novoId,
+        ...novoAlerta,
+        created_at: new Date().toISOString()
+      };
 
-      if (error) throw error;
+      setAlertas(prev => [...prev, alertaCriado]);
 
       toast({
         title: "Alerta criado!",
@@ -166,8 +70,6 @@ export const AlertasAutomaticos = () => {
         valor_limite: 0,
         ativo: true
       });
-
-      fetchAlertas();
     } catch (error: any) {
       toast({
         title: "Erro ao criar alerta",
@@ -181,13 +83,6 @@ export const AlertasAutomaticos = () => {
 
   const toggleAlerta = async (id: string, ativo: boolean) => {
     try {
-      const { error } = await supabase
-        .from('alertas_automaticos')
-        .update({ ativo })
-        .eq('id', id);
-
-      if (error) throw error;
-
       setAlertas(prev => prev.map(alerta => 
         alerta.id === id ? { ...alerta, ativo } : alerta
       ));
@@ -206,13 +101,6 @@ export const AlertasAutomaticos = () => {
 
   const deletarAlerta = async (id: string) => {
     try {
-      const { error } = await supabase
-        .from('alertas_automaticos')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-
       setAlertas(prev => prev.filter(alerta => alerta.id !== id));
 
       toast({

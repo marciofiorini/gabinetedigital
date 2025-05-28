@@ -9,6 +9,45 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      alertas_automaticos: {
+        Row: {
+          ativo: boolean
+          condicao: string
+          created_at: string
+          id: string
+          metrica: string
+          nome: string
+          tipo: string
+          updated_at: string
+          user_id: string
+          valor_limite: number
+        }
+        Insert: {
+          ativo?: boolean
+          condicao: string
+          created_at?: string
+          id?: string
+          metrica: string
+          nome: string
+          tipo: string
+          updated_at?: string
+          user_id: string
+          valor_limite?: number
+        }
+        Update: {
+          ativo?: boolean
+          condicao?: string
+          created_at?: string
+          id?: string
+          metrica?: string
+          nome?: string
+          tipo?: string
+          updated_at?: string
+          user_id?: string
+          valor_limite?: number
+        }
+        Relationships: []
+      }
       comparativos_temporais: {
         Row: {
           candidato_nome: string

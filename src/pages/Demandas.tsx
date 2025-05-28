@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Plus, Search, Filter, Eye, Edit, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -26,8 +27,8 @@ interface Demanda {
 export default function Demandas() {
   const [demandas, setDemandas] = useState<Demanda[]>([]);
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
-  const [priorityFilter, setPriorityFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [priorityFilter, setPriorityFilter] = useState('all');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
@@ -43,11 +44,11 @@ export default function Demandas() {
         .select('*')
         .ilike('titulo', `%${search}%`);
 
-      if (statusFilter) {
+      if (statusFilter && statusFilter !== 'all') {
         query = query.eq('status', statusFilter);
       }
 
-      if (priorityFilter) {
+      if (priorityFilter && priorityFilter !== 'all') {
         query = query.eq('prioridade', priorityFilter);
       }
 
@@ -134,12 +135,12 @@ export default function Demandas() {
           }}
         />
 
-        <Select onValueChange={setStatusFilter}>
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
           <SelectTrigger className="w-full">
             <SelectValue placeholder="Filtrar por Status" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Todos os Status</SelectItem>
+            <SelectItem value="all">Todos os Status</SelectItem>
             <SelectItem value="pendente">Pendente</SelectItem>
             <SelectItem value="em_andamento">Em Andamento</SelectItem>
             <SelectItem value="concluida">Concluída</SelectItem>
@@ -147,12 +148,12 @@ export default function Demandas() {
           </SelectContent>
         </Select>
 
-        <Select onValueChange={setPriorityFilter}>
+        <Select value={priorityFilter} onValueChange={setPriorityFilter}>
           <SelectTrigger className="w-full">
             <SelectValue placeholder="Filtrar por Prioridade" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Todas as Prioridades</SelectItem>
+            <SelectItem value="all">Todas as Prioridades</SelectItem>
             <SelectItem value="baixa">Baixa</SelectItem>
             <SelectItem value="media">Média</SelectItem>
             <SelectItem value="alta">Alta</SelectItem>
