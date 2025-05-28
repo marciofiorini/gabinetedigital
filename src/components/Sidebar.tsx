@@ -28,7 +28,10 @@ import {
   TrendingUp,
   AlertCircle,
   CheckCircle,
-  BarChart3
+  BarChart3,
+  Globe,
+  Scale,
+  PieChart
 } from "lucide-react";
 import { useAuth } from '@/contexts/AuthContext';
 import { useDashboardStats } from '@/hooks/useDashboardStats';
@@ -56,6 +59,9 @@ export const Sidebar = ({ isOpen }: SidebarProps) => {
     { name: 'Monitor Redes', icon: TrendingUp, path: '/monitor-redes' },
     { name: 'Comunicação', icon: MessageCircle, path: '/comunicacao' },
     { name: 'Banco Mídia', icon: FileText, path: '/banco-midia' },
+    { name: 'Portal Cidadão', icon: Globe, path: '/portal-cidadao' },
+    { name: 'Projetos de Lei', icon: Scale, path: '/projetos-lei' },
+    { name: 'Pesquisas', icon: PieChart, path: '/pesquisas' },
     { name: 'Planos', icon: BookOpen, path: '/planos' },
   ];
 

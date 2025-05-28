@@ -20,6 +20,9 @@ import Analytics from './pages/Analytics';
 import MonitorRedes from './pages/MonitorRedes';
 import ComunicacaoIntegrada from './pages/ComunicacaoIntegrada';
 import BancoMidia from './pages/BancoMidia';
+import PortalCidadao from './pages/PortalCidadao';
+import ProjetosLei from './pages/ProjetosLei';
+import Pesquisas from './pages/Pesquisas';
 import { Toaster } from "@/components/ui/toaster";
 import './App.css';
 
@@ -47,6 +50,9 @@ function App() {
               <Route path="/monitor-redes" element={<MonitorRedes />} />
               <Route path="/comunicacao" element={<ComunicacaoIntegrada />} />
               <Route path="/banco-midia" element={<BancoMidia />} />
+              <Route path="/portal-cidadao" element={<PortalCidadao />} />
+              <Route path="/projetos-lei" element={<ProjetosLei />} />
+              <Route path="/pesquisas" element={<Pesquisas />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </ProtectedLayout>
