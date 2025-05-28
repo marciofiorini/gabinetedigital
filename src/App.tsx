@@ -17,6 +17,9 @@ import Contatos from './pages/Contatos';
 import WhatsApp from './pages/WhatsApp';
 import Configuracoes from './pages/Configuracoes';
 import Analytics from './pages/Analytics';
+import MonitorRedes from './pages/MonitorRedes';
+import ComunicacaoIntegrada from './pages/ComunicacaoIntegrada';
+import BancoMidia from './pages/BancoMidia';
 import { Toaster } from "@/components/ui/toaster";
 import './App.css';
 
@@ -41,6 +44,9 @@ function App() {
               <Route path="/whatsapp" element={<WhatsApp />} />
               <Route path="/configuracoes" element={<Configuracoes />} />
               <Route path="/analytics" element={<Analytics />} />
+              <Route path="/monitor-redes" element={<MonitorRedes />} />
+              <Route path="/comunicacao" element={<ComunicacaoIntegrada />} />
+              <Route path="/banco-midia" element={<BancoMidia />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </ProtectedLayout>

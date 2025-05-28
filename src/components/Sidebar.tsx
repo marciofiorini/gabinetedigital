@@ -53,6 +53,9 @@ export const Sidebar = ({ isOpen }: SidebarProps) => {
     { name: 'E-mail', icon: Mail, path: '/email' },
     { name: 'Demandas', icon: FileText, path: '/demandas' },
     { name: 'Analytics', icon: BarChart3, path: '/analytics' },
+    { name: 'Monitor Redes', icon: TrendingUp, path: '/monitor-redes' },
+    { name: 'Comunicação', icon: MessageCircle, path: '/comunicacao' },
+    { name: 'Banco Mídia', icon: FileText, path: '/banco-midia' },
     { name: 'Planos', icon: BookOpen, path: '/planos' },
   ];
 
