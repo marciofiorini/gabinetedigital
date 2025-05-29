@@ -9,19 +9,19 @@ interface HeaderProps {
 
 export const Header = ({ onToggleSidebar }: HeaderProps) => {
   return (
-    <header className="h-8 border-b border-gray-200 bg-white flex items-center justify-between px-4 lg:px-6 flex-shrink-0">
+    <header className="h-12 border-b border-gray-200 bg-white flex items-center justify-between px-4 lg:px-6 flex-shrink-0">
       <div className="flex items-center gap-4">
         <Button
           variant="ghost"
           size="sm"
           onClick={onToggleSidebar}
-          className="h-6 w-6 p-0"
+          className="h-8 w-8 p-0"
         >
-          <Menu className="w-3 h-3" />
+          <Menu className="w-4 h-4" />
         </Button>
       </div>
       
-      <div className="flex items-center">
+      <div className="flex items-center h-full">
         <UserMenu />
       </div>
     </header>
