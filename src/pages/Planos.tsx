@@ -73,7 +73,7 @@ const Planos = () => {
 
   return (
     <LayoutMain>
-      <div className="w-full max-w-none space-y-8">
+      <div className="space-y-8">
         <div className="text-center">
           <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
             Escolha Seu Plano
@@ -84,7 +84,7 @@ const Planos = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 w-full">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {planos.map((plano, index) => {
             const Icon = plano.icon;
             return (
