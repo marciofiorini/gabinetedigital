@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -263,11 +262,11 @@ const Pesquisas = () => {
                         <label className="block text-sm font-medium mb-2">Pergunta 1</label>
                         <Input placeholder="Como você avalia a gestão municipal?" />
                         <div className="mt-2 grid grid-cols-2 gap-2">
-                          <Input placeholder="Opção 1" size="sm" />
-                          <Input placeholder="Opção 2" size="sm" />
+                          <Input placeholder="Opção 1" />
+                          <Input placeholder="Opção 2" />
                         </div>
                       </div>
-                      <Button variant="outline" size="sm">
+                      <Button variant="outline">
                         <Plus className="w-4 h-4 mr-1" />
                         Adicionar Pergunta
                       </Button>
