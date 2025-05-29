@@ -71,24 +71,24 @@ const Index = () => {
   ];
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {/* Header Section */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
+        <h1 className="text-2xl font-bold text-gray-900 mb-1">
           Dashboard - Gabinete Digital
         </h1>
-        <p className="text-gray-600">
+        <p className="text-gray-600 text-sm">
           Gestão estratégica e integrada do seu mandato
         </p>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {statsCards.map((stat, index) => {
           const Icon = stat.icon;
           return (
             <Card key={index} className="hover:shadow-lg transition-shadow duration-200">
-              <CardContent className="p-6">
+              <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-600 mb-1">
@@ -114,8 +114,8 @@ const Index = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Métricas de Engajamento */}
         <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center gap-2 text-lg">
               <TrendingUp className="w-5 h-5" />
               Métricas de Engajamento
             </CardTitle>
@@ -152,8 +152,8 @@ const Index = () => {
 
         {/* Próximos Eventos */}
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center gap-2 text-lg">
               <Calendar className="w-5 h-5" />
               Próximos Eventos
             </CardTitle>
@@ -188,23 +188,23 @@ const Index = () => {
 
       {/* Atividades Recentes */}
       <Card>
-        <CardHeader>
-          <CardTitle>Atividades Recentes</CardTitle>
+        <CardHeader className="pb-4">
+          <CardTitle className="text-lg">Atividades Recentes</CardTitle>
           <CardDescription>
             Últimas ações e atualizações do sistema
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
+          <div className="space-y-3">
             {recentActivities.map((activity) => (
-              <div key={activity.id} className="flex items-center gap-4 p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+              <div key={activity.id} className="flex items-center gap-4 p-3 border rounded-lg hover:bg-gray-50 transition-colors">
                 <div className="flex-shrink-0">
                   {activity.type === 'demanda' && <AlertCircle className="w-5 h-5 text-orange-600" />}
                   {activity.type === 'evento' && <Calendar className="w-5 h-5 text-blue-600" />}
                   {activity.type === 'whatsapp' && <MessageSquare className="w-5 h-5 text-green-600" />}
                 </div>
                 <div className="flex-1">
-                  <h4 className="font-medium text-gray-900">{activity.title}</h4>
+                  <h4 className="font-medium text-gray-900 text-sm">{activity.title}</h4>
                   <p className="text-sm text-gray-600">{activity.description}</p>
                 </div>
                 <div className="text-right">
