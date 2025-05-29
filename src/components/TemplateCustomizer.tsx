@@ -1,13 +1,11 @@
 
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { MessageSquare, Wand2, Eye, Send } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Wand2, Send } from "lucide-react";
+import { TemplateEditor } from "./template/TemplateEditor";
+import { VariablesList } from "./template/VariablesList";
+import { MessagePreview } from "./template/MessagePreview";
 
 interface MessageTemplate {
   id: string;
@@ -42,7 +40,6 @@ export const TemplateCustomizer = ({
   const [variaveis, setVariaveis] = useState<Record<string, string>>({});
   const [assuntoCustomizado, setAssuntoCustomizado] = useState('');
   const [conteudoCustomizado, setConteudoCustomizado] = useState('');
-  const [showPreview, setShowPreview] = useState(false);
 
   useEffect(() => {
     if (template) {
@@ -101,19 +98,11 @@ export const TemplateCustomizer = ({
     onClose();
   };
 
-  const getVariavelSuggestions = (variavel: string) => {
-    switch (variavel) {
-      case 'ASSUNTO':
-        return ['Reunião comunitária', 'Projeto de lei', 'Demanda local', 'Evento público'];
-      case 'TEMA':
-        return ['Saúde', 'Educação', 'Segurança', 'Infraestrutura', 'Transporte'];
-      case 'PAUTA':
-        return ['Orçamento participativo', 'Obra pública', 'Política social', 'Meio ambiente'];
-      case 'LOCAL':
-        return ['Câmara Municipal', 'Centro comunitário', 'Gabinete', 'Via videoconferência'];
-      default:
-        return [];
-    }
+  const handleVariableChange = (variavel: string, value: string) => {
+    setVariaveis(prev => ({
+      ...prev,
+      [variavel]: value
+    }));
   };
 
   if (!template) return null;
@@ -134,122 +123,27 @@ export const TemplateCustomizer = ({
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Lado esquerdo - Personalização */}
           <div className="space-y-4">
-            <div>
-              <Label>Assunto</Label>
-              <Textarea
-                value={assuntoCustomizado}
-                onChange={(e) => setAssuntoCustomizado(e.target.value)}
-                className="min-h-[60px]"
-              />
-            </div>
+            <TemplateEditor
+              assunto={assuntoCustomizado}
+              conteudo={conteudoCustomizado}
+              onAssuntoChange={setAssuntoCustomizado}
+              onConteudoChange={setConteudoCustomizado}
+            />
 
-            <div>
-              <Label>Conteúdo</Label>
-              <Textarea
-                value={conteudoCustomizado}
-                onChange={(e) => setConteudoCustomizado(e.target.value)}
-                className="min-h-[150px]"
-              />
-            </div>
-
-            {template.variaveis.length > 0 && (
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm">Variáveis</CardTitle>
-                  <CardDescription className="text-xs">
-                    Personalize os valores das variáveis
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {template.variaveis.map((variavel) => (
-                    <div key={variavel}>
-                      <Label className="text-xs font-medium text-gray-700">
-                        {`{${variavel}}`}
-                      </Label>
-                      <div className="mt-1">
-                        <Input
-                          value={variaveis[variavel] || ''}
-                          onChange={(e) => setVariaveis(prev => ({
-                            ...prev,
-                            [variavel]: e.target.value
-                          }))}
-                          placeholder={`Digite o valor para ${variavel}`}
-                          className="text-sm"
-                        />
-                        {getVariavelSuggestions(variavel).length > 0 && (
-                          <div className="flex flex-wrap gap-1 mt-2">
-                            {getVariavelSuggestions(variavel).map((sugestao) => (
-                              <Badge
-                                key={sugestao}
-                                variant="outline"
-                                className="text-xs cursor-pointer hover:bg-gray-100"
-                                onClick={() => setVariaveis(prev => ({
-                                  ...prev,
-                                  [variavel]: sugestao
-                                }))}
-                              >
-                                {sugestao}
-                              </Badge>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
-            )}
+            <VariablesList
+              variaveis={template.variaveis}
+              variaveisValues={variaveis}
+              onVariableChange={handleVariableChange}
+            />
           </div>
 
           {/* Lado direito - Preview */}
-          <div className="space-y-4">
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm flex items-center gap-2">
-                  <Eye className="w-4 h-4" />
-                  Preview da Mensagem
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <div>
-                    <Label className="text-xs font-medium text-gray-600">Assunto:</Label>
-                    <div className="mt-1 p-3 bg-gray-50 rounded border text-sm">
-                      {substituirVariaveis(assuntoCustomizado)}
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <Label className="text-xs font-medium text-gray-600">Mensagem:</Label>
-                    <div className="mt-1 p-3 bg-gray-50 rounded border text-sm whitespace-pre-wrap">
-                      {substituirVariaveis(conteudoCustomizado)}
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Variáveis não preenchidas */}
-            {template.variaveis.some(v => !variaveis[v]) && (
-              <Card className="border-yellow-200 bg-yellow-50">
-                <CardContent className="pt-4">
-                  <div className="flex items-center gap-2 text-yellow-800 text-sm">
-                    <MessageSquare className="w-4 h-4" />
-                    <span className="font-medium">Variáveis pendentes:</span>
-                  </div>
-                  <div className="flex flex-wrap gap-1 mt-2">
-                    {template.variaveis
-                      .filter(v => !variaveis[v])
-                      .map(variavel => (
-                        <Badge key={variavel} variant="outline" className="text-yellow-700 border-yellow-300">
-                          {`{${variavel}}`}
-                        </Badge>
-                      ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-          </div>
+          <MessagePreview
+            assunto={assuntoCustomizado}
+            conteudo={conteudoCustomizado}
+            variaveis={template.variaveis}
+            variaveisValues={variaveis}
+          />
         </div>
 
         <DialogFooter>
