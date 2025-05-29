@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useLocation, Link } from 'react-router-dom';
 import { cn } from "@/lib/utils";
@@ -27,7 +26,9 @@ import {
   CheckCircle,
   BarChart3,
   ChevronDown,
-  ChevronRight
+  ChevronRight,
+  Scale,
+  Vote
 } from "lucide-react";
 import { useAuth } from '@/contexts/AuthContext';
 import { useDashboardStats } from '@/hooks/useDashboardStats';
@@ -63,6 +64,7 @@ export const SidebarNew = ({ isOpen }: SidebarProps) => {
     { name: 'Líderes', icon: Crown, path: '/lideres', minPlan: 'premium' as UserPlan },
     { name: 'CRM', icon: Target, path: '/crm', minPlan: 'premium' as UserPlan },
     { name: 'Demandas', icon: FileText, path: '/demandas', minPlan: 'basic' as UserPlan },
+    { name: 'Projetos de Lei', icon: Scale, path: '/projetos-lei', minPlan: 'basic' as UserPlan },
     { name: 'Analytics', icon: BarChart3, path: '/analytics', minPlan: 'premium' as UserPlan },
   ];
 
