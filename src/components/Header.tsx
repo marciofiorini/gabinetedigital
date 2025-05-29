@@ -15,7 +15,7 @@ export const Header = ({ onToggleSidebar }: HeaderProps) => {
           variant="ghost"
           size="sm"
           onClick={onToggleSidebar}
-          className="h-6 w-6 p-0"
+          className="h-full w-auto px-2 flex items-center justify-center"
         >
           <Menu className="w-4 h-4" />
         </Button>
