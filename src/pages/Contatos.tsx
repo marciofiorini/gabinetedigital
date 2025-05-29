@@ -388,15 +388,6 @@ const Contatos = () => {
                         {getSortIcon('regiao')}
                       </div>
                     </TableHead>
-                    <TableHead 
-                      className="cursor-pointer select-none hover:bg-gray-50 transition-colors w-20"
-                      onClick={() => handleSort('interacoes')}
-                    >
-                      <div className="flex items-center gap-2">
-                        Interações
-                        {getSortIcon('interacoes')}
-                      </div>
-                    </TableHead>
                     <TableHead className="w-28">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -462,11 +453,6 @@ const Contatos = () => {
                           <div className="flex items-center gap-1 text-xs text-gray-600">
                             <MapPin className="w-3 h-3" />
                             {contato.regiao}
-                          </div>
-                        </TableCell>
-                        <TableCell className="p-2">
-                          <div className="text-center">
-                            <span className="font-semibold text-indigo-600 text-sm">{contato.interacoes}</span>
                           </div>
                         </TableCell>
                         <TableCell className="p-2">
