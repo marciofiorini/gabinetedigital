@@ -1,58 +1,90 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Sidebar } from "@/components/Sidebar";
-import { Header } from "@/components/Header";
 import { NovoLiderModal } from "@/components/NovoLiderModal";
 import { UploadCSVLideres } from "@/components/UploadCSVLideres";
-import { Plus, Search, Filter, Phone, Mail, MapPin, Users, Star, Upload } from "lucide-react";
+import { 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
+} from "@/components/ui/table";
+import { 
+  Plus, 
+  Search, 
+  Filter, 
+  Phone, 
+  Mail, 
+  MapPin, 
+  Users, 
+  Crown, 
+  Star,
+  Award,
+  TrendingUp,
+  Upload
+} from "lucide-react";
 
 const Lideres = () => {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isNovoLiderModalOpen, setIsNovoLiderModalOpen] = useState(false);
 
   const lideres = [
     {
       id: 1,
-      nome: "José da Silva",
-      cargo: "Presidente da Associação",
-      regiao: "Centro",
-      whatsapp: "(11) 99999-9999",
-      email: "jose@email.com",
+      nome: "Carlos Eduardo Silva",
+      cargo: "Presidente Associação",
+      organizacao: "Associação de Moradores Zona Sul",
+      email: "carlos@associacao.com",
+      telefone: "(21) 99999-1111",
+      regiao: "Zona Sul",
       influencia: "Alta",
-      seguidores: 1200,
-      grupos: 5,
-      categoria: "Associação",
-      ativo: true
+      seguidores: 2500,
+      categoria: "Líder Comunitário",
+      ultimoContato: "2024-05-27"
     },
     {
       id: 2,
-      nome: "Maria Santos",
-      cargo: "Líder Comunitária",
-      regiao: "Zona Norte",
-      whatsapp: "(11) 88888-8888",
-      email: "maria@email.com",
-      influencia: "Média",
-      seguidores: 800,
-      grupos: 3,
-      categoria: "Comunidade",
-      ativo: true
+      nome: "Maria Santos Oliveira",
+      cargo: "Diretora",
+      organizacao: "Sindicato dos Professores",
+      email: "maria@sindicato.com",
+      telefone: "(21) 99999-2222",
+      regiao: "Centro",
+      influencia: "Muito Alta",
+      seguidores: 4200,
+      categoria: "Líder Sindical",
+      ultimoContato: "2024-05-26"
     },
     {
       id: 3,
-      nome: "Carlos Oliveira",
-      cargo: "Presidente do Sindicato",
-      regiao: "Industrial",
-      whatsapp: "(11) 77777-7777",
-      email: "carlos@email.com",
-      influencia: "Muito Alta",
-      seguidores: 2500,
-      grupos: 8,
-      categoria: "Sindicato",
-      ativo: false
+      nome: "João Pedro Costa",
+      cargo: "Coordenador",
+      organizacao: "ONG Meio Ambiente Verde",
+      email: "joao@ongverde.org",
+      telefone: "(21) 99999-3333",
+      regiao: "Zona Norte",
+      influencia: "Alta",
+      seguidores: 1800,
+      categoria: "Líder ONGs",
+      ultimoContato: "2024-05-25"
+    },
+    {
+      id: 4,
+      nome: "Ana Paula Ribeiro",
+      cargo: "Empresária",
+      organizacao: "Câmara de Comércio",
+      email: "ana@camara.com",
+      telefone: "(21) 99999-4444",
+      regiao: "Zona Oeste",
+      influencia: "Média",
+      seguidores: 1200,
+      categoria: "Líder Empresarial",
+      ultimoContato: "2024-05-24"
     }
   ];
 
@@ -66,172 +98,204 @@ const Lideres = () => {
     }
   };
 
+  const getCategoriaColor = (categoria: string) => {
+    switch (categoria) {
+      case "Líder Comunitário": return "bg-blue-100 text-blue-800 border-blue-200";
+      case "Líder Sindical": return "bg-purple-100 text-purple-800 border-purple-200";
+      case "Líder ONGs": return "bg-green-100 text-green-800 border-green-200";
+      case "Líder Empresarial": return "bg-indigo-100 text-indigo-800 border-indigo-200";
+      default: return "bg-gray-100 text-gray-800 border-gray-200";
+    }
+  };
+
+  const getInfluenciaIcon = (influencia: string) => {
+    switch (influencia) {
+      case "Muito Alta": return <Award className="w-4 h-4 text-red-500" />;
+      case "Alta": return <Star className="w-4 h-4 text-orange-500" />;
+      case "Média": return <TrendingUp className="w-4 h-4 text-yellow-500" />;
+      default: return <Users className="w-4 h-4 text-gray-500" />;
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-green-50 to-emerald-100 flex">
-      <Sidebar isOpen={sidebarOpen} />
-      
-      <div className={`flex-1 transition-all duration-300 ${sidebarOpen ? 'ml-64' : 'ml-16'}`}>
-        <Header onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
-        
-        <main className="p-6">
-          {/* Header */}
-          <div className="mb-8">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-3xl font-bold bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent mb-2">
-                  Líderes da Base Eleitoral
-                </h1>
-                <p className="text-gray-600">
-                  Gerencie suas lideranças locais e regionais
-                </p>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2">
+            Líderes
+          </h1>
+          <p className="text-gray-600">
+            Gerencie relacionamentos com líderes comunitários e influenciadores
+          </p>
+        </div>
+        <Button 
+          onClick={() => setIsNovoLiderModalOpen(true)}
+          className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          Novo Líder
+        </Button>
+      </div>
+
+      <Tabs defaultValue="lista" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="lista">Lista de Líderes</TabsTrigger>
+          <TabsTrigger value="upload">
+            <Upload className="w-4 h-4 mr-2" />
+            Upload CSV
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="lista" className="space-y-6">
+          {/* Filtros */}
+          <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+            <CardContent className="p-6">
+              <div className="flex flex-col lg:flex-row gap-4">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <Input
+                    placeholder="Buscar líderes..."
+                    className="pl-10 border-gray-200 focus:border-indigo-500 transition-colors"
+                  />
+                </div>
+                <Button variant="outline" className="hover:bg-indigo-50 hover:border-indigo-300 transition-colors">
+                  <Filter className="w-4 h-4 mr-2" />
+                  Filtros
+                </Button>
               </div>
-              <Button 
-                onClick={() => setIsModalOpen(true)}
-                className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Novo Líder
-              </Button>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
 
-          <Tabs defaultValue="lista" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="lista">Lista de Líderes</TabsTrigger>
-              <TabsTrigger value="upload">
-                <Upload className="w-4 h-4 mr-2" />
-                Upload CSV
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="lista" className="space-y-6">
-              {/* Filtros */}
-              <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+          {/* Stats Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            {[
+              { label: "Total Líderes", valor: "89", cor: "from-indigo-500 to-indigo-600", icon: Crown },
+              { label: "Influência Alta", valor: "24", cor: "from-orange-500 to-orange-600", icon: Star },
+              { label: "Organizações", valor: "45", cor: "from-purple-500 to-purple-600", icon: Users },
+              { label: "Seguidores Total", valor: "12.8k", cor: "from-pink-500 to-pink-600", icon: TrendingUp }
+            ].map((stat, index) => (
+              <Card key={index} className="border-0 shadow-lg hover:shadow-xl transition-all duration-200 bg-white/80 backdrop-blur-sm">
                 <CardContent className="p-6">
-                  <div className="flex flex-col lg:flex-row gap-4">
-                    <div className="relative flex-1">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                      <Input
-                        placeholder="Buscar líderes..."
-                        className="pl-10 border-gray-200 focus:border-green-500 transition-colors"
-                      />
+                  <div className="flex items-center">
+                    <div className={`w-12 h-12 rounded-lg bg-gradient-to-r ${stat.cor} flex items-center justify-center mr-4`}>
+                      <stat.icon className="text-white w-6 h-6" />
                     </div>
-                    <Button variant="outline" className="hover:bg-green-50 hover:border-green-300 transition-colors">
-                      <Filter className="w-4 h-4 mr-2" />
-                      Filtros
-                    </Button>
+                    <div>
+                      <p className="text-sm text-gray-600">{stat.label}</p>
+                      <p className="text-2xl font-bold text-gray-900">{stat.valor}</p>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
+            ))}
+          </div>
 
-              {/* Stats Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                {[
-                  { label: "Total de Líderes", valor: "234", cor: "from-green-500 to-green-600" },
-                  { label: "Ativos", valor: "198", cor: "from-blue-500 to-blue-600" },
-                  { label: "Grupos WhatsApp", valor: "45", cor: "from-purple-500 to-purple-600" },
-                  { label: "Alcance Total", valor: "12.5k", cor: "from-orange-500 to-orange-600" }
-                ].map((stat, index) => (
-                  <Card key={index} className="border-0 shadow-lg hover:shadow-xl transition-all duration-200 bg-white/80 backdrop-blur-sm">
-                    <CardContent className="p-6">
-                      <div className="flex items-center">
-                        <div className={`w-12 h-12 rounded-lg bg-gradient-to-r ${stat.cor} flex items-center justify-center mr-4`}>
-                          <Users className="text-white w-6 h-6" />
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-600">{stat.label}</p>
-                          <p className="text-2xl font-bold text-gray-900">{stat.valor}</p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-
-              {/* Lista de Líderes */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-                {lideres.map((lider) => (
-                  <Card key={lider.id} className="border-0 shadow-lg hover:shadow-xl transition-all duration-200 bg-white/80 backdrop-blur-sm hover:bg-white/90">
-                    <CardContent className="p-6">
-                      <div className="flex items-start justify-between mb-4">
-                        <div className="flex items-center">
-                          <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-blue-500 rounded-full flex items-center justify-center mr-3">
-                            <span className="text-white font-semibold text-lg">
+          {/* Tabela de Líderes */}
+          <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle className="text-xl bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                Lista de Líderes
+              </CardTitle>
+              <CardDescription>
+                Ordenado por nível de influência
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Líder</TableHead>
+                    <TableHead>Organização</TableHead>
+                    <TableHead>Categoria</TableHead>
+                    <TableHead>Influência</TableHead>
+                    <TableHead>Região</TableHead>
+                    <TableHead>Seguidores</TableHead>
+                    <TableHead>Último Contato</TableHead>
+                    <TableHead>Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {lideres.map((lider) => (
+                    <TableRow key={lider.id} className="hover:bg-indigo-50/50">
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full flex items-center justify-center">
+                            <span className="text-white font-semibold text-sm">
                               {lider.nome.split(' ').map(n => n[0]).join('').slice(0, 2)}
                             </span>
                           </div>
                           <div>
-                            <h3 className="font-semibold text-lg text-gray-900">{lider.nome}</h3>
+                            <p className="font-semibold text-gray-900">{lider.nome}</p>
                             <p className="text-sm text-gray-600">{lider.cargo}</p>
+                            <div className="flex items-center gap-2 text-sm text-gray-600">
+                              <Mail className="w-3 h-3" />
+                              {lider.email}
+                            </div>
                           </div>
                         </div>
-                        <div className="flex items-center gap-1">
-                          {lider.ativo && (
-                            <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                          )}
+                      </TableCell>
+                      <TableCell>
+                        <p className="font-medium text-gray-900">{lider.organizacao}</p>
+                        <div className="flex items-center gap-1 text-sm text-gray-600">
+                          <Phone className="w-3 h-3" />
+                          {lider.telefone}
                         </div>
-                      </div>
-
-                      <div className="space-y-2 mb-4">
-                        <div className="flex items-center text-sm text-gray-600">
-                          <MapPin className="w-4 h-4 mr-2 text-gray-400" />
-                          {lider.regiao}
-                        </div>
-                        <div className="flex items-center text-sm text-gray-600">
-                          <Phone className="w-4 h-4 mr-2 text-gray-400" />
-                          {lider.whatsapp}
-                        </div>
-                        <div className="flex items-center text-sm text-gray-600">
-                          <Mail className="w-4 h-4 mr-2 text-gray-400" />
-                          {lider.email}
-                        </div>
-                      </div>
-
-                      <div className="flex flex-wrap gap-2 mb-4">
-                        <Badge className={`${getInfluenciaColor(lider.influencia)} border`}>
-                          <Star className="w-3 h-3 mr-1" />
-                          {lider.influencia}
-                        </Badge>
-                        <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                      </TableCell>
+                      <TableCell>
+                        <Badge className={`${getCategoriaColor(lider.categoria)} border`}>
                           {lider.categoria}
                         </Badge>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-4 mb-4">
-                        <div className="text-center">
-                          <p className="text-2xl font-bold text-green-600">{lider.seguidores}</p>
-                          <p className="text-xs text-gray-500">Seguidores</p>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          {getInfluenciaIcon(lider.influencia)}
+                          <Badge className={`${getInfluenciaColor(lider.influencia)} border`}>
+                            {lider.influencia}
+                          </Badge>
                         </div>
-                        <div className="text-center">
-                          <p className="text-2xl font-bold text-blue-600">{lider.grupos}</p>
-                          <p className="text-xs text-gray-500">Grupos</p>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1 text-sm text-gray-600">
+                          <MapPin className="w-3 h-3" />
+                          {lider.regiao}
                         </div>
-                      </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-center">
+                          <span className="font-semibold text-indigo-600">{lider.seguidores}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-sm text-gray-600">{lider.ultimoContato}</span>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
+                          <Button variant="outline" size="sm" className="hover:bg-indigo-50">
+                            Ver
+                          </Button>
+                          <Button size="sm" className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700">
+                            Contatar
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-                      <div className="flex gap-2">
-                        <Button variant="outline" size="sm" className="flex-1 hover:bg-green-50 hover:border-green-300">
-                          Ver Perfil
-                        </Button>
-                        <Button size="sm" className="flex-1 bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700">
-                          Editar
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </TabsContent>
+        <TabsContent value="upload" className="space-y-6">
+          <UploadCSVLideres />
+        </TabsContent>
+      </Tabs>
 
-            <TabsContent value="upload" className="space-y-6">
-              <UploadCSVLideres />
-            </TabsContent>
-          </Tabs>
-        </main>
-      </div>
-
+      {/* Modal */}
       <NovoLiderModal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
+        isOpen={isNovoLiderModalOpen}
+        onClose={() => setIsNovoLiderModalOpen(false)}
       />
     </div>
   );
