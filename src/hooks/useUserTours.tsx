@@ -12,23 +12,27 @@ export const useUserTours = () => {
     const loadTours = async () => {
       if (!user) return;
 
-      const { data } = await supabase
-        .from('user_tours')
-        .select('tour_name')
-        .eq('user_id', user.id)
-        .eq('completed', true);
+      try {
+        const { data } = await supabase
+          .from('user_tours')
+          .select('tour_name')
+          .eq('user_id', user.id)
+          .eq('completed', true);
 
-      if (data) {
-        const completed = data.map(t => t.tour_name);
-        setCompletedTours(completed);
-        
-        // Show welcome tour if not completed
-        if (!completed.includes('welcome')) {
+        if (data) {
+          const completed = data.map(t => t.tour_name);
+          setCompletedTours(completed);
+          
+          // Show welcome tour if not completed
+          if (!completed.includes('welcome')) {
+            setShowTour(true);
+          }
+        } else {
+          // First time user
           setShowTour(true);
         }
-      } else {
-        // First time user
-        setShowTour(true);
+      } catch (error) {
+        console.error('Erro ao carregar tours:', error);
       }
     };
 
@@ -38,17 +42,21 @@ export const useUserTours = () => {
   const completeTour = async (tourName: string) => {
     if (!user) return;
 
-    await supabase
-      .from('user_tours')
-      .upsert({
-        user_id: user.id,
-        tour_name: tourName,
-        completed: true,
-        completed_at: new Date().toISOString()
-      });
+    try {
+      await supabase
+        .from('user_tours')
+        .upsert({
+          user_id: user.id,
+          tour_name: tourName,
+          completed: true,
+          completed_at: new Date().toISOString()
+        });
 
-    setCompletedTours(prev => [...prev, tourName]);
-    setShowTour(false);
+      setCompletedTours(prev => [...prev, tourName]);
+      setShowTour(false);
+    } catch (error) {
+      console.error('Erro ao completar tour:', error);
+    }
   };
 
   const startTour = (tourName: string) => {

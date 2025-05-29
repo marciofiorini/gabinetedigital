@@ -31,7 +31,7 @@ export const useUserSettings = () => {
         .from('user_settings')
         .select('*')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
       if (error && error.code !== 'PGRST116') throw error;
       
@@ -44,16 +44,16 @@ export const useUserSettings = () => {
   };
 
   const updateSettings = async (newSettings: Partial<UserSettings>) => {
-    if (!user || !settings) return;
+    if (!user) return;
 
     try {
       const { error } = await supabase
         .from('user_settings')
-        .update({
+        .upsert({
+          user_id: user.id,
           ...newSettings,
           updated_at: new Date().toISOString()
-        })
-        .eq('user_id', user.id);
+        });
 
       if (error) throw error;
 

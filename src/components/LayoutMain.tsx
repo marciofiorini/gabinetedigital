@@ -23,7 +23,7 @@ export const LayoutMain = ({ children }: LayoutMainProps) => {
   const isFullWidth = fullWidthPages.includes(location.pathname);
 
   return (
-    <div className="min-h-screen bg-gray-50 flex w-full">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex w-full">
       <SidebarNew isOpen={sidebarOpen} />
       
       <div 

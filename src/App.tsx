@@ -22,56 +22,39 @@ import PortalCidadao from '@/pages/PortalCidadao';
 import ProjetosLei from '@/pages/ProjetosLei';
 import Pesquisas from '@/pages/Pesquisas';
 import Planos from '@/pages/Planos';
-import { useTheme } from '@/hooks/useTheme';
-import { useEffect } from 'react';
+import Configuracoes from '@/pages/Configuracoes';
 
 const queryClient = new QueryClient();
-
-function AppContent() {
-  const { isDarkMode } = useTheme();
-
-  useEffect(() => {
-    // Apply dark mode class to document
-    if (isDarkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [isDarkMode]);
-
-  return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
-      <Routes>
-        <Route path="/" element={<ProtectedLayout><Index /></ProtectedLayout>} />
-        <Route path="/analytics" element={<ProtectedLayout><Analytics /></ProtectedLayout>} />
-        <Route path="/crm" element={<ProtectedLayout><CrmKanban /></ProtectedLayout>} />
-        <Route path="/dashboard-comparativo" element={<ProtectedLayout><DashboardComparativo /></ProtectedLayout>} />
-        <Route path="/agenda" element={<ProtectedLayout><Agenda /></ProtectedLayout>} />
-        <Route path="/contatos" element={<ProtectedLayout><Contatos /></ProtectedLayout>} />
-        <Route path="/lideres" element={<ProtectedLayout><Lideres /></ProtectedLayout>} />
-        <Route path="/whatsapp" element={<ProtectedLayout><WhatsApp /></ProtectedLayout>} />
-        <Route path="/instagram" element={<ProtectedLayout><Instagram /></ProtectedLayout>} />
-        <Route path="/email" element={<ProtectedLayout><Email /></ProtectedLayout>} />
-        <Route path="/demandas" element={<ProtectedLayout><Demandas /></ProtectedLayout>} />
-        <Route path="/monitor-redes" element={<ProtectedLayout><MonitorRedes /></ProtectedLayout>} />
-        <Route path="/comunicacao" element={<ProtectedLayout><ComunicacaoIntegrada /></ProtectedLayout>} />
-        <Route path="/banco-midia" element={<ProtectedLayout><BancoMidia /></ProtectedLayout>} />
-        <Route path="/portal-cidadao" element={<ProtectedLayout><PortalCidadao /></ProtectedLayout>} />
-        <Route path="/projetos-lei" element={<ProtectedLayout><ProjetosLei /></ProtectedLayout>} />
-        <Route path="/pesquisas" element={<ProtectedLayout><Pesquisas /></ProtectedLayout>} />
-        <Route path="/planos" element={<ProtectedLayout><Planos /></ProtectedLayout>} />
-      </Routes>
-      <Toaster />
-    </div>
-  );
-}
 
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <Router>
-          <AppContent />
+          <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
+            <Routes>
+              <Route path="/" element={<ProtectedLayout><Index /></ProtectedLayout>} />
+              <Route path="/analytics" element={<ProtectedLayout><Analytics /></ProtectedLayout>} />
+              <Route path="/crm" element={<ProtectedLayout><CrmKanban /></ProtectedLayout>} />
+              <Route path="/dashboard-comparativo" element={<ProtectedLayout><DashboardComparativo /></ProtectedLayout>} />
+              <Route path="/agenda" element={<ProtectedLayout><Agenda /></ProtectedLayout>} />
+              <Route path="/contatos" element={<ProtectedLayout><Contatos /></ProtectedLayout>} />
+              <Route path="/lideres" element={<ProtectedLayout><Lideres /></ProtectedLayout>} />
+              <Route path="/whatsapp" element={<ProtectedLayout><WhatsApp /></ProtectedLayout>} />
+              <Route path="/instagram" element={<ProtectedLayout><Instagram /></ProtectedLayout>} />
+              <Route path="/email" element={<ProtectedLayout><Email /></ProtectedLayout>} />
+              <Route path="/demandas" element={<ProtectedLayout><Demandas /></ProtectedLayout>} />
+              <Route path="/monitor-redes" element={<ProtectedLayout><MonitorRedes /></ProtectedLayout>} />
+              <Route path="/comunicacao" element={<ProtectedLayout><ComunicacaoIntegrada /></ProtectedLayout>} />
+              <Route path="/banco-midia" element={<ProtectedLayout><BancoMidia /></ProtectedLayout>} />
+              <Route path="/portal-cidadao" element={<ProtectedLayout><PortalCidadao /></ProtectedLayout>} />
+              <Route path="/projetos-lei" element={<ProtectedLayout><ProjetosLei /></ProtectedLayout>} />
+              <Route path="/pesquisas" element={<ProtectedLayout><Pesquisas /></ProtectedLayout>} />
+              <Route path="/planos" element={<ProtectedLayout><Planos /></ProtectedLayout>} />
+              <Route path="/configuracoes" element={<ProtectedLayout><Configuracoes /></ProtectedLayout>} />
+            </Routes>
+            <Toaster />
+          </div>
         </Router>
       </AuthProvider>
     </QueryClientProvider>
