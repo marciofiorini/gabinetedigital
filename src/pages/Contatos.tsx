@@ -144,8 +144,8 @@ const Contatos = () => {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Page Title - Simplified */}
+    <div className="space-y-6 max-w-7xl mx-auto">
+      {/* Page Title */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2">

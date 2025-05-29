@@ -26,12 +26,8 @@ import {
   TrendingUp,
   CheckCircle,
   BarChart3,
-  Globe,
-  Scale,
-  PieChart,
   ChevronDown,
   ChevronRight,
-  Zap,
   Wrench
 } from "lucide-react";
 import { useAuth } from '@/contexts/AuthContext';
@@ -106,7 +102,7 @@ export const SidebarNew = ({ isOpen }: SidebarProps) => {
   const SidebarContent = () => (
     <div className="flex flex-col h-full bg-white">
       {/* Header */}
-      <div className="flex items-center justify-center h-16 border-b border-gray-200 px-4">
+      <div className="flex items-center justify-center h-14 border-b border-gray-200 px-4 flex-shrink-0">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
             <span className="text-white font-bold text-sm">PP</span>
@@ -170,7 +166,7 @@ export const SidebarNew = ({ isOpen }: SidebarProps) => {
       </nav>
 
       {/* Bottom Stats Card */}
-      <div className="p-4 border-t border-gray-200">
+      <div className="p-4 border-t border-gray-200 flex-shrink-0">
         <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
           <CardContent className="p-3">
             <div className="flex items-center justify-between mb-2">
@@ -217,7 +213,7 @@ export const SidebarNew = ({ isOpen }: SidebarProps) => {
       {/* Desktop Sidebar */}
       <aside
         className={cn(
-          "fixed left-0 top-0 z-40 h-full w-64 bg-white border-r border-gray-200 transition-transform duration-300",
+          "fixed left-0 top-0 z-40 h-full w-64 bg-white border-r border-gray-200 transition-transform duration-300 flex-shrink-0",
           isOpen ? "translate-x-0" : "-translate-x-full",
           "hidden lg:block"
         )}

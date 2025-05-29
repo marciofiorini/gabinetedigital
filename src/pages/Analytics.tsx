@@ -1,5 +1,4 @@
 
-import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DadosEleitoraisUpload } from "@/components/analytics/DadosEleitoraisUpload";
 import { DadosRedesSociaisUpload } from "@/components/analytics/DadosRedesSociaisUpload";
@@ -17,13 +16,12 @@ import {
   Settings, 
   FileText, 
   Bell, 
-  MapPin,
-  TrendingUp
+  MapPin
 } from "lucide-react";
 
 const Analytics = () => {
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-7xl mx-auto">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
