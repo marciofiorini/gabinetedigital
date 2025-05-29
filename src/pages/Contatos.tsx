@@ -71,6 +71,7 @@ const Contatos = () => {
       tipo: "Lead",
       email: "ana@email.com",
       telefone: "(21) 99999-1111",
+      whatsapp: "(21) 99999-1111",
       regiao: "Zona Sul",
       leadScore: 95,
       engajamento: "Muito Alto",
@@ -87,6 +88,7 @@ const Contatos = () => {
       tipo: "Líder",
       email: "jose@email.com",
       telefone: "(21) 99999-2222",
+      whatsapp: "(21) 99999-2222",
       regiao: "Centro",
       leadScore: 88,
       engajamento: "Alto",
@@ -103,6 +105,7 @@ const Contatos = () => {
       tipo: "Lead",
       email: "maria@email.com",
       telefone: "(21) 99999-3333",
+      whatsapp: "(21) 99999-3333",
       regiao: "Zona Norte",
       leadScore: 76,
       engajamento: "Alto",
@@ -119,6 +122,7 @@ const Contatos = () => {
       tipo: i % 2 === 0 ? "Lead" : "Líder",
       email: `contato${i + 4}@email.com`,
       telefone: `(21) 99999-${String(i + 1000).slice(-4)}`,
+      whatsapp: `(21) 99999-${String(i + 1000).slice(-4)}`,
       regiao: ["Zona Sul", "Centro", "Zona Norte", "Zona Oeste", "Barra"][i % 5],
       leadScore: Math.floor(Math.random() * 40) + 60,
       engajamento: ["Alto", "Médio", "Baixo"][i % 3],
@@ -345,9 +349,9 @@ const Contatos = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-16">#</TableHead>
+                    <TableHead className="w-12">#</TableHead>
                     <TableHead 
-                      className="cursor-pointer select-none hover:bg-gray-50 transition-colors min-w-[250px]"
+                      className="cursor-pointer select-none hover:bg-gray-50 transition-colors min-w-[200px]"
                       onClick={() => handleSort('nome')}
                     >
                       <div className="flex items-center gap-2">
@@ -355,6 +359,7 @@ const Contatos = () => {
                         {getSortIcon('nome')}
                       </div>
                     </TableHead>
+                    <TableHead className="w-32">WhatsApp</TableHead>
                     <TableHead className="w-20">Tipo</TableHead>
                     <TableHead 
                       className="cursor-pointer select-none hover:bg-gray-50 transition-colors w-20"
@@ -366,7 +371,7 @@ const Contatos = () => {
                       </div>
                     </TableHead>
                     <TableHead 
-                      className="cursor-pointer select-none hover:bg-gray-50 transition-colors w-32"
+                      className="cursor-pointer select-none hover:bg-gray-50 transition-colors w-28"
                       onClick={() => handleSort('engajamento')}
                     >
                       <div className="flex items-center gap-2">
@@ -375,7 +380,7 @@ const Contatos = () => {
                       </div>
                     </TableHead>
                     <TableHead 
-                      className="cursor-pointer select-none hover:bg-gray-50 transition-colors w-32"
+                      className="cursor-pointer select-none hover:bg-gray-50 transition-colors w-28"
                       onClick={() => handleSort('regiao')}
                     >
                       <div className="flex items-center gap-2">
@@ -384,7 +389,7 @@ const Contatos = () => {
                       </div>
                     </TableHead>
                     <TableHead 
-                      className="cursor-pointer select-none hover:bg-gray-50 transition-colors w-24"
+                      className="cursor-pointer select-none hover:bg-gray-50 transition-colors w-20"
                       onClick={() => handleSort('interacoes')}
                     >
                       <div className="flex items-center gap-2">
@@ -392,7 +397,7 @@ const Contatos = () => {
                         {getSortIcon('interacoes')}
                       </div>
                     </TableHead>
-                    <TableHead className="w-32">Ações</TableHead>
+                    <TableHead className="w-28">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -429,6 +434,12 @@ const Contatos = () => {
                                 {contato.email}
                               </div>
                             </div>
+                          </div>
+                        </TableCell>
+                        <TableCell className="p-2">
+                          <div className="flex items-center gap-1 text-xs text-gray-600">
+                            <MessageCircle className="w-3 h-3 text-green-500" />
+                            {contato.whatsapp}
                           </div>
                         </TableCell>
                         <TableCell className="p-2">

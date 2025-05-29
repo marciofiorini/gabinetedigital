@@ -41,7 +41,8 @@ import {
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
-  MapPin
+  MapPin,
+  MessageCircle
 } from "lucide-react";
 
 type SortField = 'nome' | 'influencia' | 'zona' | 'status';
@@ -65,6 +66,7 @@ const Lideres = () => {
       nome: "Carlos Mendes",
       email: "carlos@email.com",
       telefone: "(21) 99999-1111",
+      whatsapp: "(21) 99999-1111",
       zona: "Zona Sul",
       influencia: 9,
       status: "Ativo",
@@ -77,6 +79,7 @@ const Lideres = () => {
       nome: "Maria da Silva",
       email: "maria@email.com", 
       telefone: "(21) 99999-2222",
+      whatsapp: "(21) 99999-2222",
       zona: "Centro",
       influencia: 8,
       status: "Ativo",
@@ -88,7 +91,8 @@ const Lideres = () => {
       id: 3,
       nome: "João Santos",
       email: "joao@email.com",
-      telefone: "(21) 99999-3333", 
+      telefone: "(21) 99999-3333",
+      whatsapp: "(21) 99999-3333",
       zona: "Zona Norte",
       influencia: 7,
       status: "Ativo",
@@ -102,6 +106,7 @@ const Lideres = () => {
       nome: `Líder ${i + 4}`,
       email: `lider${i + 4}@email.com`,
       telefone: `(21) 99999-${String(i + 1000).slice(-4)}`,
+      whatsapp: `(21) 99999-${String(i + 1000).slice(-4)}`,
       zona: ["Zona Sul", "Centro", "Zona Norte", "Zona Oeste", "Barra"][i % 5],
       influencia: Math.floor(Math.random() * 6) + 4, // Entre 4 e 9
       status: ["Ativo", "Inativo"][i % 10 === 0 ? 1 : 0], // 90% ativos
@@ -282,7 +287,6 @@ const Lideres = () => {
             </CardContent>
           </Card>
 
-          {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             {[
               { label: "Total Líderes", valor: filteredLideres.length.toString(), cor: "from-indigo-500 to-indigo-600", icon: Users },
@@ -320,9 +324,9 @@ const Lideres = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-16">#</TableHead>
+                    <TableHead className="w-12">#</TableHead>
                     <TableHead 
-                      className="cursor-pointer select-none hover:bg-gray-50 transition-colors min-w-[250px]"
+                      className="cursor-pointer select-none hover:bg-gray-50 transition-colors min-w-[200px]"
                       onClick={() => handleSort('nome')}
                     >
                       <div className="flex items-center gap-2">
@@ -330,8 +334,9 @@ const Lideres = () => {
                         {getSortIcon('nome')}
                       </div>
                     </TableHead>
+                    <TableHead className="w-32">WhatsApp</TableHead>
                     <TableHead 
-                      className="cursor-pointer select-none hover:bg-gray-50 transition-colors w-32"
+                      className="cursor-pointer select-none hover:bg-gray-50 transition-colors w-28"
                       onClick={() => handleSort('influencia')}
                     >
                       <div className="flex items-center gap-2">
@@ -340,7 +345,7 @@ const Lideres = () => {
                       </div>
                     </TableHead>
                     <TableHead 
-                      className="cursor-pointer select-none hover:bg-gray-50 transition-colors w-32"
+                      className="cursor-pointer select-none hover:bg-gray-50 transition-colors w-28"
                       onClick={() => handleSort('zona')}
                     >
                       <div className="flex items-center gap-2">
@@ -349,7 +354,7 @@ const Lideres = () => {
                       </div>
                     </TableHead>
                     <TableHead 
-                      className="cursor-pointer select-none hover:bg-gray-50 transition-colors w-24"
+                      className="cursor-pointer select-none hover:bg-gray-50 transition-colors w-20"
                       onClick={() => handleSort('status')}
                     >
                       <div className="flex items-center gap-2">
@@ -357,7 +362,7 @@ const Lideres = () => {
                         {getSortIcon('status')}
                       </div>
                     </TableHead>
-                    <TableHead className="w-32">Ações</TableHead>
+                    <TableHead className="w-28">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -394,6 +399,12 @@ const Lideres = () => {
                                 {lider.email}
                               </div>
                             </div>
+                          </div>
+                        </TableCell>
+                        <TableCell className="p-2">
+                          <div className="flex items-center gap-1 text-xs text-gray-600">
+                            <MessageCircle className="w-3 h-3 text-green-500" />
+                            {lider.whatsapp}
                           </div>
                         </TableCell>
                         <TableCell className="p-2">
