@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -30,6 +29,9 @@ export default function Configuracoes() {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPasswordSection, setShowPasswordSection] = useState(false);
+
+  console.log('Configurações - Roles:', roles);
+  console.log('Configurações - Is Admin:', isAdmin());
 
   const handleSaveProfile = async () => {
     if (name.trim()) {
@@ -70,6 +72,12 @@ export default function Configuracoes() {
     }
   };
 
+  // Determinar quais abas mostrar
+  const tabsToShow = ['perfil', 'notificacoes', 'preferencias', 'dados'];
+  if (isAdmin()) {
+    tabsToShow.push('admin');
+  }
+
   return (
     <div className="p-6 space-y-6 max-w-6xl mx-auto">
       <div>
@@ -78,7 +86,7 @@ export default function Configuracoes() {
       </div>
 
       <Tabs defaultValue="perfil" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 lg:grid-cols-5">
+        <TabsList className={`grid w-full ${isAdmin() ? 'grid-cols-5' : 'grid-cols-4'}`}>
           <TabsTrigger value="perfil">Perfil</TabsTrigger>
           <TabsTrigger value="notificacoes">Notificações</TabsTrigger>
           <TabsTrigger value="preferencias">Preferências</TabsTrigger>
