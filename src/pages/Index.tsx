@@ -1,9 +1,11 @@
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Users, MessageSquare, Calendar, MessageCircle, TrendingUp, AlertCircle, Crown } from "lucide-react";
 import { useDashboardStats } from "@/hooks/useDashboardStats";
 import { DashboardCharts } from "@/components/DashboardCharts";
+import { AniversariantesSection } from "@/components/AniversariantesSection";
 
 const Index = () => {
   const { stats, loading } = useDashboardStats();
@@ -224,6 +226,9 @@ const Index = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Aniversariantes do Dia */}
+      <AniversariantesSection />
     </div>
   );
 };

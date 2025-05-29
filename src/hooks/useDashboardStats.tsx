@@ -8,7 +8,7 @@ interface DashboardStats {
   eventos_hoje: number;
   novos_contatos_hoje: number;
   leads_novos: number;
-  novos_lideres: number;
+  aniversariantes_hoje: number;
 }
 
 export const useDashboardStats = () => {
@@ -17,7 +17,7 @@ export const useDashboardStats = () => {
     eventos_hoje: 0,
     novos_contatos_hoje: 0,
     leads_novos: 0,
-    novos_lideres: 0
+    aniversariantes_hoje: 0
   });
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
@@ -38,15 +38,20 @@ export const useDashboardStats = () => {
         return;
       }
 
-      // Buscar novos líderes separadamente usando count()
-      const { count: novosLideres, error: lideresError } = await supabase
-        .from('lideres')
+      // Buscar aniversariantes do dia
+      const hoje = new Date();
+      const mesHoje = String(hoje.getMonth() + 1).padStart(2, '0');
+      const diaHoje = String(hoje.getDate()).padStart(2, '0');
+
+      const { count: aniversariantesHoje, error: aniversariantesError } = await supabase
+        .from('contatos')
         .select('*', { count: 'exact', head: true })
         .eq('user_id', user.id)
-        .gte('created_at', new Date().toISOString().split('T')[0]);
+        .not('data_nascimento', 'is', null)
+        .like('data_nascimento', `%-${mesHoje}-${diaHoje}`);
 
-      if (lideresError) {
-        console.error('Erro ao buscar novos líderes:', lideresError);
+      if (aniversariantesError) {
+        console.error('Erro ao buscar aniversariantes:', aniversariantesError);
       }
 
       if (data && data.length > 0) {
@@ -55,7 +60,7 @@ export const useDashboardStats = () => {
           eventos_hoje: Number(data[0].eventos_hoje),
           novos_contatos_hoje: Number(data[0].novos_contatos_hoje),
           leads_novos: Number(data[0].leads_novos),
-          novos_lideres: novosLideres || 0
+          aniversariantes_hoje: aniversariantesHoje || 0
         });
       }
     } catch (error) {

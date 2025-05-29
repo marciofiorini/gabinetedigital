@@ -34,7 +34,8 @@ import {
   Search,
   DoorOpen,
   Map,
-  AlertCircle
+  AlertCircle,
+  Cake
 } from "lucide-react";
 import { useAuth } from '@/contexts/AuthContext';
 import { useDashboardStats } from '@/hooks/useDashboardStats';
@@ -270,9 +271,10 @@ export const SidebarNew = ({ isOpen }: SidebarProps) => {
                   </Badge>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-blue-700">Novos líderes:</span>
-                  <Badge variant="secondary" className="bg-purple-100 text-purple-800 text-xs h-5">
-                    {stats.novos_lideres}
+                  <span className="text-blue-700">Aniversariantes do dia:</span>
+                  <Badge variant="secondary" className="bg-pink-100 text-pink-800 text-xs h-5 flex items-center gap-1">
+                    <Cake className="w-3 h-3" />
+                    {stats.aniversariantes_hoje}
                   </Badge>
                 </div>
               </div>
