@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -44,7 +45,8 @@ import {
   Eye,
   ArrowUpDown,
   ArrowUp,
-  ArrowDown
+  ArrowDown,
+  MapPin
 } from "lucide-react";
 
 type SortField = 'nome' | 'leadScore' | 'engajamento' | 'regiao' | 'interacoes' | 'ultimaInteracao';
