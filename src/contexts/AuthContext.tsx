@@ -2,7 +2,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 interface Profile {
   id: string;
@@ -30,7 +30,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [profile, setProfile] = useState<Profile | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
 
   useEffect(() => {
     // Configurar listener de mudanças de autenticação
@@ -94,11 +93,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (error) throw error;
     } catch (error: any) {
       console.error('Erro no login com Google:', error);
-      toast({
-        title: 'Erro no login',
-        description: error.message || 'Erro ao fazer login com Google',
-        variant: 'destructive'
-      });
+      toast.error('Erro ao fazer login com Google');
     } finally {
       setLoading(false);
     }
@@ -114,17 +109,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) throw error;
 
-      toast({
-        title: 'Login realizado com sucesso!',
-        description: 'Bem-vindo de volta!'
-      });
+      toast.success('Login realizado com sucesso!');
     } catch (error: any) {
       console.error('Erro no login:', error);
-      toast({
-        title: 'Erro no login',
-        description: error.message || 'Email ou senha incorretos',
-        variant: 'destructive'
-      });
+      toast.error(error.message || 'Email ou senha incorretos');
       throw error;
     } finally {
       setLoading(false);
@@ -146,17 +134,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) throw error;
 
-      toast({
-        title: 'Conta criada com sucesso!',
-        description: 'Verifique seu email para confirmar a conta.'
-      });
+      toast.success('Conta criada com sucesso! Verifique seu email para confirmar a conta.');
     } catch (error: any) {
       console.error('Erro no cadastro:', error);
-      toast({
-        title: 'Erro no cadastro',
-        description: error.message || 'Erro ao criar conta',
-        variant: 'destructive'
-      });
+      toast.error(error.message || 'Erro ao criar conta');
       throw error;
     } finally {
       setLoading(false);
@@ -172,17 +153,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setProfile(null);
       setSession(null);
 
-      toast({
-        title: 'Logout realizado',
-        description: 'Até logo!'
-      });
+      toast.success('Logout realizado');
     } catch (error: any) {
       console.error('Erro no logout:', error);
-      toast({
-        title: 'Erro',
-        description: 'Erro ao fazer logout',
-        variant: 'destructive'
-      });
+      toast.error('Erro ao fazer logout');
     }
   };
 

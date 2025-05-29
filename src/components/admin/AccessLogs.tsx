@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { Search, History, Filter, Download } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -20,8 +20,6 @@ interface AccessLog {
   old_value: string | null;
   new_value: string | null;
   created_at: string;
-  user_name?: string;
-  changed_by_name?: string;
 }
 
 export const AccessLogs = () => {
@@ -30,7 +28,6 @@ export const AccessLogs = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [actionFilter, setActionFilter] = useState('all');
-  const { toast } = useToast();
 
   const fetchLogs = async () => {
     try {
@@ -38,31 +35,17 @@ export const AccessLogs = () => {
       
       const { data, error } = await supabase
         .from('access_logs')
-        .select(`
-          *,
-          user:profiles!access_logs_user_id_fkey(name),
-          changed_by_profile:profiles!access_logs_changed_by_fkey(name)
-        `)
+        .select('*')
         .order('created_at', { ascending: false })
         .limit(100);
 
       if (error) throw error;
 
-      const logsWithNames = (data || []).map(log => ({
-        ...log,
-        user_name: log.user?.name,
-        changed_by_name: log.changed_by_profile?.name
-      }));
-
-      setLogs(logsWithNames);
-      setFilteredLogs(logsWithNames);
+      setLogs(data || []);
+      setFilteredLogs(data || []);
     } catch (error) {
       console.error('Erro ao buscar logs:', error);
-      toast({
-        title: 'Erro',
-        description: 'Não foi possível carregar os logs de acesso.',
-        variant: 'destructive'
-      });
+      toast.error('Não foi possível carregar os logs de acesso.');
     } finally {
       setLoading(false);
     }
@@ -83,8 +66,6 @@ export const AccessLogs = () => {
 
     if (search) {
       filtered = filtered.filter(log => 
-        log.user_name?.toLowerCase().includes(search.toLowerCase()) ||
-        log.changed_by_name?.toLowerCase().includes(search.toLowerCase()) ||
         log.action.toLowerCase().includes(search.toLowerCase()) ||
         log.role_changed?.toLowerCase().includes(search.toLowerCase())
       );
@@ -119,13 +100,11 @@ export const AccessLogs = () => {
 
   const exportLogs = () => {
     const csvContent = [
-      ['Data/Hora', 'Usuário', 'Ação', 'Papel', 'Alterado Por', 'Valor Anterior', 'Novo Valor'],
+      ['Data/Hora', 'Ação', 'Papel', 'Valor Anterior', 'Novo Valor'],
       ...filteredLogs.map(log => [
         new Date(log.created_at).toLocaleString('pt-BR'),
-        log.user_name || 'N/A',
         getActionLabel(log.action),
         log.role_changed || 'N/A',
-        log.changed_by_name || 'Sistema',
         log.old_value || 'N/A',
         log.new_value || 'N/A'
       ])
@@ -225,14 +204,6 @@ export const AccessLogs = () => {
                         )}
                       </div>
                       <div className="space-y-1 text-sm">
-                        <p>
-                          <strong>Usuário:</strong> {log.user_name || 'N/A'}
-                        </p>
-                        {log.changed_by_name && (
-                          <p>
-                            <strong>Alterado por:</strong> {log.changed_by_name}
-                          </p>
-                        )}
                         {log.old_value && log.new_value && (
                           <p>
                             <strong>Mudança:</strong> {log.old_value} → {log.new_value}

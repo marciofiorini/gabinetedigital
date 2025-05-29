@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { Shield, User, Settings } from 'lucide-react';
 
 interface User {
@@ -50,18 +50,13 @@ export const UserRoleEditor = ({ user, onUpdate, onCancel }: UserRoleEditorProps
   const [selectedRoles, setSelectedRoles] = useState<UserRole[]>(user.roles as UserRole[]);
   const [loading, setLoading] = useState(false);
   const { user: currentUser } = useAuth();
-  const { toast } = useToast();
 
   const handleRoleChange = (role: UserRole, checked: boolean) => {
     if (checked) {
       setSelectedRoles([...selectedRoles, role]);
     } else {
       if (role === 'admin' && user.id === currentUser?.id) {
-        toast({
-          title: 'Ação não permitida',
-          description: 'Você não pode remover seu próprio papel de administrador.',
-          variant: 'destructive'
-        });
+        toast.error('Você não pode remover seu próprio papel de administrador.');
         return;
       }
       setSelectedRoles(selectedRoles.filter(r => r !== role));
@@ -95,19 +90,11 @@ export const UserRoleEditor = ({ user, onUpdate, onCancel }: UserRoleEditorProps
         if (insertError) throw insertError;
       }
 
-      toast({
-        title: 'Papéis atualizados',
-        description: `Os papéis de ${user.name} foram atualizados com sucesso.`
-      });
-
+      toast.success(`Os papéis de ${user.name} foram atualizados com sucesso.`);
       onUpdate();
     } catch (error: any) {
       console.error('Erro ao atualizar papéis:', error);
-      toast({
-        title: 'Erro',
-        description: error.message || 'Não foi possível atualizar os papéis.',
-        variant: 'destructive'
-      });
+      toast.error(error.message || 'Não foi possível atualizar os papéis.');
     } finally {
       setLoading(false);
     }

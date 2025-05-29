@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { UserPlus, Mail, Key, User, Shield } from 'lucide-react';
 
 type UserRole = 'admin' | 'moderator' | 'user';
@@ -39,7 +39,6 @@ export const CreateUser = () => {
     roles: ['user'] as UserRole[]
   });
   const [loading, setLoading] = useState(false);
-  const { toast } = useToast();
 
   const handleRoleChange = (role: UserRole, checked: boolean) => {
     if (checked) {
@@ -59,90 +58,64 @@ export const CreateUser = () => {
     e.preventDefault();
     
     if (formData.password !== formData.confirmPassword) {
-      toast({
-        title: 'Erro',
-        description: 'As senhas não coincidem.',
-        variant: 'destructive'
-      });
+      toast.error('As senhas não coincidem.');
       return;
     }
 
     if (formData.password.length < 6) {
-      toast({
-        title: 'Erro',
-        description: 'A senha deve ter pelo menos 6 caracteres.',
-        variant: 'destructive'
-      });
+      toast.error('A senha deve ter pelo menos 6 caracteres.');
       return;
     }
 
     if (formData.roles.length === 0) {
-      toast({
-        title: 'Erro',
-        description: 'Selecione pelo menos um papel para o usuário.',
-        variant: 'destructive'
-      });
+      toast.error('Selecione pelo menos um papel para o usuário.');
       return;
     }
 
     try {
       setLoading(true);
 
-      // Criar usuário usando Admin API
-      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+      // Por enquanto, usar signup normal (Admin API pode ter limitações)
+      const { data: authData, error: authError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
-        email_confirm: true,
-        user_metadata: {
-          name: formData.name
+        options: {
+          data: {
+            name: formData.name
+          }
         }
       });
 
       if (authError) throw authError;
 
-      // Atualizar perfil
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .update({
-          name: formData.name
-        })
-        .eq('id', authData.user.id);
+      if (authData.user) {
+        // Adicionar papéis
+        const rolesToInsert = formData.roles.map(role => ({
+          user_id: authData.user.id,
+          role: role
+        }));
 
-      if (profileError) throw profileError;
+        const { error: rolesError } = await supabase
+          .from('user_roles')
+          .insert(rolesToInsert);
 
-      // Adicionar papéis
-      const rolesToInsert = formData.roles.map(role => ({
-        user_id: authData.user.id,
-        role: role
-      }));
+        if (rolesError) throw rolesError;
 
-      const { error: rolesError } = await supabase
-        .from('user_roles')
-        .insert(rolesToInsert);
+        toast.success(`${formData.name} foi adicionado ao sistema.`);
 
-      if (rolesError) throw rolesError;
-
-      toast({
-        title: 'Usuário criado com sucesso!',
-        description: `${formData.name} foi adicionado ao sistema.`
-      });
-
-      // Limpar formulário
-      setFormData({
-        name: '',
-        email: '',
-        password: '',
-        confirmPassword: '',
-        roles: ['user']
-      });
+        // Limpar formulário
+        setFormData({
+          name: '',
+          email: '',
+          password: '',
+          confirmPassword: '',
+          roles: ['user']
+        });
+      }
 
     } catch (error: any) {
       console.error('Erro ao criar usuário:', error);
-      toast({
-        title: 'Erro ao criar usuário',
-        description: error.message || 'Ocorreu um erro inesperado.',
-        variant: 'destructive'
-      });
+      toast.error(error.message || 'Ocorreu um erro inesperado.');
     } finally {
       setLoading(false);
     }
@@ -269,7 +242,7 @@ export const CreateUser = () => {
 
             <Alert>
               <AlertDescription>
-                O usuário receberá um email de confirmação e poderá fazer login imediatamente com as credenciais fornecidas.
+                O usuário receberá um email de confirmação e poderá fazer login com as credenciais fornecidas.
               </AlertDescription>
             </Alert>
 

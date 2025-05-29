@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { Search, UserCheck, Edit, Trash2, Shield, Eye } from 'lucide-react';
 import { UserRoleEditor } from './UserRoleEditor';
 
@@ -29,7 +29,6 @@ export const UserManagement = () => {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const { user } = useAuth();
-  const { toast } = useToast();
 
   const fetchUsers = async () => {
     try {
@@ -49,29 +48,17 @@ export const UserManagement = () => {
 
       if (rolesError) throw rolesError;
 
-      // Buscar dados de autenticação (apenas para admins)
-      const { data: authData } = await supabase.auth.admin.listUsers();
-
-      // Combinar dados
-      const usersWithRoles = profiles?.map(profile => {
-        const authUser = authData?.users?.find(au => au.id === profile.id);
-        return {
-          ...profile,
-          roles: userRoles?.filter(role => role.user_id === profile.id).map(role => role.role) || [],
-          last_sign_in_at: authUser?.last_sign_in_at,
-          email_confirmed_at: authUser?.email_confirmed_at
-        };
-      }) || [];
+      // Combinar dados (sem dados de auth admin por enquanto)
+      const usersWithRoles = (profiles || []).map(profile => ({
+        ...profile,
+        roles: userRoles?.filter(role => role.user_id === profile.id).map(role => role.role) || []
+      }));
 
       setUsers(usersWithRoles);
       setFilteredUsers(usersWithRoles);
     } catch (error) {
       console.error('Erro ao buscar usuários:', error);
-      toast({
-        title: 'Erro',
-        description: 'Não foi possível carregar os usuários.',
-        variant: 'destructive'
-      });
+      toast.error('Não foi possível carregar os usuários.');
     } finally {
       setLoading(false);
     }
@@ -92,31 +79,24 @@ export const UserManagement = () => {
 
   const handleDeleteUser = async (userId: string) => {
     if (userId === user?.id) {
-      toast({
-        title: 'Erro',
-        description: 'Você não pode excluir sua própria conta.',
-        variant: 'destructive'
-      });
+      toast.error('Você não pode excluir sua própria conta.');
       return;
     }
 
     try {
-      const { error } = await supabase.auth.admin.deleteUser(userId);
+      // Por enquanto, apenas remover os papéis (não deletar o usuário completamente)
+      const { error } = await supabase
+        .from('user_roles')
+        .delete()
+        .eq('user_id', userId);
+
       if (error) throw error;
 
-      toast({
-        title: 'Usuário excluído',
-        description: 'O usuário foi excluído com sucesso.'
-      });
-
+      toast.success('Papéis do usuário foram removidos com sucesso.');
       fetchUsers();
     } catch (error: any) {
-      console.error('Erro ao excluir usuário:', error);
-      toast({
-        title: 'Erro',
-        description: error.message || 'Não foi possível excluir o usuário.',
-        variant: 'destructive'
-      });
+      console.error('Erro ao remover usuário:', error);
+      toast.error(error.message || 'Não foi possível remover o usuário.');
     }
   };
 
@@ -183,11 +163,6 @@ export const UserManagement = () => {
                         <UserCheck className="w-4 h-4 text-gray-500" />
                         <h3 className="font-semibold">{u.name}</h3>
                         <span className="text-sm text-gray-500">({u.email})</span>
-                        {!u.email_confirmed_at && (
-                          <Badge variant="outline" className="text-orange-600 border-orange-600">
-                            Email não confirmado
-                          </Badge>
-                        )}
                       </div>
                       <div className="flex items-center gap-2 mb-3">
                         <span className="text-sm text-gray-600">Papéis:</span>
@@ -201,9 +176,6 @@ export const UserManagement = () => {
                       </div>
                       <div className="text-xs text-gray-500 space-y-1">
                         <p>Cadastrado em: {new Date(u.created_at).toLocaleDateString('pt-BR')}</p>
-                        {u.last_sign_in_at && (
-                          <p>Último login: {new Date(u.last_sign_in_at).toLocaleDateString('pt-BR')}</p>
-                        )}
                       </div>
                     </div>
                     <div className="flex gap-2">
@@ -223,15 +195,15 @@ export const UserManagement = () => {
                           <DialogTrigger asChild>
                             <Button variant="destructive" size="sm">
                               <Trash2 className="w-4 h-4 mr-1" />
-                              Excluir
+                              Remover
                             </Button>
                           </DialogTrigger>
                           <DialogContent>
                             <DialogHeader>
-                              <DialogTitle>Confirmar Exclusão</DialogTitle>
+                              <DialogTitle>Confirmar Remoção</DialogTitle>
                               <DialogDescription>
-                                Tem certeza que deseja excluir o usuário <strong>{u.name}</strong>? 
-                                Esta ação não pode ser desfeita.
+                                Tem certeza que deseja remover os papéis do usuário <strong>{u.name}</strong>? 
+                                Esta ação pode ser revertida.
                               </DialogDescription>
                             </DialogHeader>
                             <DialogFooter>
@@ -240,7 +212,7 @@ export const UserManagement = () => {
                                 variant="destructive" 
                                 onClick={() => handleDeleteUser(u.id)}
                               >
-                                Excluir Usuário
+                                Remover Papéis
                               </Button>
                             </DialogFooter>
                           </DialogContent>
