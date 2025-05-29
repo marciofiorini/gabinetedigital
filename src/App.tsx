@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { Toaster } from '@/components/ui/toaster';
+import { ProtectedLayout } from '@/components/ProtectedLayout';
 import Index from '@/pages/Index';
 import Analytics from '@/pages/Analytics';
 import CrmKanban from '@/pages/CrmKanban';
@@ -30,24 +31,24 @@ function App() {
       <AuthProvider>
         <Router>
           <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/analytics" element={<Analytics />} />
-            <Route path="/crm" element={<CrmKanban />} />
-            <Route path="/dashboard-comparativo" element={<DashboardComparativo />} />
-            <Route path="/agenda" element={<Agenda />} />
-            <Route path="/contatos" element={<Contatos />} />
-            <Route path="/lideres" element={<Lideres />} />
-            <Route path="/whatsapp" element={<WhatsApp />} />
-            <Route path="/instagram" element={<Instagram />} />
-            <Route path="/email" element={<Email />} />
-            <Route path="/demandas" element={<Demandas />} />
-            <Route path="/monitor-redes" element={<MonitorRedes />} />
-            <Route path="/comunicacao" element={<ComunicacaoIntegrada />} />
-            <Route path="/banco-midia" element={<BancoMidia />} />
-            <Route path="/portal-cidadao" element={<PortalCidadao />} />
-            <Route path="/projetos-lei" element={<ProjetosLei />} />
-            <Route path="/pesquisas" element={<Pesquisas />} />
-            <Route path="/planos" element={<Planos />} />
+            <Route path="/" element={<ProtectedLayout><Index /></ProtectedLayout>} />
+            <Route path="/analytics" element={<ProtectedLayout><Analytics /></ProtectedLayout>} />
+            <Route path="/crm" element={<ProtectedLayout><CrmKanban /></ProtectedLayout>} />
+            <Route path="/dashboard-comparativo" element={<ProtectedLayout><DashboardComparativo /></ProtectedLayout>} />
+            <Route path="/agenda" element={<ProtectedLayout><Agenda /></ProtectedLayout>} />
+            <Route path="/contatos" element={<ProtectedLayout><Contatos /></ProtectedLayout>} />
+            <Route path="/lideres" element={<ProtectedLayout><Lideres /></ProtectedLayout>} />
+            <Route path="/whatsapp" element={<ProtectedLayout><WhatsApp /></ProtectedLayout>} />
+            <Route path="/instagram" element={<ProtectedLayout><Instagram /></ProtectedLayout>} />
+            <Route path="/email" element={<ProtectedLayout><Email /></ProtectedLayout>} />
+            <Route path="/demandas" element={<ProtectedLayout><Demandas /></ProtectedLayout>} />
+            <Route path="/monitor-redes" element={<ProtectedLayout><MonitorRedes /></ProtectedLayout>} />
+            <Route path="/comunicacao" element={<ProtectedLayout><ComunicacaoIntegrada /></ProtectedLayout>} />
+            <Route path="/banco-midia" element={<ProtectedLayout><BancoMidia /></ProtectedLayout>} />
+            <Route path="/portal-cidadao" element={<ProtectedLayout><PortalCidadao /></ProtectedLayout>} />
+            <Route path="/projetos-lei" element={<ProtectedLayout><ProjetosLei /></ProtectedLayout>} />
+            <Route path="/pesquisas" element={<ProtectedLayout><Pesquisas /></ProtectedLayout>} />
+            <Route path="/planos" element={<ProtectedLayout><Planos /></ProtectedLayout>} />
           </Routes>
           <Toaster />
         </Router>
