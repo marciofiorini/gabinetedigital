@@ -21,7 +21,9 @@ export const Header = ({ onToggleSidebar }: HeaderProps) => {
         </Button>
       </div>
       
-      <UserMenu />
+      <div className="flex items-center">
+        <UserMenu />
+      </div>
     </header>
   );
 };
