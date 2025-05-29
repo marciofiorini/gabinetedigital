@@ -9,6 +9,15 @@ import { NovoLeadModal } from "@/components/NovoLeadModal";
 import { EditLeadModal } from "@/components/EditLeadModal";
 import { UploadCSVContatos } from "@/components/UploadCSVContatos";
 import { 
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import { 
   Table, 
   TableBody, 
   TableCell, 
@@ -43,6 +52,10 @@ const Contatos = () => {
   const [isNovoLeadModalOpen, setIsNovoLeadModalOpen] = useState(false);
   const [isEditLeadModalOpen, setIsEditLeadModalOpen] = useState(false);
   const [editingLead, setEditingLead] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedTag, setSelectedTag] = useState("");
+  const itemsPerPage = 20;
 
   const contatos = [
     {
@@ -89,37 +102,46 @@ const Contatos = () => {
       ultimaInteracao: "2024-05-25",
       origem: "WhatsApp",
       interesse: "Educação",
-      interacoes: 18
+      interacoes: 18,
+      tags: ["Educação"]
     },
-    {
-      id: 4,
-      nome: "Carlos Oliveira",
-      tipo: "Líder",
-      email: "carlos@email.com",
-      telefone: "(21) 99999-4444",
-      regiao: "Zona Oeste",
-      leadScore: 72,
-      engajamento: "Médio",
-      ultimaInteracao: "2024-05-24",
-      origem: "Indicação",
-      interesse: "Economia",
-      interacoes: 15
-    },
-    {
-      id: 5,
-      nome: "Lucia Fernandes",
-      tipo: "Lead",
-      email: "lucia@email.com",
-      telefone: "(21) 99999-5555",
-      regiao: "Barra",
-      leadScore: 65,
-      engajamento: "Médio",
-      ultimaInteracao: "2024-05-23",
-      origem: "Website",
-      interesse: "Meio Ambiente",
-      interacoes: 12
-    }
+    // Vou adicionar mais contatos para demonstrar a paginação
+    ...Array.from({ length: 50 }, (_, i) => ({
+      id: i + 4,
+      nome: `Contato ${i + 4}`,
+      tipo: i % 2 === 0 ? "Lead" : "Líder",
+      email: `contato${i + 4}@email.com`,
+      telefone: `(21) 99999-${String(i + 1000).slice(-4)}`,
+      regiao: ["Zona Sul", "Centro", "Zona Norte", "Zona Oeste", "Barra"][i % 5],
+      leadScore: Math.floor(Math.random() * 40) + 60,
+      engajamento: ["Alto", "Médio", "Baixo"][i % 3],
+      ultimaInteracao: "2024-05-20",
+      origem: ["Instagram", "WhatsApp", "Evento", "Website"][i % 4],
+      interesse: ["Saúde", "Educação", "Infraestrutura", "Economia"][i % 4],
+      interacoes: Math.floor(Math.random() * 20) + 5,
+      tags: [["Novo"], ["Ativo"], ["VIP"], ["Seguidor"]][i % 4],
+      followUps: []
+    }))
   ];
+
+  // Filtrar e ordenar contatos
+  const filteredContatos = contatos
+    .filter(contato => {
+      const matchesSearch = contato.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           contato.email.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesTag = selectedTag === "" || contato.tags?.includes(selectedTag);
+      return matchesSearch && matchesTag;
+    })
+    .sort((a, b) => b.leadScore - a.leadScore);
+
+  // Paginação
+  const totalPages = Math.ceil(filteredContatos.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentContatos = filteredContatos.slice(startIndex, endIndex);
+
+  // Obter todas as tags únicas
+  const allTags = [...new Set(contatos.flatMap(contato => contato.tags || []))];
 
   const getEngajamentoColor = (engajamento: string) => {
     switch (engajamento) {
@@ -143,9 +165,6 @@ const Contatos = () => {
     if (score >= 60) return <TrendingUp className="w-4 h-4 text-blue-500" />;
     return <Target className="w-4 h-4 text-gray-500" />;
   };
-
-  // Ordenar por lead score (maior para menor)
-  const contatosOrdenados = [...contatos].sort((a, b) => b.leadScore - a.leadScore);
 
   const handleVerLead = (lead) => {
     setSelectedLead(lead);
@@ -207,12 +226,26 @@ const Contatos = () => {
                   <Input
                     placeholder="Buscar contatos..."
                     className="pl-10 border-gray-200 focus:border-indigo-500 transition-colors"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
                   />
                 </div>
-                <Button variant="outline" className="hover:bg-indigo-50 hover:border-indigo-300 transition-colors">
-                  <Filter className="w-4 h-4 mr-2" />
-                  Filtros
-                </Button>
+                <div className="flex gap-2">
+                  <select
+                    value={selectedTag}
+                    onChange={(e) => setSelectedTag(e.target.value)}
+                    className="px-3 py-2 border border-gray-200 rounded-md focus:border-indigo-500 transition-colors"
+                  >
+                    <option value="">Todas as tags</option>
+                    {allTags.map(tag => (
+                      <option key={tag} value={tag}>{tag}</option>
+                    ))}
+                  </select>
+                  <Button variant="outline" className="hover:bg-indigo-50 hover:border-indigo-300 transition-colors">
+                    <Filter className="w-4 h-4 mr-2" />
+                    Filtros
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -220,10 +253,10 @@ const Contatos = () => {
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             {[
-              { label: "Total Contatos", valor: "156", cor: "from-indigo-500 to-indigo-600", icon: Users },
-              { label: "Leads Ativos", valor: "89", cor: "from-blue-500 to-blue-600", icon: Target },
-              { label: "Líderes", valor: "67", cor: "from-purple-500 to-purple-600", icon: Award },
-              { label: "Score Médio", valor: "78", cor: "from-pink-500 to-pink-600", icon: Activity }
+              { label: "Total Contatos", valor: filteredContatos.length.toString(), cor: "from-indigo-500 to-indigo-600", icon: Users },
+              { label: "Leads Ativos", valor: filteredContatos.filter(c => c.tipo === "Lead").length.toString(), cor: "from-blue-500 to-blue-600", icon: Target },
+              { label: "Líderes", valor: filteredContatos.filter(c => c.tipo === "Líder").length.toString(), cor: "from-purple-500 to-purple-600", icon: Award },
+              { label: "Score Médio", valor: Math.round(filteredContatos.reduce((acc, c) => acc + c.leadScore, 0) / filteredContatos.length || 0).toString(), cor: "from-pink-500 to-pink-600", icon: Activity }
             ].map((stat, index) => (
               <Card key={index} className="border-0 shadow-lg hover:shadow-xl transition-all duration-200 bg-white/80 backdrop-blur-sm">
                 <CardContent className="p-6">
@@ -248,7 +281,7 @@ const Contatos = () => {
                 Ranking de Contatos
               </CardTitle>
               <CardDescription>
-                Ordenado por Lead Score - Maior engajamento primeiro
+                Ordenado por Lead Score - Mostrando {currentContatos.length} de {filteredContatos.length} contatos (Página {currentPage} de {totalPages})
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -269,115 +302,172 @@ const Contatos = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {contatosOrdenados.map((contato, index) => (
-                    <TableRow key={contato.id} className="hover:bg-indigo-50/50">
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <span className="font-bold text-lg text-gray-600">#{index + 1}</span>
-                          {index < 3 && (
-                            <div className={`w-2 h-2 rounded-full ${
-                              index === 0 ? 'bg-yellow-500' : 
-                              index === 1 ? 'bg-gray-400' : 'bg-orange-600'
-                            }`} />
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full flex items-center justify-center">
-                            <span className="text-white font-semibold text-sm">
-                              {contato.nome.split(' ').map(n => n[0]).join('').slice(0, 2)}
-                            </span>
+                  {currentContatos.map((contato, index) => {
+                    const globalIndex = startIndex + index;
+                    return (
+                      <TableRow key={contato.id} className="hover:bg-indigo-50/50">
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <span className="font-bold text-lg text-gray-600">#{globalIndex + 1}</span>
+                            {globalIndex < 3 && (
+                              <div className={`w-2 h-2 rounded-full ${
+                                globalIndex === 0 ? 'bg-yellow-500' : 
+                                globalIndex === 1 ? 'bg-gray-400' : 'bg-orange-600'
+                              }`} />
+                            )}
                           </div>
-                          <div>
-                            <p className="font-semibold text-gray-900">{contato.nome}</p>
-                            <div className="flex items-center gap-2 text-sm text-gray-600">
-                              <Mail className="w-3 h-3" />
-                              {contato.email}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full flex items-center justify-center">
+                              <span className="text-white font-semibold text-sm">
+                                {contato.nome.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                              </span>
+                            </div>
+                            <div>
+                              <p className="font-semibold text-gray-900">{contato.nome}</p>
+                              <div className="flex items-center gap-2 text-sm text-gray-600">
+                                <Mail className="w-3 h-3" />
+                                {contato.email}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge className={`${getTipoColor(contato.tipo)} border`}>
-                          {contato.tipo}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          {getScoreIcon(contato.leadScore)}
-                          <span className="font-bold text-lg">{contato.leadScore}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge className={`${getEngajamentoColor(contato.engajamento)} border`}>
-                          {contato.engajamento}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-1 text-sm text-gray-600">
-                          <MapPin className="w-3 h-3" />
-                          {contato.regiao}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-1 flex-wrap">
-                          {contato.tags?.map((tag, tagIndex) => (
-                            <Badge key={tagIndex} variant="outline" className="text-xs">
-                              <Tag className="w-3 h-3 mr-1" />
-                              {tag}
-                            </Badge>
-                          ))}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="text-center">
-                          <span className="font-semibold text-indigo-600">{contato.interacoes}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-sm text-gray-600">{contato.ultimaInteracao}</span>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-1">
-                          <Button size="sm" variant="outline" className="p-1 h-7 w-7">
-                            <MessageCircle className="w-3 h-3 text-green-600" />
-                          </Button>
-                          <Button size="sm" variant="outline" className="p-1 h-7 w-7">
-                            <Instagram className="w-3 h-3 text-pink-600" />
-                          </Button>
-                          <Button size="sm" variant="outline" className="p-1 h-7 w-7">
-                            <Calendar className="w-3 h-3 text-blue-600" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            className="hover:bg-indigo-50"
-                            onClick={() => handleVerLead(contato)}
-                          >
-                            Ver
-                          </Button>
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            className="hover:bg-yellow-50"
-                            onClick={() => handleEditLead(contato)}
-                          >
-                            <Edit className="w-3 h-3" />
-                          </Button>
-                          <Button size="sm" className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700">
-                            Chat
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                        </TableCell>
+                        <TableCell>
+                          <Badge className={`${getTipoColor(contato.tipo)} border`}>
+                            {contato.tipo}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            {getScoreIcon(contato.leadScore)}
+                            <span className="font-bold text-lg">{contato.leadScore}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge className={`${getEngajamentoColor(contato.engajamento)} border`}>
+                            {contato.engajamento}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-1 text-sm text-gray-600">
+                            <MapPin className="w-3 h-3" />
+                            {contato.regiao}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-1 flex-wrap">
+                            {contato.tags?.map((tag, tagIndex) => (
+                              <Badge key={tagIndex} variant="outline" className="text-xs">
+                                <Tag className="w-3 h-3 mr-1" />
+                                {tag}
+                              </Badge>
+                            ))}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="text-center">
+                            <span className="font-semibold text-indigo-600">{contato.interacoes}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-sm text-gray-600">{contato.ultimaInteracao}</span>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-1">
+                            <Button size="sm" variant="outline" className="p-1 h-7 w-7">
+                              <MessageCircle className="w-3 h-3 text-green-600" />
+                            </Button>
+                            <Button size="sm" variant="outline" className="p-1 h-7 w-7">
+                              <Instagram className="w-3 h-3 text-pink-600" />
+                            </Button>
+                            <Button size="sm" variant="outline" className="p-1 h-7 w-7">
+                              <Calendar className="w-3 h-3 text-blue-600" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-2">
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="hover:bg-indigo-50"
+                              onClick={() => handleVerLead(contato)}
+                            >
+                              Ver
+                            </Button>
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="hover:bg-yellow-50"
+                              onClick={() => handleEditLead(contato)}
+                            >
+                              <Edit className="w-3 h-3" />
+                            </Button>
+                            <Button size="sm" className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700">
+                              Chat
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
+
+              {/* Paginação */}
+              {totalPages > 1 && (
+                <div className="mt-6">
+                  <Pagination>
+                    <PaginationContent>
+                      <PaginationItem>
+                        <PaginationPrevious 
+                          onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                          className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                        />
+                      </PaginationItem>
+                      
+                      {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                        let pageNumber;
+                        if (totalPages <= 5) {
+                          pageNumber = i + 1;
+                        } else if (currentPage <= 3) {
+                          pageNumber = i + 1;
+                        } else if (currentPage >= totalPages - 2) {
+                          pageNumber = totalPages - 4 + i;
+                        } else {
+                          pageNumber = currentPage - 2 + i;
+                        }
+                        
+                        return (
+                          <PaginationItem key={pageNumber}>
+                            <PaginationLink 
+                              onClick={() => setCurrentPage(pageNumber)}
+                              isActive={currentPage === pageNumber}
+                              className="cursor-pointer"
+                            >
+                              {pageNumber}
+                            </PaginationLink>
+                          </PaginationItem>
+                        );
+                      })}
+                      
+                      {totalPages > 5 && currentPage < totalPages - 2 && (
+                        <PaginationItem>
+                          <PaginationEllipsis />
+                        </PaginationItem>
+                      )}
+                      
+                      <PaginationItem>
+                        <PaginationNext 
+                          onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                          className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                        />
+                      </PaginationItem>
+                    </PaginationContent>
+                  </Pagination>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>

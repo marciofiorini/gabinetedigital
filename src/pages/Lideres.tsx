@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { NovoLiderModal } from "@/components/NovoLiderModal";
 import { UploadCSVLideres } from "@/components/UploadCSVLideres";
+import { LeadDetailsModal } from "@/components/LeadDetailsModal";
 import { 
   Table, 
   TableBody, 
@@ -27,11 +27,14 @@ import {
   Star,
   Award,
   TrendingUp,
-  Upload
+  Upload,
+  Eye
 } from "lucide-react";
 
 const Lideres = () => {
   const [isNovoLiderModalOpen, setIsNovoLiderModalOpen] = useState(false);
+  const [selectedLider, setSelectedLider] = useState(null);
+  const [isLiderModalOpen, setIsLiderModalOpen] = useState(false);
 
   const lideres = [
     {
@@ -45,7 +48,16 @@ const Lideres = () => {
       influencia: "Alta",
       seguidores: 2500,
       categoria: "Líder Comunitário",
-      ultimoContato: "2024-05-27"
+      ultimoContato: "2024-05-27",
+      leadScore: 85,
+      engajamento: "Alto",
+      ultimaInteracao: "2024-05-27",
+      origem: "Evento",
+      interesse: "Mobilidade Urbana",
+      interacoes: 15,
+      tags: ["Líder", "Associação"],
+      followUps: [],
+      tipo: "Líder"
     },
     {
       id: 2,
@@ -58,7 +70,16 @@ const Lideres = () => {
       influencia: "Muito Alta",
       seguidores: 4200,
       categoria: "Líder Sindical",
-      ultimoContato: "2024-05-26"
+      ultimoContato: "2024-05-26",
+      leadScore: 92,
+      engajamento: "Muito Alto",
+      ultimaInteracao: "2024-05-26",
+      origem: "Reunião",
+      interesse: "Educação",
+      interacoes: 28,
+      tags: ["VIP", "Educação"],
+      followUps: [],
+      tipo: "Líder"
     },
     {
       id: 3,
@@ -71,7 +92,16 @@ const Lideres = () => {
       influencia: "Alta",
       seguidores: 1800,
       categoria: "Líder ONGs",
-      ultimoContato: "2024-05-25"
+      ultimoContato: "2024-05-25",
+      leadScore: 78,
+      engajamento: "Alto",
+      ultimaInteracao: "2024-05-25",
+      origem: "Instagram",
+      interesse: "Meio Ambiente",
+      interacoes: 22,
+      tags: ["ONG", "Sustentabilidade"],
+      followUps: [],
+      tipo: "Líder"
     },
     {
       id: 4,
@@ -84,7 +114,16 @@ const Lideres = () => {
       influencia: "Média",
       seguidores: 1200,
       categoria: "Líder Empresarial",
-      ultimoContato: "2024-05-24"
+      ultimoContato: "2024-05-24",
+      leadScore: 72,
+      engajamento: "Médio",
+      ultimaInteracao: "2024-05-24",
+      origem: "Website",
+      interesse: "Economia",
+      interacoes: 18,
+      tags: ["Empresário"],
+      followUps: [],
+      tipo: "Líder"
     }
   ];
 
@@ -115,6 +154,19 @@ const Lideres = () => {
       case "Média": return <TrendingUp className="w-4 h-4 text-yellow-500" />;
       default: return <Users className="w-4 h-4 text-gray-500" />;
     }
+  };
+
+  const handleVerLider = (lider) => {
+    setSelectedLider(lider);
+    setIsLiderModalOpen(true);
+  };
+
+  const handleAddFollowUp = (liderId: string, followUp: any) => {
+    console.log('Adicionando follow up para líder:', liderId, followUp);
+  };
+
+  const handleUpdateFollowUp = (liderId: string, followUpId: string, followUp: any) => {
+    console.log('Atualizando follow up:', liderId, followUpId, followUp);
   };
 
   return (
@@ -271,7 +323,13 @@ const Lideres = () => {
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-2">
-                          <Button variant="outline" size="sm" className="hover:bg-indigo-50">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="hover:bg-indigo-50"
+                            onClick={() => handleVerLider(lider)}
+                          >
+                            <Eye className="w-3 h-3 mr-1" />
                             Ver
                           </Button>
                           <Button size="sm" className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700">
@@ -292,10 +350,22 @@ const Lideres = () => {
         </TabsContent>
       </Tabs>
 
-      {/* Modal */}
+      {/* Modal Novo Líder */}
       <NovoLiderModal 
         isOpen={isNovoLiderModalOpen}
         onClose={() => setIsNovoLiderModalOpen(false)}
+      />
+
+      {/* Modal Detalhes do Líder com Follow Up */}
+      <LeadDetailsModal 
+        lead={selectedLider}
+        isOpen={isLiderModalOpen}
+        onClose={() => {
+          setIsLiderModalOpen(false);
+          setSelectedLider(null);
+        }}
+        onAddFollowUp={handleAddFollowUp}
+        onUpdateFollowUp={handleUpdateFollowUp}
       />
     </div>
   );
