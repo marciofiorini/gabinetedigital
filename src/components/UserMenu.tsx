@@ -39,11 +39,11 @@ export const UserMenu = () => {
   };
 
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex items-center gap-2">
       {/* Notificações */}
       <Popover>
         <PopoverTrigger asChild>
-          <Button variant="ghost" size="sm" className="relative">
+          <Button variant="ghost" size="sm" className="relative p-2">
             <Bell className="w-4 h-4" />
             {unreadCount > 0 && (
               <Badge className="absolute -top-1 -right-1 w-5 h-5 p-0 flex items-center justify-center bg-red-500 text-white text-xs">
@@ -102,7 +102,7 @@ export const UserMenu = () => {
       {/* Menu do usuário */}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="flex items-center gap-2">
+          <Button variant="ghost" className="flex items-center gap-2 max-w-xs">
             {profile?.avatar_url ? (
               <img 
                 src={profile.avatar_url} 
@@ -114,14 +114,16 @@ export const UserMenu = () => {
                 <User className="w-4 h-4 text-white" />
               </div>
             )}
-            <span className="hidden md:block">{displayName}</span>
+            <span className="hidden sm:block text-sm font-medium truncate max-w-[120px]">
+              {displayName}
+            </span>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-56">
           <DropdownMenuLabel>
             <div>
-              <p className="font-medium">{displayName}</p>
-              <p className="text-sm text-gray-500">{user.email}</p>
+              <p className="font-medium truncate">{displayName}</p>
+              <p className="text-sm text-gray-500 truncate">{user.email}</p>
             </div>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
