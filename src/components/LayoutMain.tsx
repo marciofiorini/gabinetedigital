@@ -11,17 +11,13 @@ export const LayoutMain = ({ children }: LayoutMainProps) => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex">
       <SidebarNew isOpen={sidebarOpen} />
       
-      <div
-        className={`transition-all duration-300 ${
-          sidebarOpen ? "lg:ml-64" : "lg:ml-0"
-        }`}
-      >
+      <div className="flex-1 flex flex-col">
         <Header onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
         
-        <main className="p-6">
+        <main className="flex-1 p-6">
           <div className="max-w-7xl mx-auto">
             {children}
           </div>
