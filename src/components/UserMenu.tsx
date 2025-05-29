@@ -39,11 +39,11 @@ export const UserMenu = () => {
   };
 
   return (
-    <div className="flex items-center gap-3 h-full">
+    <div className="flex items-center gap-3 h-8">
       {/* Notificações */}
       <Popover>
         <PopoverTrigger asChild>
-          <Button variant="ghost" size="sm" className="relative h-full px-2 flex items-center justify-center">
+          <Button variant="ghost" size="sm" className="relative h-8 w-8 p-0 flex items-center justify-center">
             <Bell className="w-4 h-4" />
             {unreadCount > 0 && (
               <Badge className="absolute -top-1 -right-1 w-5 h-5 p-0 flex items-center justify-center bg-red-500 text-white text-xs">
@@ -102,7 +102,7 @@ export const UserMenu = () => {
       {/* Menu do usuário */}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="flex items-center gap-2 max-w-xs h-full px-2">
+          <Button variant="ghost" className="flex items-center gap-2 max-w-xs h-8 px-2">
             {profile?.avatar_url ? (
               <img 
                 src={profile.avatar_url} 
