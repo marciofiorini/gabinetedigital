@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -144,7 +145,7 @@ const Contatos = () => {
   };
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
+    <div className="space-y-6">
       {/* Page Title */}
       <div className="flex items-center justify-between">
         <div>
