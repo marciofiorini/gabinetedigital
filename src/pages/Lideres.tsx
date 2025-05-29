@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -28,13 +29,21 @@ import {
   Award,
   TrendingUp,
   Upload,
-  Eye
+  Eye,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown
 } from "lucide-react";
+
+type SortField = 'nome' | 'organizacao' | 'categoria' | 'influencia' | 'regiao' | 'seguidores' | 'ultimoContato';
+type SortDirection = 'asc' | 'desc' | null;
 
 const Lideres = () => {
   const [isNovoLiderModalOpen, setIsNovoLiderModalOpen] = useState(false);
   const [selectedLider, setSelectedLider] = useState(null);
   const [isLiderModalOpen, setIsLiderModalOpen] = useState(false);
+  const [sortField, setSortField] = useState<SortField>('influencia');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
 
   const lideres = [
     {
@@ -126,6 +135,66 @@ const Lideres = () => {
       tipo: "Líder"
     }
   ];
+
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      if (sortDirection === 'desc') {
+        setSortDirection('asc');
+      } else if (sortDirection === 'asc') {
+        setSortDirection(null);
+        setSortField('influencia'); // volta para o padrão
+      } else {
+        setSortDirection('desc');
+      }
+    } else {
+      setSortField(field);
+      setSortDirection('desc');
+    }
+  };
+
+  const getSortIcon = (field: SortField) => {
+    if (sortField !== field) {
+      return <ArrowUpDown className="w-4 h-4 text-gray-400" />;
+    }
+    if (sortDirection === 'desc') {
+      return <ArrowDown className="w-4 h-4 text-indigo-600" />;
+    }
+    if (sortDirection === 'asc') {
+      return <ArrowUp className="w-4 h-4 text-indigo-600" />;
+    }
+    return <ArrowUpDown className="w-4 h-4 text-gray-400" />;
+  };
+
+  // Ordenar líderes
+  const sortedLideres = [...lideres].sort((a, b) => {
+    if (!sortDirection) {
+      // padrão por influência desc
+      const influenciaOrder = { "Muito Alta": 4, "Alta": 3, "Média": 2, "Baixa": 1 };
+      return (influenciaOrder[b.influencia] || 0) - (influenciaOrder[a.influencia] || 0);
+    }
+    
+    let aValue: any = a[sortField];
+    let bValue: any = b[sortField];
+    
+    // Tratamento especial para diferentes tipos de campos
+    if (sortField === 'nome' || sortField === 'organizacao' || sortField === 'categoria' || sortField === 'regiao') {
+      aValue = aValue.toLowerCase();
+      bValue = bValue.toLowerCase();
+    } else if (sortField === 'ultimoContato') {
+      aValue = new Date(aValue);
+      bValue = new Date(bValue);
+    } else if (sortField === 'influencia') {
+      const influenciaOrder = { "Muito Alta": 4, "Alta": 3, "Média": 2, "Baixa": 1 };
+      aValue = influenciaOrder[aValue] || 0;
+      bValue = influenciaOrder[bValue] || 0;
+    }
+    
+    if (sortDirection === 'asc') {
+      return aValue > bValue ? 1 : aValue < bValue ? -1 : 0;
+    } else {
+      return aValue < bValue ? 1 : aValue > bValue ? -1 : 0;
+    }
+  });
 
   const getInfluenciaColor = (influencia: string) => {
     switch (influencia) {
@@ -257,18 +326,74 @@ const Lideres = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Líder</TableHead>
-                    <TableHead>Organização</TableHead>
-                    <TableHead>Categoria</TableHead>
-                    <TableHead>Influência</TableHead>
-                    <TableHead>Região</TableHead>
-                    <TableHead>Seguidores</TableHead>
-                    <TableHead>Último Contato</TableHead>
+                    <TableHead 
+                      className="cursor-pointer select-none hover:bg-gray-50 transition-colors"
+                      onClick={() => handleSort('nome')}
+                    >
+                      <div className="flex items-center gap-2">
+                        Líder
+                        {getSortIcon('nome')}
+                      </div>
+                    </TableHead>
+                    <TableHead 
+                      className="cursor-pointer select-none hover:bg-gray-50 transition-colors"
+                      onClick={() => handleSort('organizacao')}
+                    >
+                      <div className="flex items-center gap-2">
+                        Organização
+                        {getSortIcon('organizacao')}
+                      </div>
+                    </TableHead>
+                    <TableHead 
+                      className="cursor-pointer select-none hover:bg-gray-50 transition-colors"
+                      onClick={() => handleSort('categoria')}
+                    >
+                      <div className="flex items-center gap-2">
+                        Categoria
+                        {getSortIcon('categoria')}
+                      </div>
+                    </TableHead>
+                    <TableHead 
+                      className="cursor-pointer select-none hover:bg-gray-50 transition-colors"
+                      onClick={() => handleSort('influencia')}
+                    >
+                      <div className="flex items-center gap-2">
+                        Influência
+                        {getSortIcon('influencia')}
+                      </div>
+                    </TableHead>
+                    <TableHead 
+                      className="cursor-pointer select-none hover:bg-gray-50 transition-colors"
+                      onClick={() => handleSort('regiao')}
+                    >
+                      <div className="flex items-center gap-2">
+                        Região
+                        {getSortIcon('regiao')}
+                      </div>
+                    </TableHead>
+                    <TableHead 
+                      className="cursor-pointer select-none hover:bg-gray-50 transition-colors"
+                      onClick={() => handleSort('seguidores')}
+                    >
+                      <div className="flex items-center gap-2">
+                        Seguidores
+                        {getSortIcon('seguidores')}
+                      </div>
+                    </TableHead>
+                    <TableHead 
+                      className="cursor-pointer select-none hover:bg-gray-50 transition-colors"
+                      onClick={() => handleSort('ultimoContato')}
+                    >
+                      <div className="flex items-center gap-2">
+                        Último Contato
+                        {getSortIcon('ultimoContato')}
+                      </div>
+                    </TableHead>
                     <TableHead>Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {lideres.map((lider) => (
+                  {sortedLideres.map((lider) => (
                     <TableRow key={lider.id} className="hover:bg-indigo-50/50">
                       <TableCell>
                         <div className="flex items-center gap-3">
@@ -278,7 +403,12 @@ const Lideres = () => {
                             </span>
                           </div>
                           <div>
-                            <p className="font-semibold text-gray-900">{lider.nome}</p>
+                            <p 
+                              className="font-semibold text-gray-900 cursor-pointer hover:text-indigo-600 transition-colors"
+                              onClick={() => handleVerLider(lider)}
+                            >
+                              {lider.nome}
+                            </p>
                             <p className="text-sm text-gray-600">{lider.cargo}</p>
                             <div className="flex items-center gap-2 text-sm text-gray-600">
                               <Mail className="w-3 h-3" />

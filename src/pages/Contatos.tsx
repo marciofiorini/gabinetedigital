@@ -28,10 +28,7 @@ import {
 import { 
   Plus, 
   Search, 
-  Filter, 
-  Phone, 
-  Mail, 
-  MapPin, 
+  Filter,
   TrendingUp, 
   Star, 
   Award,
@@ -43,8 +40,15 @@ import {
   Calendar,
   Upload,
   Edit,
-  Tag
+  Tag,
+  Eye,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown
 } from "lucide-react";
+
+type SortField = 'nome' | 'leadScore' | 'engajamento' | 'regiao' | 'interacoes' | 'ultimaInteracao';
+type SortDirection = 'asc' | 'desc' | null;
 
 const Contatos = () => {
   const [selectedLead, setSelectedLead] = useState(null);
@@ -55,6 +59,8 @@ const Contatos = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTag, setSelectedTag] = useState("");
+  const [sortField, setSortField] = useState<SortField>('leadScore');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const itemsPerPage = 20;
 
   const contatos = [
@@ -132,7 +138,31 @@ const Contatos = () => {
       const matchesTag = selectedTag === "" || contato.tags?.includes(selectedTag);
       return matchesSearch && matchesTag;
     })
-    .sort((a, b) => b.leadScore - a.leadScore);
+    .sort((a, b) => {
+      if (!sortDirection) return b.leadScore - a.leadScore; // padrão por leadScore desc
+      
+      let aValue: any = a[sortField];
+      let bValue: any = b[sortField];
+      
+      // Tratamento especial para diferentes tipos de campos
+      if (sortField === 'nome') {
+        aValue = aValue.toLowerCase();
+        bValue = bValue.toLowerCase();
+      } else if (sortField === 'ultimaInteracao') {
+        aValue = new Date(aValue);
+        bValue = new Date(bValue);
+      } else if (sortField === 'engajamento') {
+        const engajamentoOrder = { "Muito Alto": 4, "Alto": 3, "Médio": 2, "Baixo": 1 };
+        aValue = engajamentoOrder[aValue] || 0;
+        bValue = engajamentoOrder[bValue] || 0;
+      }
+      
+      if (sortDirection === 'asc') {
+        return aValue > bValue ? 1 : aValue < bValue ? -1 : 0;
+      } else {
+        return aValue < bValue ? 1 : aValue > bValue ? -1 : 0;
+      }
+    });
 
   // Paginação
   const totalPages = Math.ceil(filteredContatos.length / itemsPerPage);
@@ -164,6 +194,35 @@ const Contatos = () => {
     if (score >= 75) return <Star className="w-4 h-4 text-orange-500" />;
     if (score >= 60) return <TrendingUp className="w-4 h-4 text-blue-500" />;
     return <Target className="w-4 h-4 text-gray-500" />;
+  };
+
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      if (sortDirection === 'desc') {
+        setSortDirection('asc');
+      } else if (sortDirection === 'asc') {
+        setSortDirection(null);
+        setSortField('leadScore'); // volta para o padrão
+      } else {
+        setSortDirection('desc');
+      }
+    } else {
+      setSortField(field);
+      setSortDirection('desc');
+    }
+  };
+
+  const getSortIcon = (field: SortField) => {
+    if (sortField !== field) {
+      return <ArrowUpDown className="w-4 h-4 text-gray-400" />;
+    }
+    if (sortDirection === 'desc') {
+      return <ArrowDown className="w-4 h-4 text-indigo-600" />;
+    }
+    if (sortDirection === 'asc') {
+      return <ArrowUp className="w-4 h-4 text-indigo-600" />;
+    }
+    return <ArrowUpDown className="w-4 h-4 text-gray-400" />;
   };
 
   const handleVerLead = (lead) => {
@@ -281,7 +340,7 @@ const Contatos = () => {
                 Ranking de Contatos
               </CardTitle>
               <CardDescription>
-                Ordenado por Lead Score - Mostrando {currentContatos.length} de {filteredContatos.length} contatos (Página {currentPage} de {totalPages})
+                Mostrando {currentContatos.length} de {filteredContatos.length} contatos (Página {currentPage} de {totalPages})
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -289,14 +348,62 @@ const Contatos = () => {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-12">#</TableHead>
-                    <TableHead>Contato</TableHead>
+                    <TableHead 
+                      className="cursor-pointer select-none hover:bg-gray-50 transition-colors"
+                      onClick={() => handleSort('nome')}
+                    >
+                      <div className="flex items-center gap-2">
+                        Contato
+                        {getSortIcon('nome')}
+                      </div>
+                    </TableHead>
                     <TableHead>Tipo</TableHead>
-                    <TableHead>Score</TableHead>
-                    <TableHead>Engajamento</TableHead>
-                    <TableHead>Região</TableHead>
+                    <TableHead 
+                      className="cursor-pointer select-none hover:bg-gray-50 transition-colors"
+                      onClick={() => handleSort('leadScore')}
+                    >
+                      <div className="flex items-center gap-2">
+                        Score
+                        {getSortIcon('leadScore')}
+                      </div>
+                    </TableHead>
+                    <TableHead 
+                      className="cursor-pointer select-none hover:bg-gray-50 transition-colors"
+                      onClick={() => handleSort('engajamento')}
+                    >
+                      <div className="flex items-center gap-2">
+                        Engajamento
+                        {getSortIcon('engajamento')}
+                      </div>
+                    </TableHead>
+                    <TableHead 
+                      className="cursor-pointer select-none hover:bg-gray-50 transition-colors"
+                      onClick={() => handleSort('regiao')}
+                    >
+                      <div className="flex items-center gap-2">
+                        Região
+                        {getSortIcon('regiao')}
+                      </div>
+                    </TableHead>
                     <TableHead>Tags</TableHead>
-                    <TableHead>Interações</TableHead>
-                    <TableHead>Última Interação</TableHead>
+                    <TableHead 
+                      className="cursor-pointer select-none hover:bg-gray-50 transition-colors"
+                      onClick={() => handleSort('interacoes')}
+                    >
+                      <div className="flex items-center gap-2">
+                        Interações
+                        {getSortIcon('interacoes')}
+                      </div>
+                    </TableHead>
+                    <TableHead 
+                      className="cursor-pointer select-none hover:bg-gray-50 transition-colors"
+                      onClick={() => handleSort('ultimaInteracao')}
+                    >
+                      <div className="flex items-center gap-2">
+                        Última Interação
+                        {getSortIcon('ultimaInteracao')}
+                      </div>
+                    </TableHead>
                     <TableHead>Canais</TableHead>
                     <TableHead>Ações</TableHead>
                   </TableRow>
@@ -325,9 +432,13 @@ const Contatos = () => {
                               </span>
                             </div>
                             <div>
-                              <p className="font-semibold text-gray-900">{contato.nome}</p>
+                              <p 
+                                className="font-semibold text-gray-900 cursor-pointer hover:text-indigo-600 transition-colors"
+                                onClick={() => handleVerLead(contato)}
+                              >
+                                {contato.nome}
+                              </p>
                               <div className="flex items-center gap-2 text-sm text-gray-600">
-                                <Mail className="w-3 h-3" />
                                 {contato.email}
                               </div>
                             </div>
@@ -394,6 +505,7 @@ const Contatos = () => {
                               className="hover:bg-indigo-50"
                               onClick={() => handleVerLead(contato)}
                             >
+                              <Eye className="w-3 h-3 mr-1" />
                               Ver
                             </Button>
                             <Button 
