@@ -53,7 +53,7 @@ export const SidebarNew = ({ isOpen }: SidebarProps) => {
   const { isAdmin } = useUserRoles();
   const [openGroups, setOpenGroups] = useState<string[]>(['comunicacao', 'painel']);
 
-  console.log('SidebarNew renderizado:', { isOpen, location: location.pathname });
+  console.log('SidebarNew renderizado:', { isOpen, location: location.pathname, stats });
 
   const toggleGroup = (groupId: string) => {
     setOpenGroups(prev => 
@@ -305,7 +305,6 @@ export const SidebarNew = ({ isOpen }: SidebarProps) => {
           isOpen ? "translate-x-0" : "-translate-x-full",
           "hidden lg:block"
         )}
-        style={{ display: isOpen ? 'block' : 'none' }}
       >
         <SidebarContent />
       </aside>
