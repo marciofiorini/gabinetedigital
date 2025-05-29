@@ -1,3 +1,4 @@
+
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from '@/contexts/AuthContext';
@@ -14,7 +15,7 @@ import Instagram from '@/pages/Instagram';
 import Email from '@/pages/Email';
 import Demandas from '@/pages/Demandas';
 import MonitorRedes from '@/pages/MonitorRedes';
-import Comunicacao from '@/pages/Comunicacao';
+import ComunicacaoIntegrada from '@/pages/ComunicacaoIntegrada';
 import BancoMidia from '@/pages/BancoMidia';
 import PortalCidadao from '@/pages/PortalCidadao';
 import ProjetosLei from '@/pages/ProjetosLei';
@@ -41,7 +42,7 @@ function App() {
             <Route path="/email" element={<Email />} />
             <Route path="/demandas" element={<Demandas />} />
             <Route path="/monitor-redes" element={<MonitorRedes />} />
-            <Route path="/comunicacao" element={<Comunicacao />} />
+            <Route path="/comunicacao" element={<ComunicacaoIntegrada />} />
             <Route path="/banco-midia" element={<BancoMidia />} />
             <Route path="/portal-cidadao" element={<PortalCidadao />} />
             <Route path="/projetos-lei" element={<ProjetosLei />} />
