@@ -32,7 +32,9 @@ import {
   Vote,
   Monitor,
   Search,
-  DoorOpen
+  DoorOpen,
+  Map,
+  AlertCircle
 } from "lucide-react";
 import { useAuth } from '@/contexts/AuthContext';
 import { useDashboardStats } from '@/hooks/useDashboardStats';
@@ -93,6 +95,8 @@ export const SidebarNew = ({ isOpen }: SidebarProps) => {
       { name: 'Monitor de Redes', icon: Monitor, path: '/monitor-redes', minPlan: 'premium' as UserPlan },
       { name: 'Pesquisas', icon: Search, path: '/pesquisas', minPlan: 'basic' as UserPlan },
       { name: 'Portal do Cidadão', icon: DoorOpen, path: '/portal-cidadao', minPlan: 'basic' as UserPlan },
+      { name: 'Mapa de Influência', icon: Map, path: '/mapa-influencia', minPlan: 'premium' as UserPlan },
+      { name: 'Sistema de Votações', icon: Vote, path: '/sistema-votacoes', minPlan: 'basic' as UserPlan },
     ]
   };
 
@@ -241,28 +245,34 @@ export const SidebarNew = ({ isOpen }: SidebarProps) => {
         </Link>
       </nav>
 
-      {/* Bottom Stats Card */}
+      {/* Bottom Stats Card - Resumo de Hoje */}
       <div className="p-4 border-t border-gray-200 flex-shrink-0">
         <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
           <CardContent className="p-3">
-            <div className="flex items-center justify-between mb-2">
-              <h4 className="text-xs font-semibold text-blue-900">Resumo Hoje</h4>
+            <div className="flex items-center justify-between mb-3">
+              <h4 className="text-xs font-semibold text-blue-900">Resumo de Hoje</h4>
               <TrendingUp className="w-3 h-3 text-blue-600" />
             </div>
             {loading ? (
               <div className="text-xs text-blue-800">Carregando...</div>
             ) : (
-              <div className="grid grid-cols-2 gap-2 text-xs">
-                <div className="flex flex-col">
-                  <span className="text-blue-700">Demandas</span>
-                  <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 text-xs h-5">
+              <div className="space-y-2 text-xs">
+                <div className="flex items-center justify-between">
+                  <span className="text-blue-700">Demandas pendentes:</span>
+                  <Badge variant="secondary" className="bg-orange-100 text-orange-800 text-xs h-5">
                     {stats.demandas_pendentes}
                   </Badge>
                 </div>
-                <div className="flex flex-col">
-                  <span className="text-blue-700">Eventos</span>
+                <div className="flex items-center justify-between">
+                  <span className="text-blue-700">Novos contatos:</span>
                   <Badge variant="secondary" className="bg-green-100 text-green-800 text-xs h-5">
-                    {stats.eventos_hoje}
+                    {stats.novos_contatos_hoje}
+                  </Badge>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-blue-700">Novos líderes:</span>
+                  <Badge variant="secondary" className="bg-purple-100 text-purple-800 text-xs h-5">
+                    {stats.novos_lideres}
                   </Badge>
                 </div>
               </div>

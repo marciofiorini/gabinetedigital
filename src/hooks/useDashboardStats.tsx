@@ -8,6 +8,7 @@ interface DashboardStats {
   eventos_hoje: number;
   novos_contatos_hoje: number;
   leads_novos: number;
+  novos_lideres: number;
 }
 
 export const useDashboardStats = () => {
@@ -15,7 +16,8 @@ export const useDashboardStats = () => {
     demandas_pendentes: 0,
     eventos_hoje: 0,
     novos_contatos_hoje: 0,
-    leads_novos: 0
+    leads_novos: 0,
+    novos_lideres: 0
   });
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
@@ -39,7 +41,8 @@ export const useDashboardStats = () => {
           demandas_pendentes: Number(data[0].demandas_pendentes),
           eventos_hoje: Number(data[0].eventos_hoje),
           novos_contatos_hoje: Number(data[0].novos_contatos_hoje),
-          leads_novos: Number(data[0].leads_novos)
+          leads_novos: Number(data[0].leads_novos),
+          novos_lideres: Number(data[0].novos_lideres || 0)
         });
       }
     } catch (error) {

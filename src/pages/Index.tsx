@@ -1,8 +1,7 @@
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Users, MessageSquare, Calendar, MessageCircle, TrendingUp, AlertCircle } from "lucide-react";
+import { Users, MessageSquare, Calendar, MessageCircle, TrendingUp, AlertCircle, Crown } from "lucide-react";
 import { useDashboardStats } from "@/hooks/useDashboardStats";
 
 const Index = () => {
@@ -34,10 +33,10 @@ const Index = () => {
       bgColor: "bg-green-100"
     },
     {
-      title: "Eventos Hoje",
-      value: loading ? "..." : stats.eventos_hoje.toString(),
-      change: "+4",
-      icon: Calendar,
+      title: "Novos Líderes",
+      value: loading ? "..." : stats.novos_lideres.toString(),
+      change: "+3",
+      icon: Crown,
       color: "text-purple-600",
       bgColor: "bg-purple-100"
     }
