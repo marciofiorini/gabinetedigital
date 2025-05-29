@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useLocation, Link } from 'react-router-dom';
 import { cn } from "@/lib/utils";
@@ -53,7 +54,12 @@ export const SidebarNew = ({ isOpen }: SidebarProps) => {
   const { isAdmin } = useUserRoles();
   const [openGroups, setOpenGroups] = useState<string[]>(['comunicacao', 'painel']);
 
-  console.log('SidebarNew renderizado:', { isOpen, location: location.pathname, stats });
+  console.log('SidebarNew - Renderizando:', { 
+    isOpen, 
+    location: location.pathname, 
+    stats,
+    loading 
+  });
 
   const toggleGroup = (groupId: string) => {
     setOpenGroups(prev => 
@@ -301,9 +307,8 @@ export const SidebarNew = ({ isOpen }: SidebarProps) => {
       {/* Desktop Sidebar */}
       <aside
         className={cn(
-          "fixed left-0 top-0 z-40 h-full w-64 bg-white border-r border-gray-200 transition-transform duration-300 flex-shrink-0",
-          isOpen ? "translate-x-0" : "-translate-x-full",
-          "hidden lg:block"
+          "fixed left-0 top-0 z-40 h-full w-64 bg-white border-r border-gray-200 transition-transform duration-300 flex-shrink-0 hidden lg:block",
+          isOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
         <SidebarContent />

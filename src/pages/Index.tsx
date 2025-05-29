@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -10,7 +11,7 @@ import { ProtectedLayout } from "@/components/ProtectedLayout";
 const Index = () => {
   const { stats, loading } = useDashboardStats();
 
-  console.log('Index renderizado, stats:', stats, 'loading:', loading);
+  console.log('Index - Renderizando:', { stats, loading });
 
   const statsCards = [
     {
