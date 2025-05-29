@@ -39,14 +39,14 @@ export const UserMenu = () => {
   };
 
   return (
-    <div className="flex items-center gap-3 h-full -mt-1">
+    <div className="flex items-center gap-3 h-full">
       {/* Notificações */}
       <Popover>
         <PopoverTrigger asChild>
-          <Button variant="ghost" size="sm" className="relative h-6 w-6 p-0">
-            <Bell className="w-3 h-3" />
+          <Button variant="ghost" size="sm" className="relative p-2">
+            <Bell className="w-4 h-4" />
             {unreadCount > 0 && (
-              <Badge className="absolute -top-1 -right-1 w-4 h-4 p-0 flex items-center justify-center bg-red-500 text-white text-xs">
+              <Badge className="absolute -top-1 -right-1 w-5 h-5 p-0 flex items-center justify-center bg-red-500 text-white text-xs">
                 {unreadCount > 99 ? '99+' : unreadCount}
               </Badge>
             )}
@@ -102,19 +102,19 @@ export const UserMenu = () => {
       {/* Menu do usuário */}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="flex items-center gap-2 max-w-xs h-6 px-2">
+          <Button variant="ghost" className="flex items-center gap-2 max-w-xs">
             {profile?.avatar_url ? (
               <img 
                 src={profile.avatar_url} 
                 alt="Avatar" 
-                className="w-5 h-5 rounded-full"
+                className="w-8 h-8 rounded-full"
               />
             ) : (
-              <div className="w-5 h-5 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
-                <User className="w-3 h-3 text-white" />
+              <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+                <User className="w-4 h-4 text-white" />
               </div>
             )}
-            <span className="hidden sm:block text-xs font-medium truncate max-w-[120px]">
+            <span className="hidden sm:block text-sm font-medium truncate max-w-[120px]">
               {displayName}
             </span>
           </Button>

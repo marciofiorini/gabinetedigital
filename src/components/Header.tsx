@@ -15,9 +15,9 @@ export const Header = ({ onToggleSidebar }: HeaderProps) => {
           variant="ghost"
           size="sm"
           onClick={onToggleSidebar}
-          className="h-6 w-6 p-0"
+          className="h-8 w-8 p-0"
         >
-          <Menu className="w-3 h-3" />
+          <Menu className="w-4 h-4" />
         </Button>
       </div>
       
