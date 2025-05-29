@@ -4,6 +4,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { TagManager } from "@/components/TagManager";
+import { useTagSync } from "@/hooks/useTagSync";
 import { 
   Plus, 
   Search, 
@@ -13,11 +15,14 @@ import {
   MapPin, 
   Calendar,
   User,
-  Target
+  Target,
+  Tag,
+  Edit
 } from "lucide-react";
 
 const CrmKanban = () => {
   const [searchTerm, setSearchTerm] = useState("");
+  const { syncTagsFromLead } = useTagSync();
 
   const colunas = [
     { id: "lead", titulo: "Novos Leads", cor: "bg-blue-500", count: 8 },
@@ -36,7 +41,8 @@ const CrmKanban = () => {
         regiao: "Zona Sul",
         interesse: "Saúde",
         score: 85,
-        ultimoContato: "2024-05-27"
+        ultimoContato: "2024-05-27",
+        tags: ["VIP", "Interessado"]
       },
       {
         id: 2,
@@ -46,7 +52,8 @@ const CrmKanban = () => {
         regiao: "Centro",
         interesse: "Educação",
         score: 72,
-        ultimoContato: "2024-05-26"
+        ultimoContato: "2024-05-26",
+        tags: ["Follow Up"]
       }
     ],
     qualificado: [
@@ -58,7 +65,8 @@ const CrmKanban = () => {
         regiao: "Zona Norte",
         interesse: "Infraestrutura",
         score: 91,
-        ultimoContato: "2024-05-25"
+        ultimoContato: "2024-05-25",
+        tags: ["Prioridade Alta", "Reunião Agendada"]
       }
     ],
     proposta: [
@@ -70,7 +78,8 @@ const CrmKanban = () => {
         regiao: "Zona Oeste",
         interesse: "Economia",
         score: 88,
-        ultimoContato: "2024-05-24"
+        ultimoContato: "2024-05-24",
+        tags: ["Proposta Enviada", "VIP"]
       }
     ],
     fechado: [
@@ -82,10 +91,20 @@ const CrmKanban = () => {
         regiao: "Barra",
         interesse: "Meio Ambiente",
         score: 95,
-        ultimoContato: "2024-05-23"
+        ultimoContato: "2024-05-23",
+        tags: ["VIP"]
       }
     ]
   };
+
+  // Sincronizar tags existentes
+  React.useEffect(() => {
+    Object.values(leads).flat().forEach(lead => {
+      if (lead.tags) {
+        syncTagsFromLead(lead.tags);
+      }
+    });
+  }, [syncTagsFromLead]);
 
   const getScoreColor = (score: number) => {
     if (score >= 90) return "text-green-600";
@@ -157,16 +176,35 @@ const CrmKanban = () => {
                 <Card key={lead.id} className="border-0 shadow-md hover:shadow-lg transition-all duration-200 bg-white cursor-pointer">
                   <CardContent className="p-4">
                     <div className="space-y-3">
-                      {/* Nome e Score */}
+                      {/* Nome, Score e Editar */}
                       <div className="flex items-start justify-between">
-                        <h4 className="font-semibold text-gray-900 text-sm">{lead.nome}</h4>
-                        <div className="flex items-center gap-1">
-                          <Target className="w-3 h-3 text-gray-400" />
-                          <span className={`text-xs font-semibold ${getScoreColor(lead.score)}`}>
-                            {lead.score}
-                          </span>
+                        <div className="flex-1">
+                          <h4 className="font-semibold text-gray-900 text-sm">{lead.nome}</h4>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-1">
+                            <Target className="w-3 h-3 text-gray-400" />
+                            <span className={`text-xs font-semibold ${getScoreColor(lead.score)}`}>
+                              {lead.score}
+                            </span>
+                          </div>
+                          <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                            <Edit className="w-3 h-3" />
+                          </Button>
                         </div>
                       </div>
+
+                      {/* Tags */}
+                      {lead.tags && lead.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-1">
+                          {lead.tags.map((tag, index) => (
+                            <Badge key={index} variant="outline" className="text-xs">
+                              <Tag className="w-2 h-2 mr-1" />
+                              {tag}
+                            </Badge>
+                          ))}
+                        </div>
+                      )}
 
                       {/* Interesse */}
                       <Badge variant="outline" className="text-xs">

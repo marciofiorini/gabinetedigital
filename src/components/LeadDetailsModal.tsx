@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { FollowUpSection } from "@/components/FollowUpSection";
+import { TagManager } from "@/components/TagManager";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { 
@@ -76,6 +77,7 @@ export const LeadDetailsModal = ({ lead, isOpen, onClose, onEdit, onAddFollowUp,
   const [dataAgendamento, setDataAgendamento] = useState<Date>();
   const [plataforma, setPlataforma] = useState("whatsapp");
   const [novaObservacao, setNovaObservacao] = useState("");
+  const [leadTags, setLeadTags] = useState<string[]>(lead?.tags || []);
   const { toast } = useToast();
 
   if (!lead) return null;
@@ -143,6 +145,14 @@ export const LeadDetailsModal = ({ lead, isOpen, onClose, onEdit, onAddFollowUp,
     }
   };
 
+  const handleTagsChange = (newTags: string[]) => {
+    setLeadTags(newTags);
+    toast({
+      title: "Tags atualizadas",
+      description: "As tags do lead foram sincronizadas com sucesso.",
+    });
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
@@ -159,7 +169,7 @@ export const LeadDetailsModal = ({ lead, isOpen, onClose, onEdit, onAddFollowUp,
                 <div className="flex gap-2 items-center">
                   <Badge className="bg-blue-100 text-blue-800">{lead.tipo}</Badge>
                   <Badge className="bg-green-100 text-green-800">Score: {lead.leadScore}</Badge>
-                  {lead.tags && lead.tags.map((tag, index) => (
+                  {leadTags && leadTags.map((tag, index) => (
                     <Badge key={index} variant="outline" className="text-xs">
                       <Tag className="w-3 h-3 mr-1" />
                       {tag}
@@ -179,8 +189,9 @@ export const LeadDetailsModal = ({ lead, isOpen, onClose, onEdit, onAddFollowUp,
         </DialogHeader>
 
         <Tabs defaultValue="perfil" className="w-full">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="perfil">Perfil</TabsTrigger>
+            <TabsTrigger value="tags">Tags</TabsTrigger>
             <TabsTrigger value="followup">Follow Up</TabsTrigger>
             <TabsTrigger value="chat">Chat</TabsTrigger>
             <TabsTrigger value="agendamentos">Agendamentos</TabsTrigger>
@@ -300,6 +311,24 @@ export const LeadDetailsModal = ({ lead, isOpen, onClose, onEdit, onAddFollowUp,
                     </p>
                   </div>
                 </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="tags" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Tag className="w-5 h-5" />
+                  Gerenciar Tags
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <TagManager
+                  selectedTags={leadTags}
+                  onTagsChange={handleTagsChange}
+                  showAddButton={true}
+                />
               </CardContent>
             </Card>
           </TabsContent>
