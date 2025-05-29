@@ -2,6 +2,7 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { LoginForm } from '@/components/LoginForm';
 import { Loader2 } from 'lucide-react';
+import { LayoutMain } from '@/components/LayoutMain';
 
 interface ProtectedLayoutProps {
   children: React.ReactNode;
@@ -25,5 +26,5 @@ export const ProtectedLayout = ({ children }: ProtectedLayoutProps) => {
     return <LoginForm />;
   }
 
-  return <>{children}</>;
+  return <LayoutMain>{children}</LayoutMain>;
 };
