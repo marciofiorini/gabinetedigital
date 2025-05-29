@@ -52,11 +52,19 @@ export const FollowUpSection = ({ followUps, onAddFollowUp, onUpdateFollowUp, le
   const [isAdding, setIsAdding] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<MessageTemplate | null>(null);
   const [isTemplateCustomizerOpen, setIsTemplateCustomizerOpen] = useState(false);
-  const [newFollowUp, setNewFollowUp] = useState({
-    tipo: 'ligacao' as const,
+  const [newFollowUp, setNewFollowUp] = useState<{
+    tipo: 'ligacao' | 'mensagem' | 'reuniao' | 'aniversario';
+    data_agendada: Date;
+    descricao: string;
+    status: 'pendente' | 'concluido' | 'cancelado';
+    observacoes: string;
+    assunto: string;
+    conteudo_mensagem: string;
+  }>({
+    tipo: 'ligacao',
     data_agendada: new Date(),
     descricao: '',
-    status: 'pendente' as const,
+    status: 'pendente',
     observacoes: '',
     assunto: '',
     conteudo_mensagem: ''
@@ -200,7 +208,7 @@ export const FollowUpSection = ({ followUps, onAddFollowUp, onUpdateFollowUp, le
                       <div className="grid grid-cols-2 gap-4">
                         <div>
                           <Label htmlFor="tipo">Tipo de Follow Up</Label>
-                          <Select value={newFollowUp.tipo} onValueChange={(value: any) => setNewFollowUp({...newFollowUp, tipo: value})}>
+                          <Select value={newFollowUp.tipo} onValueChange={(value: 'ligacao' | 'mensagem' | 'reuniao' | 'aniversario') => setNewFollowUp({...newFollowUp, tipo: value})}>
                             <SelectTrigger>
                               <SelectValue />
                             </SelectTrigger>
