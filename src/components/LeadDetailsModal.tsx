@@ -26,7 +26,8 @@ import {
   User,
   Briefcase,
   Heart,
-  Tag
+  Tag,
+  Edit
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -65,11 +66,12 @@ interface LeadDetailsModalProps {
   lead: Lead | null;
   isOpen: boolean;
   onClose: () => void;
+  onEdit?: (lead: Lead) => void;
   onAddFollowUp?: (leadId: string, followUp: any) => void;
   onUpdateFollowUp?: (leadId: string, followUpId: string, followUp: any) => void;
 }
 
-export const LeadDetailsModal = ({ lead, isOpen, onClose, onAddFollowUp, onUpdateFollowUp }: LeadDetailsModalProps) => {
+export const LeadDetailsModal = ({ lead, isOpen, onClose, onEdit, onAddFollowUp, onUpdateFollowUp }: LeadDetailsModalProps) => {
   const [mensagem, setMensagem] = useState("");
   const [dataAgendamento, setDataAgendamento] = useState<Date>();
   const [plataforma, setPlataforma] = useState("whatsapp");
@@ -135,29 +137,44 @@ export const LeadDetailsModal = ({ lead, isOpen, onClose, onAddFollowUp, onUpdat
     }
   };
 
+  const handleEdit = () => {
+    if (onEdit) {
+      onEdit(lead);
+    }
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full flex items-center justify-center">
-              <span className="text-white font-semibold">
-                {lead.nome.split(' ').map(n => n[0]).join('').slice(0, 2)}
-              </span>
-            </div>
-            <div>
-              <h2 className="text-xl font-bold">{lead.nome}</h2>
-              <div className="flex gap-2 items-center">
-                <Badge className="bg-blue-100 text-blue-800">{lead.tipo}</Badge>
-                <Badge className="bg-green-100 text-green-800">Score: {lead.leadScore}</Badge>
-                {lead.tags && lead.tags.map((tag, index) => (
-                  <Badge key={index} variant="outline" className="text-xs">
-                    <Tag className="w-3 h-3 mr-1" />
-                    {tag}
-                  </Badge>
-                ))}
+          <DialogTitle className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full flex items-center justify-center">
+                <span className="text-white font-semibold">
+                  {lead.nome.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                </span>
+              </div>
+              <div>
+                <h2 className="text-xl font-bold">{lead.nome}</h2>
+                <div className="flex gap-2 items-center">
+                  <Badge className="bg-blue-100 text-blue-800">{lead.tipo}</Badge>
+                  <Badge className="bg-green-100 text-green-800">Score: {lead.leadScore}</Badge>
+                  {lead.tags && lead.tags.map((tag, index) => (
+                    <Badge key={index} variant="outline" className="text-xs">
+                      <Tag className="w-3 h-3 mr-1" />
+                      {tag}
+                    </Badge>
+                  ))}
+                </div>
               </div>
             </div>
+            <Button 
+              onClick={handleEdit}
+              className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600"
+            >
+              <Edit className="w-4 h-4 mr-2" />
+              Editar
+            </Button>
           </DialogTitle>
         </DialogHeader>
 

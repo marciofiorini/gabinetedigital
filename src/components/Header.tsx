@@ -3,7 +3,6 @@ import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { UserMenu } from "@/components/UserMenu";
 import { GlobalSearch } from "@/components/GlobalSearch";
-import { NotificationBell } from "@/components/NotificationBell";
 
 interface HeaderProps {
   onToggleSidebar: () => void;
@@ -27,7 +26,6 @@ export const Header = ({ onToggleSidebar }: HeaderProps) => {
       </div>
       
       <div className="flex items-center gap-2">
-        <NotificationBell />
         <UserMenu />
       </div>
     </header>

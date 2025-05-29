@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -49,7 +48,7 @@ import {
   MapPin
 } from "lucide-react";
 
-type SortField = 'nome' | 'leadScore' | 'engajamento' | 'regiao' | 'interacoes' | 'ultimaInteracao';
+type SortField = 'nome' | 'leadScore' | 'engajamento' | 'regiao' | 'interacoes';
 type SortDirection = 'asc' | 'desc' | null;
 
 const Contatos = () => {
@@ -150,9 +149,6 @@ const Contatos = () => {
       if (sortField === 'nome') {
         aValue = aValue.toLowerCase();
         bValue = bValue.toLowerCase();
-      } else if (sortField === 'ultimaInteracao') {
-        aValue = new Date(aValue);
-        bValue = new Date(bValue);
       } else if (sortField === 'engajamento') {
         const engajamentoOrder = { "Muito Alto": 4, "Alto": 3, "Médio": 2, "Baixo": 1 };
         aValue = engajamentoOrder[aValue] || 0;
@@ -349,9 +345,9 @@ const Contatos = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-12">#</TableHead>
+                    <TableHead className="w-16">#</TableHead>
                     <TableHead 
-                      className="cursor-pointer select-none hover:bg-gray-50 transition-colors"
+                      className="cursor-pointer select-none hover:bg-gray-50 transition-colors min-w-[250px]"
                       onClick={() => handleSort('nome')}
                     >
                       <div className="flex items-center gap-2">
@@ -359,9 +355,9 @@ const Contatos = () => {
                         {getSortIcon('nome')}
                       </div>
                     </TableHead>
-                    <TableHead>Tipo</TableHead>
+                    <TableHead className="w-20">Tipo</TableHead>
                     <TableHead 
-                      className="cursor-pointer select-none hover:bg-gray-50 transition-colors"
+                      className="cursor-pointer select-none hover:bg-gray-50 transition-colors w-20"
                       onClick={() => handleSort('leadScore')}
                     >
                       <div className="flex items-center gap-2">
@@ -370,7 +366,7 @@ const Contatos = () => {
                       </div>
                     </TableHead>
                     <TableHead 
-                      className="cursor-pointer select-none hover:bg-gray-50 transition-colors"
+                      className="cursor-pointer select-none hover:bg-gray-50 transition-colors w-32"
                       onClick={() => handleSort('engajamento')}
                     >
                       <div className="flex items-center gap-2">
@@ -379,7 +375,7 @@ const Contatos = () => {
                       </div>
                     </TableHead>
                     <TableHead 
-                      className="cursor-pointer select-none hover:bg-gray-50 transition-colors"
+                      className="cursor-pointer select-none hover:bg-gray-50 transition-colors w-32"
                       onClick={() => handleSort('regiao')}
                     >
                       <div className="flex items-center gap-2">
@@ -387,9 +383,8 @@ const Contatos = () => {
                         {getSortIcon('regiao')}
                       </div>
                     </TableHead>
-                    <TableHead>Tags</TableHead>
                     <TableHead 
-                      className="cursor-pointer select-none hover:bg-gray-50 transition-colors"
+                      className="cursor-pointer select-none hover:bg-gray-50 transition-colors w-24"
                       onClick={() => handleSort('interacoes')}
                     >
                       <div className="flex items-center gap-2">
@@ -397,17 +392,7 @@ const Contatos = () => {
                         {getSortIcon('interacoes')}
                       </div>
                     </TableHead>
-                    <TableHead 
-                      className="cursor-pointer select-none hover:bg-gray-50 transition-colors"
-                      onClick={() => handleSort('ultimaInteracao')}
-                    >
-                      <div className="flex items-center gap-2">
-                        Última Interação
-                        {getSortIcon('ultimaInteracao')}
-                      </div>
-                    </TableHead>
-                    <TableHead>Canais</TableHead>
-                    <TableHead>Ações</TableHead>
+                    <TableHead className="w-32">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -415,9 +400,9 @@ const Contatos = () => {
                     const globalIndex = startIndex + index;
                     return (
                       <TableRow key={contato.id} className="hover:bg-indigo-50/50">
-                        <TableCell>
+                        <TableCell className="p-2">
                           <div className="flex items-center gap-2">
-                            <span className="font-bold text-lg text-gray-600">#{globalIndex + 1}</span>
+                            <span className="font-bold text-sm text-gray-600">#{globalIndex + 1}</span>
                             {globalIndex < 3 && (
                               <div className={`w-2 h-2 rounded-full ${
                                 globalIndex === 0 ? 'bg-yellow-500' : 
@@ -426,85 +411,59 @@ const Contatos = () => {
                             )}
                           </div>
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="p-2">
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full flex items-center justify-center">
-                              <span className="text-white font-semibold text-sm">
+                            <div className="w-8 h-8 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full flex items-center justify-center">
+                              <span className="text-white font-semibold text-xs">
                                 {contato.nome.split(' ').map(n => n[0]).join('').slice(0, 2)}
                               </span>
                             </div>
                             <div>
                               <p 
-                                className="font-semibold text-gray-900 cursor-pointer hover:text-indigo-600 transition-colors"
+                                className="font-semibold text-gray-900 cursor-pointer hover:text-indigo-600 transition-colors text-sm"
                                 onClick={() => handleVerLead(contato)}
                               >
                                 {contato.nome}
                               </p>
-                              <div className="flex items-center gap-2 text-sm text-gray-600">
+                              <div className="flex items-center gap-2 text-xs text-gray-600">
                                 {contato.email}
                               </div>
                             </div>
                           </div>
                         </TableCell>
-                        <TableCell>
-                          <Badge className={`${getTipoColor(contato.tipo)} border`}>
+                        <TableCell className="p-2">
+                          <Badge className={`${getTipoColor(contato.tipo)} border text-xs`}>
                             {contato.tipo}
                           </Badge>
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="p-2">
                           <div className="flex items-center gap-2">
                             {getScoreIcon(contato.leadScore)}
-                            <span className="font-bold text-lg">{contato.leadScore}</span>
+                            <span className="font-bold text-sm">{contato.leadScore}</span>
                           </div>
                         </TableCell>
-                        <TableCell>
-                          <Badge className={`${getEngajamentoColor(contato.engajamento)} border`}>
+                        <TableCell className="p-2">
+                          <Badge className={`${getEngajamentoColor(contato.engajamento)} border text-xs`}>
                             {contato.engajamento}
                           </Badge>
                         </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-1 text-sm text-gray-600">
+                        <TableCell className="p-2">
+                          <div className="flex items-center gap-1 text-xs text-gray-600">
                             <MapPin className="w-3 h-3" />
                             {contato.regiao}
                           </div>
                         </TableCell>
-                        <TableCell>
-                          <div className="flex gap-1 flex-wrap">
-                            {contato.tags?.map((tag, tagIndex) => (
-                              <Badge key={tagIndex} variant="outline" className="text-xs">
-                                <Tag className="w-3 h-3 mr-1" />
-                                {tag}
-                              </Badge>
-                            ))}
-                          </div>
-                        </TableCell>
-                        <TableCell>
+                        <TableCell className="p-2">
                           <div className="text-center">
-                            <span className="font-semibold text-indigo-600">{contato.interacoes}</span>
+                            <span className="font-semibold text-indigo-600 text-sm">{contato.interacoes}</span>
                           </div>
                         </TableCell>
-                        <TableCell>
-                          <span className="text-sm text-gray-600">{contato.ultimaInteracao}</span>
-                        </TableCell>
-                        <TableCell>
+                        <TableCell className="p-2">
                           <div className="flex gap-1">
-                            <Button size="sm" variant="outline" className="p-1 h-7 w-7">
-                              <MessageCircle className="w-3 h-3 text-green-600" />
-                            </Button>
-                            <Button size="sm" variant="outline" className="p-1 h-7 w-7">
-                              <Instagram className="w-3 h-3 text-pink-600" />
-                            </Button>
-                            <Button size="sm" variant="outline" className="p-1 h-7 w-7">
-                              <Calendar className="w-3 h-3 text-blue-600" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex gap-2">
                             <Button 
                               variant="outline" 
                               size="sm" 
-                              className="hover:bg-indigo-50"
+                              className="hover:bg-indigo-50 text-xs h-7 px-2"
                               onClick={() => handleVerLead(contato)}
                             >
                               <Eye className="w-3 h-3 mr-1" />
@@ -513,13 +472,10 @@ const Contatos = () => {
                             <Button 
                               variant="outline" 
                               size="sm" 
-                              className="hover:bg-yellow-50"
+                              className="hover:bg-yellow-50 h-7 w-7 p-0"
                               onClick={() => handleEditLead(contato)}
                             >
                               <Edit className="w-3 h-3" />
-                            </Button>
-                            <Button size="sm" className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700">
-                              Chat
                             </Button>
                           </div>
                         </TableCell>
@@ -599,6 +555,7 @@ const Contatos = () => {
           setIsLeadModalOpen(false);
           setSelectedLead(null);
         }}
+        onEdit={handleEditLead}
         onAddFollowUp={handleAddFollowUp}
         onUpdateFollowUp={handleUpdateFollowUp}
       />

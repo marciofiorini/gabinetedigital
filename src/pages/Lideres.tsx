@@ -5,9 +5,19 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { NovoLiderModal } from "@/components/NovoLiderModal";
-import { UploadCSVLideres } from "@/components/UploadCSVLideres";
 import { LeadDetailsModal } from "@/components/LeadDetailsModal";
+import { NovoLiderModal } from "@/components/NovoLiderModal";
+import { EditLeadModal } from "@/components/EditLeadModal";
+import { UploadCSVLideres } from "@/components/UploadCSVLideres";
+import { 
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 import { 
   Table, 
   TableBody, 
@@ -19,122 +29,138 @@ import {
 import { 
   Plus, 
   Search, 
-  Filter, 
-  Phone, 
-  Mail, 
-  MapPin, 
-  Users, 
-  Crown, 
+  Filter,
+  Crown,
   Star,
-  Award,
+  Users,
   TrendingUp,
+  Activity,
   Upload,
+  Edit,
   Eye,
   ArrowUpDown,
   ArrowUp,
-  ArrowDown
+  ArrowDown,
+  MapPin
 } from "lucide-react";
 
-type SortField = 'nome' | 'organizacao' | 'categoria' | 'influencia' | 'regiao' | 'seguidores' | 'ultimoContato';
+type SortField = 'nome' | 'influencia' | 'zona' | 'status';
 type SortDirection = 'asc' | 'desc' | null;
 
 const Lideres = () => {
-  const [isNovoLiderModalOpen, setIsNovoLiderModalOpen] = useState(false);
   const [selectedLider, setSelectedLider] = useState(null);
   const [isLiderModalOpen, setIsLiderModalOpen] = useState(false);
+  const [isNovoLiderModalOpen, setIsNovoLiderModalOpen] = useState(false);
+  const [isEditLiderModalOpen, setIsEditLiderModalOpen] = useState(false);
+  const [editingLider, setEditingLider] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState("");
   const [sortField, setSortField] = useState<SortField>('influencia');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+  const itemsPerPage = 20;
 
   const lideres = [
     {
       id: 1,
-      nome: "Carlos Eduardo Silva",
-      cargo: "Presidente Associação",
-      organizacao: "Associação de Moradores Zona Sul",
-      email: "carlos@associacao.com",
+      nome: "Carlos Mendes",
+      email: "carlos@email.com",
       telefone: "(21) 99999-1111",
-      regiao: "Zona Sul",
-      influencia: "Alta",
-      seguidores: 2500,
-      categoria: "Líder Comunitário",
-      ultimoContato: "2024-05-27",
-      leadScore: 85,
-      engajamento: "Alto",
-      ultimaInteracao: "2024-05-27",
-      origem: "Evento",
-      interesse: "Mobilidade Urbana",
-      interacoes: 15,
-      tags: ["Líder", "Associação"],
-      followUps: [],
-      tipo: "Líder"
+      zona: "Zona Sul",
+      influencia: 9,
+      status: "Ativo",
+      observacoes: "Líder comunitário muito engajado",
+      tags: ["Líder", "Saúde"],
+      followUps: []
     },
     {
       id: 2,
-      nome: "Maria Santos Oliveira",
-      cargo: "Diretora",
-      organizacao: "Sindicato dos Professores",
-      email: "maria@sindicato.com",
+      nome: "Maria da Silva",
+      email: "maria@email.com", 
       telefone: "(21) 99999-2222",
-      regiao: "Centro",
-      influencia: "Muito Alta",
-      seguidores: 4200,
-      categoria: "Líder Sindical",
-      ultimoContato: "2024-05-26",
-      leadScore: 92,
-      engajamento: "Muito Alto",
-      ultimaInteracao: "2024-05-26",
-      origem: "Reunião",
-      interesse: "Educação",
-      interacoes: 28,
-      tags: ["VIP", "Educação"],
-      followUps: [],
-      tipo: "Líder"
+      zona: "Centro",
+      influencia: 8,
+      status: "Ativo",
+      observacoes: "Coordenadora de associação de moradores",
+      tags: ["Coordenadora"],
+      followUps: []
     },
     {
       id: 3,
-      nome: "João Pedro Costa",
-      cargo: "Coordenador",
-      organizacao: "ONG Meio Ambiente Verde",
-      email: "joao@ongverde.org",
-      telefone: "(21) 99999-3333",
-      regiao: "Zona Norte",
-      influencia: "Alta",
-      seguidores: 1800,
-      categoria: "Líder ONGs",
-      ultimoContato: "2024-05-25",
-      leadScore: 78,
-      engajamento: "Alto",
-      ultimaInteracao: "2024-05-25",
-      origem: "Instagram",
-      interesse: "Meio Ambiente",
-      interacoes: 22,
-      tags: ["ONG", "Sustentabilidade"],
-      followUps: [],
-      tipo: "Líder"
+      nome: "João Santos",
+      email: "joao@email.com",
+      telefone: "(21) 99999-3333", 
+      zona: "Zona Norte",
+      influencia: 7,
+      status: "Ativo",
+      observacoes: "Presidente do sindicato local",
+      tags: ["Presidente"],
+      followUps: []
     },
-    {
-      id: 4,
-      nome: "Ana Paula Ribeiro",
-      cargo: "Empresária",
-      organizacao: "Câmara de Comércio",
-      email: "ana@camara.com",
-      telefone: "(21) 99999-4444",
-      regiao: "Zona Oeste",
-      influencia: "Média",
-      seguidores: 1200,
-      categoria: "Líder Empresarial",
-      ultimoContato: "2024-05-24",
-      leadScore: 72,
-      engajamento: "Médio",
-      ultimaInteracao: "2024-05-24",
-      origem: "Website",
-      interesse: "Economia",
-      interacoes: 18,
-      tags: ["Empresário"],
-      followUps: [],
-      tipo: "Líder"
-    }
+    // Adicionar mais líderes para demonstrar a paginação
+    ...Array.from({ length: 30 }, (_, i) => ({
+      id: i + 4,
+      nome: `Líder ${i + 4}`,
+      email: `lider${i + 4}@email.com`,
+      telefone: `(21) 99999-${String(i + 1000).slice(-4)}`,
+      zona: ["Zona Sul", "Centro", "Zona Norte", "Zona Oeste", "Barra"][i % 5],
+      influencia: Math.floor(Math.random() * 6) + 4, // Entre 4 e 9
+      status: ["Ativo", "Inativo"][i % 10 === 0 ? 1 : 0], // 90% ativos
+      observacoes: `Observações sobre o líder ${i + 4}`,
+      tags: [["Líder"], ["Coordenador"], ["Presidente"]][i % 3],
+      followUps: []
+    }))
   ];
+
+  // Filtrar e ordenar líderes
+  const filteredLideres = lideres
+    .filter(lider => {
+      const matchesSearch = lider.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           lider.email.toLowerCase().includes(searchTerm.toLowerCase());
+      return matchesSearch;
+    })
+    .sort((a, b) => {
+      if (!sortDirection) return b.influencia - a.influencia; // padrão por influência desc
+      
+      let aValue: any = a[sortField];
+      let bValue: any = b[sortField];
+      
+      // Tratamento especial para diferentes tipos de campos
+      if (sortField === 'nome') {
+        aValue = aValue.toLowerCase();
+        bValue = bValue.toLowerCase();
+      }
+      
+      if (sortDirection === 'asc') {
+        return aValue > bValue ? 1 : aValue < bValue ? -1 : 0;
+      } else {
+        return aValue < bValue ? 1 : aValue > bValue ? -1 : 0;
+      }
+    });
+
+  // Paginação
+  const totalPages = Math.ceil(filteredLideres.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentLideres = filteredLideres.slice(startIndex, endIndex);
+
+  const getInfluenciaColor = (influencia: number) => {
+    if (influencia >= 8) return "bg-red-100 text-red-800 border-red-200";
+    if (influencia >= 6) return "bg-orange-100 text-orange-800 border-orange-200";
+    if (influencia >= 4) return "bg-yellow-100 text-yellow-800 border-yellow-200";
+    return "bg-green-100 text-green-800 border-green-200";
+  };
+
+  const getStatusColor = (status: string) => {
+    return status === "Ativo" 
+      ? "bg-green-100 text-green-800 border-green-200"
+      : "bg-gray-100 text-gray-800 border-gray-200";
+  };
+
+  const getInfluenciaIcon = (influencia: number) => {
+    if (influencia >= 8) return <Crown className="w-4 h-4 text-yellow-500" />;
+    if (influencia >= 6) return <Star className="w-4 h-4 text-orange-500" />;
+    return <TrendingUp className="w-4 h-4 text-blue-500" />;
+  };
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -165,89 +191,53 @@ const Lideres = () => {
     return <ArrowUpDown className="w-4 h-4 text-gray-400" />;
   };
 
-  // Ordenar líderes
-  const sortedLideres = [...lideres].sort((a, b) => {
-    if (!sortDirection) {
-      // padrão por influência desc
-      const influenciaOrder = { "Muito Alta": 4, "Alta": 3, "Média": 2, "Baixa": 1 };
-      return (influenciaOrder[b.influencia] || 0) - (influenciaOrder[a.influencia] || 0);
-    }
-    
-    let aValue: any = a[sortField];
-    let bValue: any = b[sortField];
-    
-    // Tratamento especial para diferentes tipos de campos
-    if (sortField === 'nome' || sortField === 'organizacao' || sortField === 'categoria' || sortField === 'regiao') {
-      aValue = aValue.toLowerCase();
-      bValue = bValue.toLowerCase();
-    } else if (sortField === 'ultimoContato') {
-      aValue = new Date(aValue);
-      bValue = new Date(bValue);
-    } else if (sortField === 'influencia') {
-      const influenciaOrder = { "Muito Alta": 4, "Alta": 3, "Média": 2, "Baixa": 1 };
-      aValue = influenciaOrder[aValue] || 0;
-      bValue = influenciaOrder[bValue] || 0;
-    }
-    
-    if (sortDirection === 'asc') {
-      return aValue > bValue ? 1 : aValue < bValue ? -1 : 0;
-    } else {
-      return aValue < bValue ? 1 : aValue > bValue ? -1 : 0;
-    }
-  });
-
-  const getInfluenciaColor = (influencia: string) => {
-    switch (influencia) {
-      case "Muito Alta": return "bg-red-100 text-red-800 border-red-200";
-      case "Alta": return "bg-orange-100 text-orange-800 border-orange-200";
-      case "Média": return "bg-yellow-100 text-yellow-800 border-yellow-200";
-      case "Baixa": return "bg-green-100 text-green-800 border-green-200";
-      default: return "bg-gray-100 text-gray-800 border-gray-200";
-    }
-  };
-
-  const getCategoriaColor = (categoria: string) => {
-    switch (categoria) {
-      case "Líder Comunitário": return "bg-blue-100 text-blue-800 border-blue-200";
-      case "Líder Sindical": return "bg-purple-100 text-purple-800 border-purple-200";
-      case "Líder ONGs": return "bg-green-100 text-green-800 border-green-200";
-      case "Líder Empresarial": return "bg-indigo-100 text-indigo-800 border-indigo-200";
-      default: return "bg-gray-100 text-gray-800 border-gray-200";
-    }
-  };
-
-  const getInfluenciaIcon = (influencia: string) => {
-    switch (influencia) {
-      case "Muito Alta": return <Award className="w-4 h-4 text-red-500" />;
-      case "Alta": return <Star className="w-4 h-4 text-orange-500" />;
-      case "Média": return <TrendingUp className="w-4 h-4 text-yellow-500" />;
-      default: return <Users className="w-4 h-4 text-gray-500" />;
-    }
-  };
-
   const handleVerLider = (lider) => {
-    setSelectedLider(lider);
+    // Converter formato de líder para formato de lead para usar o mesmo modal
+    const liderAsLead = {
+      ...lider,
+      tipo: "Líder",
+      regiao: lider.zona,
+      leadScore: lider.influencia * 10, // Converter influência para score
+      engajamento: lider.influencia >= 8 ? "Muito Alto" : lider.influencia >= 6 ? "Alto" : "Médio",
+      ultimaInteracao: "2024-05-20",
+      origem: "Comunidade",
+      interesse: "Liderança"
+    };
+    setSelectedLider(liderAsLead);
     setIsLiderModalOpen(true);
+  };
+
+  const handleEditLider = (lider) => {
+    const liderAsLead = {
+      ...lider,
+      tipo: "Líder",
+      regiao: lider.zona,
+      leadScore: lider.influencia * 10
+    };
+    setEditingLider(liderAsLead);
+    setIsEditLiderModalOpen(true);
   };
 
   const handleAddFollowUp = (liderId: string, followUp: any) => {
     console.log('Adicionando follow up para líder:', liderId, followUp);
+    // Aqui integraria com o backend
   };
 
   const handleUpdateFollowUp = (liderId: string, followUpId: string, followUp: any) => {
     console.log('Atualizando follow up:', liderId, followUpId, followUp);
+    // Aqui integraria com o backend
   };
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* Page Title */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2">
             Líderes
           </h1>
           <p className="text-gray-600">
-            Gerencie relacionamentos com líderes comunitários e influenciadores
+            Gerencie sua rede de líderes comunitários por nível de influência
           </p>
         </div>
         <Button 
@@ -278,12 +268,16 @@ const Lideres = () => {
                   <Input
                     placeholder="Buscar líderes..."
                     className="pl-10 border-gray-200 focus:border-indigo-500 transition-colors"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
                   />
                 </div>
-                <Button variant="outline" className="hover:bg-indigo-50 hover:border-indigo-300 transition-colors">
-                  <Filter className="w-4 h-4 mr-2" />
-                  Filtros
-                </Button>
+                <div className="flex gap-2">
+                  <Button variant="outline" className="hover:bg-indigo-50 hover:border-indigo-300 transition-colors">
+                    <Filter className="w-4 h-4 mr-2" />
+                    Filtros
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -291,10 +285,10 @@ const Lideres = () => {
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             {[
-              { label: "Total Líderes", valor: "89", cor: "from-indigo-500 to-indigo-600", icon: Crown },
-              { label: "Influência Alta", valor: "24", cor: "from-orange-500 to-orange-600", icon: Star },
-              { label: "Organizações", valor: "45", cor: "from-purple-500 to-purple-600", icon: Users },
-              { label: "Seguidores Total", valor: "12.8k", cor: "from-pink-500 to-pink-600", icon: TrendingUp }
+              { label: "Total Líderes", valor: filteredLideres.length.toString(), cor: "from-indigo-500 to-indigo-600", icon: Users },
+              { label: "Líderes Ativos", valor: filteredLideres.filter(l => l.status === "Ativo").length.toString(), cor: "from-green-500 to-green-600", icon: TrendingUp },
+              { label: "Alta Influência", valor: filteredLideres.filter(l => l.influencia >= 8).length.toString(), cor: "from-yellow-500 to-yellow-600", icon: Crown },
+              { label: "Influência Média", valor: Math.round(filteredLideres.reduce((acc, l) => acc + l.influencia, 0) / filteredLideres.length || 0).toString(), cor: "from-purple-500 to-purple-600", icon: Activity }
             ].map((stat, index) => (
               <Card key={index} className="border-0 shadow-lg hover:shadow-xl transition-all duration-200 bg-white/80 backdrop-blur-sm">
                 <CardContent className="p-6">
@@ -316,18 +310,19 @@ const Lideres = () => {
           <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
             <CardHeader>
               <CardTitle className="text-xl bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                Lista de Líderes
+                Ranking de Líderes por Influência
               </CardTitle>
               <CardDescription>
-                Ordenado por nível de influência
+                Mostrando {currentLideres.length} de {filteredLideres.length} líderes (Página {currentPage} de {totalPages})
               </CardDescription>
             </CardHeader>
             <CardContent>
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="w-16">#</TableHead>
                     <TableHead 
-                      className="cursor-pointer select-none hover:bg-gray-50 transition-colors"
+                      className="cursor-pointer select-none hover:bg-gray-50 transition-colors min-w-[250px]"
                       onClick={() => handleSort('nome')}
                     >
                       <div className="flex items-center gap-2">
@@ -336,25 +331,7 @@ const Lideres = () => {
                       </div>
                     </TableHead>
                     <TableHead 
-                      className="cursor-pointer select-none hover:bg-gray-50 transition-colors"
-                      onClick={() => handleSort('organizacao')}
-                    >
-                      <div className="flex items-center gap-2">
-                        Organização
-                        {getSortIcon('organizacao')}
-                      </div>
-                    </TableHead>
-                    <TableHead 
-                      className="cursor-pointer select-none hover:bg-gray-50 transition-colors"
-                      onClick={() => handleSort('categoria')}
-                    >
-                      <div className="flex items-center gap-2">
-                        Categoria
-                        {getSortIcon('categoria')}
-                      </div>
-                    </TableHead>
-                    <TableHead 
-                      className="cursor-pointer select-none hover:bg-gray-50 transition-colors"
+                      className="cursor-pointer select-none hover:bg-gray-50 transition-colors w-32"
                       onClick={() => handleSort('influencia')}
                     >
                       <div className="flex items-center gap-2">
@@ -363,114 +340,161 @@ const Lideres = () => {
                       </div>
                     </TableHead>
                     <TableHead 
-                      className="cursor-pointer select-none hover:bg-gray-50 transition-colors"
-                      onClick={() => handleSort('regiao')}
+                      className="cursor-pointer select-none hover:bg-gray-50 transition-colors w-32"
+                      onClick={() => handleSort('zona')}
                     >
                       <div className="flex items-center gap-2">
-                        Região
-                        {getSortIcon('regiao')}
+                        Zona
+                        {getSortIcon('zona')}
                       </div>
                     </TableHead>
                     <TableHead 
-                      className="cursor-pointer select-none hover:bg-gray-50 transition-colors"
-                      onClick={() => handleSort('seguidores')}
+                      className="cursor-pointer select-none hover:bg-gray-50 transition-colors w-24"
+                      onClick={() => handleSort('status')}
                     >
                       <div className="flex items-center gap-2">
-                        Seguidores
-                        {getSortIcon('seguidores')}
+                        Status
+                        {getSortIcon('status')}
                       </div>
                     </TableHead>
-                    <TableHead 
-                      className="cursor-pointer select-none hover:bg-gray-50 transition-colors"
-                      onClick={() => handleSort('ultimoContato')}
-                    >
-                      <div className="flex items-center gap-2">
-                        Último Contato
-                        {getSortIcon('ultimoContato')}
-                      </div>
-                    </TableHead>
-                    <TableHead>Ações</TableHead>
+                    <TableHead className="w-32">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {sortedLideres.map((lider) => (
-                    <TableRow key={lider.id} className="hover:bg-indigo-50/50">
-                      <TableCell>
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full flex items-center justify-center">
-                            <span className="text-white font-semibold text-sm">
-                              {lider.nome.split(' ').map(n => n[0]).join('').slice(0, 2)}
-                            </span>
+                  {currentLideres.map((lider, index) => {
+                    const globalIndex = startIndex + index;
+                    return (
+                      <TableRow key={lider.id} className="hover:bg-indigo-50/50">
+                        <TableCell className="p-2">
+                          <div className="flex items-center gap-2">
+                            <span className="font-bold text-sm text-gray-600">#{globalIndex + 1}</span>
+                            {globalIndex < 3 && (
+                              <div className={`w-2 h-2 rounded-full ${
+                                globalIndex === 0 ? 'bg-yellow-500' : 
+                                globalIndex === 1 ? 'bg-gray-400' : 'bg-orange-600'
+                              }`} />
+                            )}
                           </div>
-                          <div>
-                            <p 
-                              className="font-semibold text-gray-900 cursor-pointer hover:text-indigo-600 transition-colors"
-                              onClick={() => handleVerLider(lider)}
-                            >
-                              {lider.nome}
-                            </p>
-                            <p className="text-sm text-gray-600">{lider.cargo}</p>
-                            <div className="flex items-center gap-2 text-sm text-gray-600">
-                              <Mail className="w-3 h-3" />
-                              {lider.email}
+                        </TableCell>
+                        <TableCell className="p-2">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full flex items-center justify-center">
+                              <span className="text-white font-semibold text-xs">
+                                {lider.nome.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                              </span>
+                            </div>
+                            <div>
+                              <p 
+                                className="font-semibold text-gray-900 cursor-pointer hover:text-indigo-600 transition-colors text-sm"
+                                onClick={() => handleVerLider(lider)}
+                              >
+                                {lider.nome}
+                              </p>
+                              <div className="flex items-center gap-2 text-xs text-gray-600">
+                                {lider.email}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <p className="font-medium text-gray-900">{lider.organizacao}</p>
-                        <div className="flex items-center gap-1 text-sm text-gray-600">
-                          <Phone className="w-3 h-3" />
-                          {lider.telefone}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge className={`${getCategoriaColor(lider.categoria)} border`}>
-                          {lider.categoria}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          {getInfluenciaIcon(lider.influencia)}
-                          <Badge className={`${getInfluenciaColor(lider.influencia)} border`}>
-                            {lider.influencia}
+                        </TableCell>
+                        <TableCell className="p-2">
+                          <div className="flex items-center gap-2">
+                            {getInfluenciaIcon(lider.influencia)}
+                            <Badge className={`${getInfluenciaColor(lider.influencia)} border text-xs`}>
+                              Nível {lider.influencia}
+                            </Badge>
+                          </div>
+                        </TableCell>
+                        <TableCell className="p-2">
+                          <div className="flex items-center gap-1 text-xs text-gray-600">
+                            <MapPin className="w-3 h-3" />
+                            {lider.zona}
+                          </div>
+                        </TableCell>
+                        <TableCell className="p-2">
+                          <Badge className={`${getStatusColor(lider.status)} border text-xs`}>
+                            {lider.status}
                           </Badge>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-1 text-sm text-gray-600">
-                          <MapPin className="w-3 h-3" />
-                          {lider.regiao}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="text-center">
-                          <span className="font-semibold text-indigo-600">{lider.seguidores}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-sm text-gray-600">{lider.ultimoContato}</span>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            className="hover:bg-indigo-50"
-                            onClick={() => handleVerLider(lider)}
-                          >
-                            <Eye className="w-3 h-3 mr-1" />
-                            Ver
-                          </Button>
-                          <Button size="sm" className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700">
-                            Contatar
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                        </TableCell>
+                        <TableCell className="p-2">
+                          <div className="flex gap-1">
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="hover:bg-indigo-50 text-xs h-7 px-2"
+                              onClick={() => handleVerLider(lider)}
+                            >
+                              <Eye className="w-3 h-3 mr-1" />
+                              Ver
+                            </Button>
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="hover:bg-yellow-50 h-7 w-7 p-0"
+                              onClick={() => handleEditLider(lider)}
+                            >
+                              <Edit className="w-3 h-3" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
+
+              {/* Paginação */}
+              {totalPages > 1 && (
+                <div className="mt-6">
+                  <Pagination>
+                    <PaginationContent>
+                      <PaginationItem>
+                        <PaginationPrevious 
+                          onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                          className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                        />
+                      </PaginationItem>
+                      
+                      {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                        let pageNumber;
+                        if (totalPages <= 5) {
+                          pageNumber = i + 1;
+                        } else if (currentPage <= 3) {
+                          pageNumber = i + 1;
+                        } else if (currentPage >= totalPages - 2) {
+                          pageNumber = totalPages - 4 + i;
+                        } else {
+                          pageNumber = currentPage - 2 + i;
+                        }
+                        
+                        return (
+                          <PaginationItem key={pageNumber}>
+                            <PaginationLink 
+                              onClick={() => setCurrentPage(pageNumber)}
+                              isActive={currentPage === pageNumber}
+                              className="cursor-pointer"
+                            >
+                              {pageNumber}
+                            </PaginationLink>
+                          </PaginationItem>
+                        );
+                      })}
+                      
+                      {totalPages > 5 && currentPage < totalPages - 2 && (
+                        <PaginationItem>
+                          <PaginationEllipsis />
+                        </PaginationItem>
+                      )}
+                      
+                      <PaginationItem>
+                        <PaginationNext 
+                          onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                          className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                        />
+                      </PaginationItem>
+                    </PaginationContent>
+                  </Pagination>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -480,13 +504,7 @@ const Lideres = () => {
         </TabsContent>
       </Tabs>
 
-      {/* Modal Novo Líder */}
-      <NovoLiderModal 
-        isOpen={isNovoLiderModalOpen}
-        onClose={() => setIsNovoLiderModalOpen(false)}
-      />
-
-      {/* Modal Detalhes do Líder com Follow Up */}
+      {/* Modals */}
       <LeadDetailsModal 
         lead={selectedLider}
         isOpen={isLiderModalOpen}
@@ -494,8 +512,23 @@ const Lideres = () => {
           setIsLiderModalOpen(false);
           setSelectedLider(null);
         }}
+        onEdit={handleEditLider}
         onAddFollowUp={handleAddFollowUp}
         onUpdateFollowUp={handleUpdateFollowUp}
+      />
+      
+      <NovoLiderModal 
+        isOpen={isNovoLiderModalOpen}
+        onClose={() => setIsNovoLiderModalOpen(false)}
+      />
+
+      <EditLeadModal 
+        lead={editingLider}
+        isOpen={isEditLiderModalOpen}
+        onClose={() => {
+          setIsEditLiderModalOpen(false);
+          setEditingLider(null);
+        }}
       />
     </div>
   );
