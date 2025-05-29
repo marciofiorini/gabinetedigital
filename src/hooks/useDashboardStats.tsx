@@ -27,6 +27,8 @@ export const useDashboardStats = () => {
 
     try {
       setLoading(true);
+      
+      // Buscar dados principais da função
       const { data, error } = await supabase.rpc('get_dashboard_stats', {
         target_user_id: user.id
       });
@@ -36,13 +38,25 @@ export const useDashboardStats = () => {
         return;
       }
 
+      // Buscar novos líderes separadamente
+      const { data: novosLideres, error: lideresError } = await supabase
+        .from('lideres')
+        .select('id')
+        .eq('user_id', user.id)
+        .gte('created_at', new Date().toISOString().split('T')[0])
+        .count();
+
+      if (lideresError) {
+        console.error('Erro ao buscar novos líderes:', lideresError);
+      }
+
       if (data && data.length > 0) {
         setStats({
           demandas_pendentes: Number(data[0].demandas_pendentes),
           eventos_hoje: Number(data[0].eventos_hoje),
           novos_contatos_hoje: Number(data[0].novos_contatos_hoje),
           leads_novos: Number(data[0].leads_novos),
-          novos_lideres: Number(data[0].novos_lideres || 0)
+          novos_lideres: novosLideres || 0
         });
       }
     } catch (error) {
