@@ -23,6 +23,8 @@ import BancoMidia from './pages/BancoMidia';
 import PortalCidadao from './pages/PortalCidadao';
 import ProjetosLei from './pages/ProjetosLei';
 import Pesquisas from './pages/Pesquisas';
+import MapaInfluencia from './pages/MapaInfluencia';
+import SistemaVotacoes from './pages/SistemaVotacoes';
 import { Toaster } from "@/components/ui/toaster";
 import './App.css';
 
@@ -53,6 +55,8 @@ function App() {
               <Route path="/portal-cidadao" element={<PortalCidadao />} />
               <Route path="/projetos-lei" element={<ProjetosLei />} />
               <Route path="/pesquisas" element={<Pesquisas />} />
+              <Route path="/mapa-influencia" element={<MapaInfluencia />} />
+              <Route path="/sistema-votacoes" element={<SistemaVotacoes />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </ProtectedLayout>

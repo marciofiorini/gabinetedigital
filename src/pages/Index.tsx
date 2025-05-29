@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Users, MessageSquare, Calendar, MessageCircle, TrendingUp, AlertCircle, Crown } from "lucide-react";
 import { useDashboardStats } from "@/hooks/useDashboardStats";
+import { DashboardCharts } from "@/components/DashboardCharts";
 
 const Index = () => {
   const { stats, loading } = useDashboardStats();
@@ -109,6 +110,9 @@ const Index = () => {
           );
         })}
       </div>
+
+      {/* Charts Section */}
+      <DashboardCharts />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Métricas de Engajamento */}

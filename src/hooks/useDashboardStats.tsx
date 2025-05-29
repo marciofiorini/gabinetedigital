@@ -38,13 +38,12 @@ export const useDashboardStats = () => {
         return;
       }
 
-      // Buscar novos líderes separadamente
-      const { data: novosLideres, error: lideresError } = await supabase
+      // Buscar novos líderes separadamente usando count()
+      const { count: novosLideres, error: lideresError } = await supabase
         .from('lideres')
-        .select('id')
+        .select('*', { count: 'exact', head: true })
         .eq('user_id', user.id)
-        .gte('created_at', new Date().toISOString().split('T')[0])
-        .count();
+        .gte('created_at', new Date().toISOString().split('T')[0]);
 
       if (lideresError) {
         console.error('Erro ao buscar novos líderes:', lideresError);
