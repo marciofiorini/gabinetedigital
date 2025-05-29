@@ -1,8 +1,9 @@
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { DadosEleitoraisUpload } from "@/components/analytics/DadosEleitoraisUpload";
+import { DadosRedesSociaisUpload } from "@/components/analytics/DadosRedesSociaisUpload";
 import { 
   BarChart3, 
   TrendingUp, 
@@ -14,7 +15,9 @@ import {
   MessageCircle,
   Mail,
   Instagram,
-  Download
+  Download,
+  Upload,
+  Database
 } from "lucide-react";
 
 const Analytics = () => {
@@ -126,11 +129,19 @@ const Analytics = () => {
       </div>
 
       <Tabs defaultValue="visao-geral" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="visao-geral">Visão Geral</TabsTrigger>
           <TabsTrigger value="canais">Por Canal</TabsTrigger>
           <TabsTrigger value="conteudo">Conteúdo</TabsTrigger>
           <TabsTrigger value="comparativo">Comparativo</TabsTrigger>
+          <TabsTrigger value="upload-eleitorais">
+            <Upload className="w-4 h-4 mr-2" />
+            Dados Eleitorais
+          </TabsTrigger>
+          <TabsTrigger value="upload-redes">
+            <Database className="w-4 h-4 mr-2" />
+            Redes Sociais
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="visao-geral" className="space-y-6">
@@ -299,6 +310,14 @@ const Analytics = () => {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="upload-eleitorais" className="space-y-6">
+          <DadosEleitoraisUpload />
+        </TabsContent>
+
+        <TabsContent value="upload-redes" className="space-y-6">
+          <DadosRedesSociaisUpload />
         </TabsContent>
       </Tabs>
     </div>

@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -23,6 +22,7 @@ export const DadosRedesSociaisUpload = () => {
 
   const [formData, setFormData] = useState({
     candidato_nome: '',
+    partido: '',
     rede_social: '',
     handle_usuario: '',
     url_perfil: '',
@@ -33,7 +33,8 @@ export const DadosRedesSociaisUpload = () => {
     curtidas_totais: 0,
     comentarios_totais: 0,
     compartilhamentos_totais: 0,
-    is_candidato_proprio: false
+    is_candidato_proprio: false,
+    mesmo_partido: false
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -60,6 +61,7 @@ export const DadosRedesSociaisUpload = () => {
       // Reset form
       setFormData({
         candidato_nome: '',
+        partido: '',
         rede_social: '',
         handle_usuario: '',
         url_perfil: '',
@@ -70,7 +72,8 @@ export const DadosRedesSociaisUpload = () => {
         curtidas_totais: 0,
         comentarios_totais: 0,
         compartilhamentos_totais: 0,
-        is_candidato_proprio: false
+        is_candidato_proprio: false,
+        mesmo_partido: false
       });
     } catch (error: any) {
       toast({
@@ -91,7 +94,7 @@ export const DadosRedesSociaisUpload = () => {
           Upload Dados Redes Sociais
         </CardTitle>
         <CardDescription>
-          Monitore métricas de Instagram, YouTube, TikTok e Facebook
+          Monitore métricas de Instagram, YouTube, TikTok e Facebook dos candidatos
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -108,6 +111,18 @@ export const DadosRedesSociaisUpload = () => {
             </div>
 
             <div>
+              <Label htmlFor="partido">Partido</Label>
+              <Input
+                id="partido"
+                value={formData.partido}
+                onChange={(e) => setFormData({...formData, partido: e.target.value})}
+                placeholder="Ex: PT, PSDB, MDB..."
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
               <Label htmlFor="rede_social">Rede Social</Label>
               <Select value={formData.rede_social} onValueChange={(value) => setFormData({...formData, rede_social: value})}>
                 <SelectTrigger>
@@ -123,9 +138,7 @@ export const DadosRedesSociaisUpload = () => {
                 </SelectContent>
               </Select>
             </div>
-          </div>
 
-          <div className="grid grid-cols-2 gap-4">
             <div>
               <Label htmlFor="handle_usuario">Handle/Username</Label>
               <Input
@@ -135,7 +148,9 @@ export const DadosRedesSociaisUpload = () => {
                 onChange={(e) => setFormData({...formData, handle_usuario: e.target.value})}
               />
             </div>
+          </div>
 
+          <div className="grid grid-cols-2 gap-4">
             <div>
               <Label htmlFor="url_perfil">URL do Perfil</Label>
               <Input
@@ -145,9 +160,7 @@ export const DadosRedesSociaisUpload = () => {
                 onChange={(e) => setFormData({...formData, url_perfil: e.target.value})}
               />
             </div>
-          </div>
 
-          <div className="grid grid-cols-3 gap-4">
             <div>
               <Label htmlFor="seguidores">Seguidores</Label>
               <Input
@@ -157,7 +170,9 @@ export const DadosRedesSociaisUpload = () => {
                 onChange={(e) => setFormData({...formData, seguidores: parseInt(e.target.value) || 0})}
               />
             </div>
+          </div>
 
+          <div className="grid grid-cols-3 gap-4">
             <div>
               <Label htmlFor="seguindo">Seguindo</Label>
               <Input
@@ -177,9 +192,7 @@ export const DadosRedesSociaisUpload = () => {
                 onChange={(e) => setFormData({...formData, publicacoes: parseInt(e.target.value) || 0})}
               />
             </div>
-          </div>
 
-          <div className="grid grid-cols-3 gap-4">
             <div>
               <Label htmlFor="curtidas_totais">Curtidas Totais</Label>
               <Input
@@ -189,7 +202,9 @@ export const DadosRedesSociaisUpload = () => {
                 onChange={(e) => setFormData({...formData, curtidas_totais: parseInt(e.target.value) || 0})}
               />
             </div>
+          </div>
 
+          <div className="grid grid-cols-3 gap-4">
             <div>
               <Label htmlFor="comentarios_totais">Comentários Totais</Label>
               <Input
@@ -208,6 +223,16 @@ export const DadosRedesSociaisUpload = () => {
                 step="0.01"
                 value={formData.engajamento_medio}
                 onChange={(e) => setFormData({...formData, engajamento_medio: parseFloat(e.target.value) || 0})}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="compartilhamentos_totais">Compartilhamentos Totais</Label>
+              <Input
+                id="compartilhamentos_totais"
+                type="number"
+                value={formData.compartilhamentos_totais}
+                onChange={(e) => setFormData({...formData, compartilhamentos_totais: parseInt(e.target.value) || 0})}
               />
             </div>
           </div>
@@ -238,13 +263,24 @@ export const DadosRedesSociaisUpload = () => {
             </Popover>
           </div>
 
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="is_candidato_proprio"
-              checked={formData.is_candidato_proprio}
-              onCheckedChange={(checked) => setFormData({...formData, is_candidato_proprio: checked})}
-            />
-            <Label htmlFor="is_candidato_proprio">É o candidato próprio?</Label>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="is_candidato_proprio"
+                checked={formData.is_candidato_proprio}
+                onCheckedChange={(checked) => setFormData({...formData, is_candidato_proprio: checked})}
+              />
+              <Label htmlFor="is_candidato_proprio">É o candidato próprio?</Label>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="mesmo_partido"
+                checked={formData.mesmo_partido}
+                onCheckedChange={(checked) => setFormData({...formData, mesmo_partido: checked})}
+              />
+              <Label htmlFor="mesmo_partido">Mesmo partido que o meu?</Label>
+            </div>
           </div>
 
           <Button type="submit" disabled={loading} className="w-full">

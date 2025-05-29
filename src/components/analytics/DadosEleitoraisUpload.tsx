@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -34,7 +33,8 @@ export const DadosEleitoraisUpload = () => {
     percentual_votos: 0,
     posicao_ranking: 0,
     situacao: '',
-    is_candidato_proprio: false
+    is_candidato_proprio: false,
+    mesmo_partido: false
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -75,7 +75,8 @@ export const DadosEleitoraisUpload = () => {
         percentual_votos: 0,
         posicao_ranking: 0,
         situacao: '',
-        is_candidato_proprio: false
+        is_candidato_proprio: false,
+        mesmo_partido: false
       });
     } catch (error: any) {
       toast({
@@ -152,7 +153,7 @@ export const DadosEleitoraisUpload = () => {
           Upload Dados Eleitorais
         </CardTitle>
         <CardDescription>
-          Importe dados do TSE ou insira manualmente
+          Importe dados do TSE ou insira manualmente candidatos concorrentes
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -311,13 +312,24 @@ export const DadosEleitoraisUpload = () => {
               </div>
             </div>
 
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="is_candidato_proprio"
-                checked={formData.is_candidato_proprio}
-                onCheckedChange={(checked) => setFormData({...formData, is_candidato_proprio: checked})}
-              />
-              <Label htmlFor="is_candidato_proprio">É o candidato próprio?</Label>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="is_candidato_proprio"
+                  checked={formData.is_candidato_proprio}
+                  onCheckedChange={(checked) => setFormData({...formData, is_candidato_proprio: checked})}
+                />
+                <Label htmlFor="is_candidato_proprio">É o candidato próprio?</Label>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="mesmo_partido"
+                  checked={formData.mesmo_partido}
+                  onCheckedChange={(checked) => setFormData({...formData, mesmo_partido: checked})}
+                />
+                <Label htmlFor="mesmo_partido">Mesmo partido que o meu?</Label>
+              </div>
             </div>
 
             <Button type="submit" disabled={loading} className="w-full">
