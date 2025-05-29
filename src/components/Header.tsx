@@ -9,17 +9,17 @@ interface HeaderProps {
 
 export const Header = ({ onToggleSidebar }: HeaderProps) => {
   return (
-    <header className="h-16 border-b border-gray-200 bg-white/80 backdrop-blur-sm flex items-center justify-between px-6">
+    <header className="h-14 border-b border-gray-200 bg-white/95 backdrop-blur-sm flex items-center justify-between px-4">
       <Button
         variant="ghost"
         size="sm"
         onClick={onToggleSidebar}
-        className="lg:hidden"
+        className="hidden lg:flex"
       >
         <Menu className="w-5 h-5" />
       </Button>
       
-      <div className="hidden lg:block w-8" />
+      <div className="lg:hidden w-8" />
       
       <UserMenu />
     </header>

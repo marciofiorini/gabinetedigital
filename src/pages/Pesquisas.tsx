@@ -1,351 +1,568 @@
 
-import { useState } from "react";
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
-import { Sidebar } from "@/components/Sidebar";
-import { Header } from "@/components/Header";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { cn } from "@/lib/utils";
 import { 
-  BarChart3, 
-  Users, 
-  Clock, 
-  CheckCircle, 
+  BarChart, 
+  Bar, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  Legend, 
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  LineChart,
+  Line
+} from 'recharts';
+import {
   Plus,
   Search,
-  Share2,
+  Filter,
   Download,
   Eye,
+  Edit,
+  Trash2,
+  Calendar as CalendarIcon,
+  Users,
   TrendingUp,
-  PieChart
+  BarChart3,
+  PieChart as PieChartIcon,
+  Target,
+  Clock,
+  CheckCircle,
+  AlertCircle,
+  Share2
 } from "lucide-react";
 
+// Mock data para as pesquisas
+const mockPesquisas = [
+  {
+    id: 1,
+    titulo: "Intenção de Voto - Prefeito 2024",
+    tipo: "Eleitoral",
+    status: "Concluída",
+    dataInicio: "2024-01-15",
+    dataFim: "2024-01-22",
+    amostra: 1200,
+    margem: 3.2,
+    resultados: [
+      { nome: "João Silva", porcentagem: 35.2 },
+      { nome: "Maria Santos", porcentagem: 28.7 },
+      { nome: "Pedro Costa", porcentagem: 18.3 },
+      { nome: "Ana Oliveira", porcentagem: 12.8 },
+      { nome: "Indecisos", porcentagem: 5.0 }
+    ]
+  },
+  {
+    id: 2,
+    titulo: "Aprovação Governo Municipal",
+    tipo: "Opinião",
+    status: "Em Andamento",
+    dataInicio: "2024-02-01",
+    dataFim: "2024-02-08",
+    amostra: 800,
+    margem: 3.5,
+    resultados: [
+      { nome: "Aprova", porcentagem: 42.3 },
+      { nome: "Desaprova", porcentagem: 38.7 },
+      { nome: "Não sabe", porcentagem: 19.0 }
+    ]
+  },
+  {
+    id: 3,
+    titulo: "Prioridades para Educação",
+    tipo: "Temática",
+    status: "Planejada",
+    dataInicio: "2024-03-01",
+    dataFim: "2024-03-08",
+    amostra: 1000,
+    margem: 3.1,
+    resultados: []
+  }
+];
+
+const mockEvoluçaoIntencao = [
+  { mes: "Jan", joao: 32, maria: 31, pedro: 20, ana: 17 },
+  { mes: "Fev", joao: 34, maria: 30, pedro: 19, ana: 17 },
+  { mes: "Mar", joao: 35, maria: 29, pedro: 18, ana: 18 },
+];
+
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
+
 const Pesquisas = () => {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [pesquisas] = useState(mockPesquisas);
+  const [selectedPesquisa, setSelectedPesquisa] = useState<typeof mockPesquisas[0] | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [filtroTipo, setFiltroTipo] = useState('todos');
+  const [filtroStatus, setFiltroStatus] = useState('todos');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [date, setDate] = useState<Date>();
 
-  const pesquisas = [
-    {
-      id: 1,
-      titulo: "Avaliação da Gestão Municipal 2024",
-      tipo: "Opinião Pública",
-      status: "ativa",
-      dataInicio: "2024-05-20",
-      dataFim: "2024-06-20",
-      respostas: 247,
-      metaRespostas: 500,
-      percentualCompleto: 49
-    },
-    {
-      id: 2,
-      titulo: "Prioridades para Investimento em Infraestrutura",
-      tipo: "Consulta Popular",
-      status: "concluida",
-      dataInicio: "2024-04-15",
-      dataFim: "2024-05-15",
-      respostas: 892,
-      metaRespostas: 800,
-      percentualCompleto: 100
-    },
-    {
-      id: 3,
-      titulo: "Satisfação com Serviços de Saúde",
-      tipo: "Avaliação de Serviços",
-      status: "rascunho",
-      dataInicio: "2024-06-01",
-      dataFim: "2024-07-01",
-      respostas: 0,
-      metaRespostas: 300,
-      percentualCompleto: 0
-    }
-  ];
-
-  const resultadosExemplo = [
-    { opcao: "Ótimo", votos: 156, percentual: 35 },
-    { opcao: "Bom", votos: 134, percentual: 30 },
-    { opcao: "Regular", votos: 89, percentual: 20 },
-    { opcao: "Ruim", votos: 45, percentual: 10 },
-    { opcao: "Péssimo", votos: 22, percentual: 5 }
-  ];
+  const pesquisasFiltradas = pesquisas.filter(pesquisa => {
+    const matchTipo = filtroTipo === 'todos' || pesquisa.tipo === filtroTipo;
+    const matchStatus = filtroStatus === 'todos' || pesquisa.status === filtroStatus;
+    const matchSearch = pesquisa.titulo.toLowerCase().includes(searchTerm.toLowerCase());
+    return matchTipo && matchStatus && matchSearch;
+  });
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "ativa": return "bg-green-100 text-green-800";
-      case "concluida": return "bg-blue-100 text-blue-800";
-      case "rascunho": return "bg-yellow-100 text-yellow-800";
-      default: return "bg-gray-100 text-gray-800";
+      case 'Concluída': return 'bg-green-500';
+      case 'Em Andamento': return 'bg-blue-500';
+      case 'Planejada': return 'bg-yellow-500';
+      default: return 'bg-gray-500';
     }
   };
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "ativa": return <Clock className="w-4 h-4" />;
-      case "concluida": return <CheckCircle className="w-4 h-4" />;
-      case "rascunho": return <Search className="w-4 h-4" />;
-      default: return <BarChart3 className="w-4 h-4" />;
+  const getTipoColor = (tipo: string) => {
+    switch (tipo) {
+      case 'Eleitoral': return 'bg-purple-100 text-purple-800';
+      case 'Opinião': return 'bg-blue-100 text-blue-800';
+      case 'Temática': return 'bg-green-100 text-green-800';
+      default: return 'bg-gray-100 text-gray-800';
     }
+  };
+
+  const estatisticas = {
+    total: pesquisas.length,
+    concluidas: pesquisas.filter(p => p.status === 'Concluída').length,
+    emAndamento: pesquisas.filter(p => p.status === 'Em Andamento').length,
+    planejadas: pesquisas.filter(p => p.status === 'Planejada').length
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-100 flex">
-      <Sidebar isOpen={sidebarOpen} />
-      
-      <div className={`flex-1 transition-all duration-300 ${sidebarOpen ? 'ml-64' : 'ml-16'}`}>
-        <Header onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
-        
-        <main className="p-6">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-2">
-              Sistema de Pesquisas
-            </h1>
-            <p className="text-gray-600">
-              Criação e análise de pesquisas de opinião e consultas populares
-            </p>
-          </div>
-
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            {[
-              { label: "Pesquisas Ativas", valor: "3", icone: BarChart3, cor: "from-blue-500 to-blue-600" },
-              { label: "Total de Respostas", valor: "1,139", icone: Users, cor: "from-green-500 to-green-600" },
-              { label: "Concluídas", valor: "12", icone: CheckCircle, cor: "from-purple-500 to-purple-600" },
-              { label: "Taxa de Participação", valor: "68%", icone: TrendingUp, cor: "from-orange-500 to-orange-600" }
-            ].map((stat, index) => (
-              <Card key={index} className="border-0 shadow-lg hover:shadow-xl transition-all duration-200 bg-white/80 backdrop-blur-sm">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center">
-                      <div className={`w-12 h-12 rounded-lg bg-gradient-to-r ${stat.cor} flex items-center justify-center mr-4`}>
-                        <stat.icone className="text-white w-6 h-6" />
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-600">{stat.label}</p>
-                        <p className="text-2xl font-bold text-gray-900">{stat.valor}</p>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-
-          <Tabs defaultValue="pesquisas" className="space-y-6">
-            <TabsList>
-              <TabsTrigger value="pesquisas">Minhas Pesquisas</TabsTrigger>
-              <TabsTrigger value="nova">Criar Pesquisa</TabsTrigger>
-              <TabsTrigger value="resultados">Resultados</TabsTrigger>
-              <TabsTrigger value="analytics">Analytics</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="pesquisas" className="space-y-6">
-              <div className="flex gap-4 mb-6">
-                <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                  <Input
-                    type="search"
-                    placeholder="Buscar pesquisas..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10"
-                  />
-                </div>
-                <Button>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Nova Pesquisa
-                </Button>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Pesquisas</h1>
+          <p className="text-gray-600 mt-1">Gerencie e analise suas pesquisas eleitorais e de opinião</p>
+        </div>
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger asChild>
+            <Button className="bg-blue-600 hover:bg-blue-700">
+              <Plus className="w-4 h-4 mr-2" />
+              Nova Pesquisa
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Criar Nova Pesquisa</DialogTitle>
+              <DialogDescription>
+                Configure uma nova pesquisa eleitoral ou de opinião
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid grid-cols-2 gap-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="titulo">Título da Pesquisa</Label>
+                <Input id="titulo" placeholder="Ex: Intenção de Voto Prefeito 2024" />
               </div>
+              <div className="space-y-2">
+                <Label htmlFor="tipo">Tipo</Label>
+                <Select>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione o tipo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="eleitoral">Eleitoral</SelectItem>
+                    <SelectItem value="opiniao">Opinião</SelectItem>
+                    <SelectItem value="tematica">Temática</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="amostra">Tamanho da Amostra</Label>
+                <Input id="amostra" type="number" placeholder="1000" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="margem">Margem de Erro (%)</Label>
+                <Input id="margem" type="number" step="0.1" placeholder="3.2" />
+              </div>
+              <div className="space-y-2">
+                <Label>Data de Início</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !date && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {date ? format(date, "PPP", { locale: ptBR }) : "Selecionar data"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <Calendar
+                      mode="single"
+                      selected={date}
+                      onSelect={setDate}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+              <div className="space-y-2">
+                <Label>Data de Fim</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="w-full justify-start text-left font-normal text-muted-foreground"
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      Selecionar data
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <Calendar
+                      mode="single"
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+              <div className="col-span-2 space-y-2">
+                <Label htmlFor="descricao">Descrição</Label>
+                <Textarea id="descricao" placeholder="Descreva os objetivos desta pesquisa..." />
+              </div>
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+                Cancelar
+              </Button>
+              <Button onClick={() => setIsDialogOpen(false)}>
+                Criar Pesquisa
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
 
+      {/* Estatísticas */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Total</p>
+                <p className="text-2xl font-bold">{estatisticas.total}</p>
+              </div>
+              <BarChart3 className="w-8 h-8 text-blue-600" />
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Concluídas</p>
+                <p className="text-2xl font-bold text-green-600">{estatisticas.concluidas}</p>
+              </div>
+              <CheckCircle className="w-8 h-8 text-green-600" />
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Em Andamento</p>
+                <p className="text-2xl font-bold text-blue-600">{estatisticas.emAndamento}</p>
+              </div>
+              <Clock className="w-8 h-8 text-blue-600" />
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Planejadas</p>
+                <p className="text-2xl font-bold text-yellow-600">{estatisticas.planejadas}</p>
+              </div>
+              <AlertCircle className="w-8 h-8 text-yellow-600" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Filtros */}
+      <Card>
+        <CardContent className="p-6">
+          <div className="flex flex-wrap gap-4 items-center">
+            <div className="flex-1 min-w-[200px]">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <Input
+                  placeholder="Buscar pesquisas..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+            </div>
+            <Select value={filtroTipo} onValueChange={setFiltroTipo}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Todos os tipos</SelectItem>
+                <SelectItem value="Eleitoral">Eleitoral</SelectItem>
+                <SelectItem value="Opinião">Opinião</SelectItem>
+                <SelectItem value="Temática">Temática</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={filtroStatus} onValueChange={setFiltroStatus}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Todos os status</SelectItem>
+                <SelectItem value="Concluída">Concluída</SelectItem>
+                <SelectItem value="Em Andamento">Em Andamento</SelectItem>
+                <SelectItem value="Planejada">Planejada</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button variant="outline">
+              <Filter className="w-4 h-4 mr-2" />
+              Mais Filtros
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Lista de Pesquisas */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {pesquisasFiltradas.map((pesquisa) => (
+          <Card key={pesquisa.id} className="hover:shadow-lg transition-shadow">
+            <CardHeader>
+              <div className="flex justify-between items-start">
+                <div>
+                  <CardTitle className="text-lg">{pesquisa.titulo}</CardTitle>
+                  <CardDescription>
+                    {pesquisa.dataInicio} - {pesquisa.dataFim}
+                  </CardDescription>
+                </div>
+                <div className="flex gap-2">
+                  <Badge className={getTipoColor(pesquisa.tipo)}>
+                    {pesquisa.tipo}
+                  </Badge>
+                  <Badge className={`text-white ${getStatusColor(pesquisa.status)}`}>
+                    {pesquisa.status}
+                  </Badge>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
               <div className="space-y-4">
-                {pesquisas.map((pesquisa) => (
-                  <Card key={pesquisa.id} className="border-0 shadow-md hover:shadow-lg transition-all duration-200 bg-white/80 backdrop-blur-sm">
-                    <CardContent className="p-6">
-                      <div className="flex items-start justify-between mb-4">
-                        <div className="flex items-center gap-3">
-                          <Badge className={getStatusColor(pesquisa.status)}>
-                            {getStatusIcon(pesquisa.status)}
-                            <span className="ml-1">{pesquisa.status}</span>
+                <div className="flex justify-between text-sm text-gray-600">
+                  <span>Amostra: {pesquisa.amostra.toLocaleString()}</span>
+                  <span>Margem: ±{pesquisa.margem}%</span>
+                </div>
+                
+                {pesquisa.resultados.length > 0 && (
+                  <div className="space-y-2">
+                    <h4 className="font-medium text-sm">Resultados Principais:</h4>
+                    {pesquisa.resultados.slice(0, 3).map((resultado, index) => (
+                      <div key={index} className="flex justify-between items-center">
+                        <span className="text-sm">{resultado.nome}</span>
+                        <div className="flex items-center gap-2">
+                          <Progress 
+                            value={resultado.porcentagem} 
+                            className="w-20 h-2" 
+                          />
+                          <span className="text-sm font-medium">{resultado.porcentagem}%</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                
+                <div className="flex justify-end gap-2 pt-2 border-t">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setSelectedPesquisa(pesquisa)}
+                  >
+                    <Eye className="w-4 h-4 mr-1" />
+                    Ver
+                  </Button>
+                  <Button variant="outline" size="sm">
+                    <Edit className="w-4 h-4 mr-1" />
+                    Editar
+                  </Button>
+                  <Button variant="outline" size="sm">
+                    <Share2 className="w-4 h-4 mr-1" />
+                    Compartilhar
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Modal de Detalhes da Pesquisa */}
+      {selectedPesquisa && (
+        <Dialog open={!!selectedPesquisa} onOpenChange={() => setSelectedPesquisa(null)}>
+          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>{selectedPesquisa.titulo}</DialogTitle>
+              <DialogDescription>
+                Resultados detalhados da pesquisa
+              </DialogDescription>
+            </DialogHeader>
+            
+            <Tabs defaultValue="resultados" className="w-full">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="resultados">Resultados</TabsTrigger>
+                <TabsTrigger value="graficos">Gráficos</TabsTrigger>
+                <TabsTrigger value="evolucao">Evolução</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="resultados" className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg">Informações Gerais</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span>Período:</span>
+                          <span>{selectedPesquisa.dataInicio} - {selectedPesquisa.dataFim}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Amostra:</span>
+                          <span>{selectedPesquisa.amostra.toLocaleString()} entrevistados</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Margem de Erro:</span>
+                          <span>±{selectedPesquisa.margem}%</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Tipo:</span>
+                          <Badge className={getTipoColor(selectedPesquisa.tipo)}>
+                            {selectedPesquisa.tipo}
                           </Badge>
-                          <Badge variant="secondary">{pesquisa.tipo}</Badge>
                         </div>
-                        <span className="text-sm text-gray-500">{pesquisa.dataInicio}</span>
-                      </div>
-                      
-                      <h3 className="text-lg font-semibold text-gray-900 mb-4">{pesquisa.titulo}</h3>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                        <div className="text-center">
-                          <p className="text-2xl font-bold text-blue-600">{pesquisa.respostas}</p>
-                          <p className="text-sm text-gray-600">Respostas</p>
-                        </div>
-                        <div className="text-center">
-                          <p className="text-2xl font-bold text-green-600">{pesquisa.metaRespostas}</p>
-                          <p className="text-sm text-gray-600">Meta</p>
-                        </div>
-                        <div className="text-center">
-                          <p className="text-2xl font-bold text-purple-600">{pesquisa.percentualCompleto}%</p>
-                          <p className="text-sm text-gray-600">Completo</p>
-                        </div>
-                      </div>
-                      
-                      <div className="mb-4">
-                        <div className="flex justify-between text-sm text-gray-600 mb-1">
-                          <span>Progresso</span>
-                          <span>{pesquisa.respostas}/{pesquisa.metaRespostas}</span>
-                        </div>
-                        <Progress value={pesquisa.percentualCompleto} className="h-2" />
-                      </div>
-                      
-                      <div className="flex gap-2">
-                        <Button variant="outline" size="sm">
-                          <Eye className="w-4 h-4 mr-1" />
-                          Visualizar
-                        </Button>
-                        <Button variant="outline" size="sm">
-                          <Share2 className="w-4 h-4 mr-1" />
-                          Compartilhar
-                        </Button>
-                        <Button size="sm">
-                          <BarChart3 className="w-4 h-4 mr-1" />
-                          Resultados
-                        </Button>
                       </div>
                     </CardContent>
                   </Card>
-                ))}
-              </div>
-            </TabsContent>
-
-            <TabsContent value="nova" className="space-y-6">
-              <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
-                <CardHeader>
-                  <CardTitle>Criar Nova Pesquisa</CardTitle>
-                  <CardDescription>
-                    Configure uma nova pesquisa de opinião ou consulta popular
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Título da Pesquisa</label>
-                    <Input placeholder="Ex: Avaliação dos Serviços Municipais" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Descrição/Objetivo</label>
-                    <Textarea placeholder="Descreva o objetivo e contexto da pesquisa..." rows={3} />
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Tipo de Pesquisa</label>
-                      <Input placeholder="Opinião Pública, Consulta Popular, etc." />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Meta de Respostas</label>
-                      <Input type="number" placeholder="500" />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Data de Início</label>
-                      <Input type="date" />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Data de Encerramento</label>
-                      <Input type="date" />
-                    </div>
-                  </div>
                   
-                  <div className="border-t pt-4">
-                    <h4 className="font-medium mb-3">Perguntas da Pesquisa</h4>
-                    <div className="space-y-3">
-                      <div>
-                        <label className="block text-sm font-medium mb-2">Pergunta 1</label>
-                        <Input placeholder="Como você avalia a gestão municipal?" />
-                        <div className="mt-2 grid grid-cols-2 gap-2">
-                          <Input placeholder="Opção 1" size="sm" />
-                          <Input placeholder="Opção 2" size="sm" />
-                        </div>
-                      </div>
-                      <Button variant="outline" size="sm">
-                        <Plus className="w-4 h-4 mr-1" />
-                        Adicionar Pergunta
-                      </Button>
-                    </div>
-                  </div>
-                  
-                  <Button className="w-full">
-                    <Plus className="w-4 h-4 mr-2" />
-                    Criar Pesquisa
-                  </Button>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="resultados" className="space-y-6">
-              <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
-                <CardHeader>
-                  <CardTitle>Resultados das Pesquisas</CardTitle>
-                  <CardDescription>
-                    Análise detalhada dos resultados coletados
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-6">
-                    <div>
-                      <h4 className="font-semibold mb-3">Como você avalia a gestão municipal?</h4>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg">Resultados</CardTitle>
+                    </CardHeader>
+                    <CardContent>
                       <div className="space-y-3">
-                        {resultadosExemplo.map((resultado, index) => (
-                          <div key={index} className="flex items-center gap-4">
-                            <div className="w-20 text-sm font-medium">{resultado.opcao}</div>
-                            <div className="flex-1">
-                              <Progress value={resultado.percentual} className="h-3" />
+                        {selectedPesquisa.resultados.map((resultado, index) => (
+                          <div key={index} className="space-y-1">
+                            <div className="flex justify-between items-center">
+                              <span className="font-medium">{resultado.nome}</span>
+                              <span className="text-lg font-bold">{resultado.porcentagem}%</span>
                             </div>
-                            <div className="w-16 text-sm text-gray-600 text-right">
-                              {resultado.votos} ({resultado.percentual}%)
-                            </div>
+                            <Progress value={resultado.porcentagem} className="h-2" />
                           </div>
                         ))}
                       </div>
-                    </div>
-                    
-                    <div className="flex gap-2 pt-4 border-t">
-                      <Button variant="outline" size="sm">
-                        <Download className="w-4 h-4 mr-1" />
-                        Exportar Dados
-                      </Button>
-                      <Button variant="outline" size="sm">
-                        <PieChart className="w-4 h-4 mr-1" />
-                        Gráficos Detalhados
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="analytics" className="space-y-6">
-              <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
-                <CardHeader>
-                  <CardTitle>Analytics e Insights</CardTitle>
-                  <CardDescription>
-                    Análise avançada dos dados coletados
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center py-8">
-                    <BarChart3 className="w-12 h-12 mx-auto text-gray-400 mb-4" />
-                    <p className="text-gray-500">Analytics avançados serão exibidos aqui</p>
-                    <p className="text-sm text-gray-400 mt-2">
-                      Gráficos, tendências e insights dos dados coletados
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
-        </main>
-      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </TabsContent>
+              
+              <TabsContent value="graficos" className="space-y-4">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Distribuição em Barras</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <ResponsiveContainer width="100%" height={300}>
+                        <BarChart data={selectedPesquisa.resultados}>
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="nome" />
+                          <YAxis />
+                          <Tooltip />
+                          <Bar dataKey="porcentagem" fill="#3B82F6" />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Distribuição em Pizza</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <ResponsiveContainer width="100%" height={300}>
+                        <PieChart>
+                          <Pie
+                            data={selectedPesquisa.resultados}
+                            cx="50%"
+                            cy="50%"
+                            labelLine={false}
+                            label={({ nome, porcentagem }) => `${nome}: ${porcentagem}%`}
+                            outerRadius={80}
+                            fill="#8884d8"
+                            dataKey="porcentagem"
+                          >
+                            {selectedPesquisa.resultados.map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                            ))}
+                          </Pie>
+                          <Tooltip />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </CardContent>
+                  </Card>
+                </div>
+              </TabsContent>
+              
+              <TabsContent value="evolucao" className="space-y-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Evolução da Intenção de Voto</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ResponsiveContainer width="100%" height={400}>
+                      <LineChart data={mockEvoluçaoIntencao}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="mes" />
+                        <YAxis />
+                        <Tooltip />
+                        <Legend />
+                        <Line type="monotone" dataKey="joao" stroke="#3B82F6" name="João Silva" />
+                        <Line type="monotone" dataKey="maria" stroke="#10B981" name="Maria Santos" />
+                        <Line type="monotone" dataKey="pedro" stroke="#F59E0B" name="Pedro Costa" />
+                        <Line type="monotone" dataKey="ana" stroke="#EF4444" name="Ana Oliveira" />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 };

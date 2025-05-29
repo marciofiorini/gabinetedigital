@@ -21,7 +21,7 @@ export const LayoutMain = ({ children }: LayoutMainProps) => {
       >
         <Header onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
         
-        <main className="p-6">
+        <main className="p-4">
           <div className="max-w-7xl mx-auto">
             {children}
           </div>
