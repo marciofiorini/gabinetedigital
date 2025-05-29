@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -11,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { FollowUpSection } from "@/components/FollowUpSection";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { 
@@ -25,7 +25,8 @@ import {
   Gift,
   User,
   Briefcase,
-  Heart
+  Heart,
+  Tag
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -42,6 +43,8 @@ interface Lead {
   origem: string;
   interesse: string;
   interacoes: number;
+  tags?: string[];
+  followUps?: any[];
   // Campos adicionais
   whatsapp?: string;
   instagram?: string;
@@ -55,7 +58,6 @@ interface Lead {
   dataAniversario?: string;
   redeSocial?: string;
   observacoes?: string;
-  tags?: string[];
   historicoInteracoes?: any[];
 }
 
@@ -63,9 +65,11 @@ interface LeadDetailsModalProps {
   lead: Lead | null;
   isOpen: boolean;
   onClose: () => void;
+  onAddFollowUp?: (leadId: string, followUp: any) => void;
+  onUpdateFollowUp?: (leadId: string, followUpId: string, followUp: any) => void;
 }
 
-export const LeadDetailsModal = ({ lead, isOpen, onClose }: LeadDetailsModalProps) => {
+export const LeadDetailsModal = ({ lead, isOpen, onClose, onAddFollowUp, onUpdateFollowUp }: LeadDetailsModalProps) => {
   const [mensagem, setMensagem] = useState("");
   const [dataAgendamento, setDataAgendamento] = useState<Date>();
   const [plataforma, setPlataforma] = useState("whatsapp");
@@ -119,9 +123,21 @@ export const LeadDetailsModal = ({ lead, isOpen, onClose }: LeadDetailsModalProp
     setNovaObservacao("");
   };
 
+  const handleAddFollowUp = (followUp: any) => {
+    if (onAddFollowUp) {
+      onAddFollowUp(lead.id.toString(), followUp);
+    }
+  };
+
+  const handleUpdateFollowUp = (followUpId: string, followUp: any) => {
+    if (onUpdateFollowUp) {
+      onUpdateFollowUp(lead.id.toString(), followUpId, followUp);
+    }
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-3">
             <div className="w-12 h-12 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full flex items-center justify-center">
@@ -131,17 +147,24 @@ export const LeadDetailsModal = ({ lead, isOpen, onClose }: LeadDetailsModalProp
             </div>
             <div>
               <h2 className="text-xl font-bold">{lead.nome}</h2>
-              <div className="flex gap-2">
+              <div className="flex gap-2 items-center">
                 <Badge className="bg-blue-100 text-blue-800">{lead.tipo}</Badge>
                 <Badge className="bg-green-100 text-green-800">Score: {lead.leadScore}</Badge>
+                {lead.tags && lead.tags.map((tag, index) => (
+                  <Badge key={index} variant="outline" className="text-xs">
+                    <Tag className="w-3 h-3 mr-1" />
+                    {tag}
+                  </Badge>
+                ))}
               </div>
             </div>
           </DialogTitle>
         </DialogHeader>
 
         <Tabs defaultValue="perfil" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="perfil">Perfil</TabsTrigger>
+            <TabsTrigger value="followup">Follow Up</TabsTrigger>
             <TabsTrigger value="chat">Chat</TabsTrigger>
             <TabsTrigger value="agendamentos">Agendamentos</TabsTrigger>
             <TabsTrigger value="historico">Histórico</TabsTrigger>
@@ -262,6 +285,14 @@ export const LeadDetailsModal = ({ lead, isOpen, onClose }: LeadDetailsModalProp
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="followup" className="space-y-4">
+            <FollowUpSection
+              followUps={lead.followUps || []}
+              onAddFollowUp={handleAddFollowUp}
+              onUpdateFollowUp={handleUpdateFollowUp}
+            />
           </TabsContent>
 
           <TabsContent value="chat" className="space-y-4">

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LeadDetailsModal } from "@/components/LeadDetailsModal";
 import { NovoLeadModal } from "@/components/NovoLeadModal";
+import { EditLeadModal } from "@/components/EditLeadModal";
 import { UploadCSVContatos } from "@/components/UploadCSVContatos";
 import { 
   Table, 
@@ -32,13 +32,17 @@ import {
   MessageCircle,
   Instagram,
   Calendar,
-  Upload
+  Upload,
+  Edit,
+  Tag
 } from "lucide-react";
 
 const Contatos = () => {
   const [selectedLead, setSelectedLead] = useState(null);
   const [isLeadModalOpen, setIsLeadModalOpen] = useState(false);
   const [isNovoLeadModalOpen, setIsNovoLeadModalOpen] = useState(false);
+  const [isEditLeadModalOpen, setIsEditLeadModalOpen] = useState(false);
+  const [editingLead, setEditingLead] = useState(null);
 
   const contatos = [
     {
@@ -53,7 +57,9 @@ const Contatos = () => {
       ultimaInteracao: "2024-05-27",
       origem: "Instagram",
       interesse: "Saúde Pública",
-      interacoes: 24
+      interacoes: 24,
+      tags: ["VIP", "Saúde"],
+      followUps: []
     },
     {
       id: 2,
@@ -67,7 +73,9 @@ const Contatos = () => {
       ultimaInteracao: "2024-05-26",
       origem: "Evento",
       interesse: "Infraestrutura",
-      interacoes: 31
+      interacoes: 31,
+      tags: ["Líder", "Infraestrutura"],
+      followUps: []
     },
     {
       id: 3,
@@ -142,6 +150,21 @@ const Contatos = () => {
   const handleVerLead = (lead) => {
     setSelectedLead(lead);
     setIsLeadModalOpen(true);
+  };
+
+  const handleEditLead = (lead) => {
+    setEditingLead(lead);
+    setIsEditLeadModalOpen(true);
+  };
+
+  const handleAddFollowUp = (leadId: string, followUp: any) => {
+    console.log('Adicionando follow up para lead:', leadId, followUp);
+    // Aqui integraria com o backend
+  };
+
+  const handleUpdateFollowUp = (leadId: string, followUpId: string, followUp: any) => {
+    console.log('Atualizando follow up:', leadId, followUpId, followUp);
+    // Aqui integraria com o backend
   };
 
   return (
@@ -238,6 +261,7 @@ const Contatos = () => {
                     <TableHead>Score</TableHead>
                     <TableHead>Engajamento</TableHead>
                     <TableHead>Região</TableHead>
+                    <TableHead>Tags</TableHead>
                     <TableHead>Interações</TableHead>
                     <TableHead>Última Interação</TableHead>
                     <TableHead>Canais</TableHead>
@@ -297,6 +321,16 @@ const Contatos = () => {
                         </div>
                       </TableCell>
                       <TableCell>
+                        <div className="flex gap-1 flex-wrap">
+                          {contato.tags?.map((tag, tagIndex) => (
+                            <Badge key={tagIndex} variant="outline" className="text-xs">
+                              <Tag className="w-3 h-3 mr-1" />
+                              {tag}
+                            </Badge>
+                          ))}
+                        </div>
+                      </TableCell>
+                      <TableCell>
                         <div className="text-center">
                           <span className="font-semibold text-indigo-600">{contato.interacoes}</span>
                         </div>
@@ -327,6 +361,14 @@ const Contatos = () => {
                           >
                             Ver
                           </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="hover:bg-yellow-50"
+                            onClick={() => handleEditLead(contato)}
+                          >
+                            <Edit className="w-3 h-3" />
+                          </Button>
                           <Button size="sm" className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700">
                             Chat
                           </Button>
@@ -353,11 +395,22 @@ const Contatos = () => {
           setIsLeadModalOpen(false);
           setSelectedLead(null);
         }}
+        onAddFollowUp={handleAddFollowUp}
+        onUpdateFollowUp={handleUpdateFollowUp}
       />
       
       <NovoLeadModal 
         isOpen={isNovoLeadModalOpen}
         onClose={() => setIsNovoLeadModalOpen(false)}
+      />
+
+      <EditLeadModal 
+        lead={editingLead}
+        isOpen={isEditLeadModalOpen}
+        onClose={() => {
+          setIsEditLeadModalOpen(false);
+          setEditingLead(null);
+        }}
       />
     </div>
   );

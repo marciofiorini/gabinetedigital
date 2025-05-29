@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,12 +14,13 @@ import { ptBR } from "date-fns/locale";
 import { CalendarIcon, Save, X, Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
-interface NovoLeadModalProps {
+interface EditLeadModalProps {
+  lead: any;
   isOpen: boolean;
   onClose: () => void;
 }
 
-export const NovoLeadModal = ({ isOpen, onClose }: NovoLeadModalProps) => {
+export const EditLeadModal = ({ lead, isOpen, onClose }: EditLeadModalProps) => {
   const [formData, setFormData] = useState({
     nome: "",
     email: "",
@@ -44,6 +45,35 @@ export const NovoLeadModal = ({ isOpen, onClose }: NovoLeadModalProps) => {
   const [dataAniversario, setDataAniversario] = useState<Date>();
   const [newTag, setNewTag] = useState("");
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (lead) {
+      setFormData({
+        nome: lead.nome || "",
+        email: lead.email || "",
+        telefone: lead.telefone || "",
+        whatsapp: lead.whatsapp || "",
+        instagram: lead.instagram || "",
+        endereco: lead.endereco || "",
+        regiao: lead.regiao || "",
+        profissao: lead.profissao || "",
+        empresa: lead.empresa || "",
+        renda: lead.renda || "",
+        escolaridade: lead.escolaridade || "",
+        estadoCivil: lead.estadoCivil || "",
+        filhos: lead.filhos || "",
+        interesse: lead.interesse || "",
+        origem: lead.origem || "",
+        observacoes: lead.observacoes || "",
+        tipo: lead.tipo || "Lead",
+        tags: lead.tags || []
+      });
+      
+      if (lead.dataAniversario) {
+        setDataAniversario(new Date(lead.dataAniversario));
+      }
+    }
+  }, [lead]);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -78,41 +108,20 @@ export const NovoLeadModal = ({ isOpen, onClose }: NovoLeadModalProps) => {
 
     // Aqui integraria com o backend
     toast({
-      title: "Lead cadastrado!",
-      description: `${formData.nome} foi adicionado com sucesso`,
+      title: "Lead atualizado!",
+      description: `${formData.nome} foi atualizado com sucesso`,
     });
     
-    // Reset form
-    setFormData({
-      nome: "",
-      email: "",
-      telefone: "",
-      whatsapp: "",
-      instagram: "",
-      endereco: "",
-      regiao: "",
-      profissao: "",
-      empresa: "",
-      renda: "",
-      escolaridade: "",
-      estadoCivil: "",
-      filhos: "",
-      interesse: "",
-      origem: "",
-      observacoes: "",
-      tipo: "Lead",
-      tags: []
-    });
-    setDataAniversario(undefined);
-    setNewTag("");
     onClose();
   };
+
+  if (!lead) return null;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Novo Lead/Líder</DialogTitle>
+          <DialogTitle>Editar {lead.tipo}: {lead.nome}</DialogTitle>
         </DialogHeader>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -418,7 +427,7 @@ export const NovoLeadModal = ({ isOpen, onClose }: NovoLeadModalProps) => {
           </Button>
           <Button onClick={handleSave} className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700">
             <Save className="w-4 h-4 mr-2" />
-            Salvar Lead
+            Salvar Alterações
           </Button>
         </div>
       </DialogContent>
