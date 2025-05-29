@@ -9,7 +9,7 @@ interface HeaderProps {
 
 export const Header = ({ onToggleSidebar }: HeaderProps) => {
   return (
-    <header className="h-14 border-b border-gray-200 bg-white/95 backdrop-blur-sm flex items-center justify-between px-4">
+    <header className="h-16 border-b border-gray-200 bg-white flex items-center justify-between px-6">
       <Button
         variant="ghost"
         size="sm"
