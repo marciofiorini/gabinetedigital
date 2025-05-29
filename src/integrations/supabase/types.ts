@@ -141,6 +141,7 @@ export type Database = {
       contatos: {
         Row: {
           created_at: string | null
+          data_nascimento: string | null
           email: string | null
           endereco: string | null
           id: string
@@ -154,6 +155,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          data_nascimento?: string | null
           email?: string | null
           endereco?: string | null
           id?: string
@@ -167,6 +169,7 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          data_nascimento?: string | null
           email?: string | null
           endereco?: string | null
           id?: string

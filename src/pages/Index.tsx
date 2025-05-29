@@ -1,8 +1,7 @@
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Users, MessageSquare, Calendar, MessageCircle, TrendingUp, AlertCircle, Crown } from "lucide-react";
+import { Users, MessageSquare, Calendar, MessageCircle, TrendingUp, AlertCircle, Cake } from "lucide-react";
 import { useDashboardStats } from "@/hooks/useDashboardStats";
 import { DashboardCharts } from "@/components/DashboardCharts";
 import { AniversariantesSection } from "@/components/AniversariantesSection";
@@ -13,7 +12,7 @@ const Index = () => {
   const statsCards = [
     {
       title: "Demandas Pendentes",
-      value: loading ? "..." : stats.demandas_pendentes.toString(),
+      value: loading ? "..." : stats.demandas_pendentes?.toString() || "0",
       change: "+12%",
       icon: AlertCircle,
       color: "text-orange-600",
@@ -21,7 +20,7 @@ const Index = () => {
     },
     {
       title: "Leads Novos",
-      value: loading ? "..." : stats.leads_novos.toString(),
+      value: loading ? "..." : stats.leads_novos?.toString() || "0",
       change: "+8%",
       icon: Users,
       color: "text-blue-600",
@@ -29,17 +28,17 @@ const Index = () => {
     },
     {
       title: "Novos Contatos Hoje",
-      value: loading ? "..." : stats.novos_contatos_hoje.toString(),
+      value: loading ? "..." : stats.novos_contatos_hoje?.toString() || "0",
       change: "+2",
       icon: MessageCircle,
       color: "text-green-600",
       bgColor: "bg-green-100"
     },
     {
-      title: "Novos Líderes",
-      value: loading ? "..." : stats.novos_lideres.toString(),
+      title: "Aniversariantes Hoje",
+      value: loading ? "..." : stats.aniversariantes_hoje?.toString() || "0",
       change: "+3",
-      icon: Crown,
+      icon: Cake,
       color: "text-purple-600",
       bgColor: "bg-purple-100"
     }
