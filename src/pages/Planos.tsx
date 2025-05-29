@@ -73,25 +73,25 @@ const Planos = () => {
 
   return (
     <LayoutMain>
-      <div className="space-y-6">
+      <div className="w-full max-w-none space-y-8">
         <div className="text-center">
           <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
             Escolha Seu Plano
           </h1>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
             Soluções personalizadas para cada tipo de mandato político. 
             Do vereador ao senador, temos o plano ideal para você.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 w-full">
           {planos.map((plano, index) => {
             const Icon = plano.icon;
             return (
               <Card 
                 key={index} 
                 className={`relative hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 ${
-                  plano.popular ? 'border-2 border-gradient-to-r from-blue-500 to-purple-500 shadow-xl' : ''
+                  plano.popular ? 'border-2 border-blue-500 shadow-xl' : ''
                 }`}
               >
                 {plano.popular && (
@@ -151,7 +151,7 @@ const Planos = () => {
           })}
         </div>
 
-        <div className="text-center">
+        <div className="text-center pt-8">
           <h3 className="text-2xl font-bold text-gray-900 mb-4">
             Precisa de algo personalizado?
           </h3>
