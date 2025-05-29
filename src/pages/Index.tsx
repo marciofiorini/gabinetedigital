@@ -4,11 +4,14 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Users, MessageSquare, Calendar, MessageCircle, TrendingUp, AlertCircle, Cake } from "lucide-react";
 import { useDashboardStats } from "@/hooks/useDashboardStats";
+import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import { DashboardCharts } from "@/components/DashboardCharts";
 import { AniversariantesSection } from "@/components/AniversariantesSection";
+import { TourGuide } from "@/components/TourGuide";
 
 const Index = () => {
   const { stats, loading } = useDashboardStats();
+  useKeyboardShortcuts();
 
   console.log('Index - Renderizando:', { stats, loading });
 
@@ -19,7 +22,7 @@ const Index = () => {
       change: "+12%",
       icon: AlertCircle,
       color: "text-orange-600",
-      bgColor: "bg-orange-100"
+      bgColor: "bg-orange-100 dark:bg-orange-900/20"
     },
     {
       title: "Leads Novos",
@@ -27,7 +30,7 @@ const Index = () => {
       change: "+8%",
       icon: Users,
       color: "text-blue-600",
-      bgColor: "bg-blue-100"
+      bgColor: "bg-blue-100 dark:bg-blue-900/20"
     },
     {
       title: "Novos Contatos Hoje",
@@ -35,7 +38,7 @@ const Index = () => {
       change: "+2",
       icon: MessageCircle,
       color: "text-green-600",
-      bgColor: "bg-green-100"
+      bgColor: "bg-green-100 dark:bg-green-900/20"
     },
     {
       title: "Aniversariantes Hoje",
@@ -43,7 +46,7 @@ const Index = () => {
       change: "+3",
       icon: Cake,
       color: "text-purple-600",
-      bgColor: "bg-purple-100"
+      bgColor: "bg-purple-100 dark:bg-purple-900/20"
     }
   ];
 
@@ -75,33 +78,35 @@ const Index = () => {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" data-tour="dashboard">
+      <TourGuide />
+      
       {/* Header Section */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 mb-1">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-1">
           Dashboard - Gabinete Digital
         </h1>
-        <p className="text-gray-600 text-sm">
+        <p className="text-gray-600 dark:text-gray-400 text-sm">
           Gestão estratégica e integrada do seu mandato
         </p>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" data-tour="stats">
         {statsCards.map((stat, index) => {
           const Icon = stat.icon;
           return (
-            <Card key={index} className="hover:shadow-lg transition-shadow duration-200">
+            <Card key={index} className="hover:shadow-lg transition-all duration-200 border-0 shadow-sm dark:bg-gray-800/50">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600 mb-1">
+                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
                       {stat.title}
                     </p>
-                    <p className="text-2xl font-bold text-gray-900">
+                    <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                       {stat.value}
                     </p>
-                    <Badge variant="secondary" className="mt-2">
+                    <Badge variant="secondary" className="mt-2 bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400">
                       {stat.change}
                     </Badge>
                   </div>
@@ -120,13 +125,13 @@ const Index = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Métricas de Engajamento */}
-        <Card className="lg:col-span-2">
+        <Card className="lg:col-span-2 border-0 shadow-sm dark:bg-gray-800/50">
           <CardHeader className="pb-4">
-            <CardTitle className="flex items-center gap-2 text-lg">
+            <CardTitle className="flex items-center gap-2 text-lg text-gray-900 dark:text-gray-100">
               <TrendingUp className="w-5 h-5" />
               Métricas de Engajamento
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="dark:text-gray-400">
               Performance das suas redes sociais e WhatsApp
             </CardDescription>
           </CardHeader>
@@ -134,22 +139,22 @@ const Index = () => {
             <div className="space-y-4">
               <div>
                 <div className="flex justify-between mb-2">
-                  <span className="text-sm font-medium">WhatsApp</span>
-                  <span className="text-sm text-gray-600">85%</span>
+                  <span className="text-sm font-medium dark:text-gray-300">WhatsApp</span>
+                  <span className="text-sm text-gray-600 dark:text-gray-400">85%</span>
                 </div>
                 <Progress value={85} className="h-2" />
               </div>
               <div>
                 <div className="flex justify-between mb-2">
-                  <span className="text-sm font-medium">Instagram</span>
-                  <span className="text-sm text-gray-600">72%</span>
+                  <span className="text-sm font-medium dark:text-gray-300">Instagram</span>
+                  <span className="text-sm text-gray-600 dark:text-gray-400">72%</span>
                 </div>
                 <Progress value={72} className="h-2" />
               </div>
               <div>
                 <div className="flex justify-between mb-2">
-                  <span className="text-sm font-medium">E-mail</span>
-                  <span className="text-sm text-gray-600">68%</span>
+                  <span className="text-sm font-medium dark:text-gray-300">E-mail</span>
+                  <span className="text-sm text-gray-600 dark:text-gray-400">68%</span>
                 </div>
                 <Progress value={68} className="h-2" />
               </div>
@@ -158,34 +163,34 @@ const Index = () => {
         </Card>
 
         {/* Próximos Eventos */}
-        <Card>
+        <Card className="border-0 shadow-sm dark:bg-gray-800/50">
           <CardHeader className="pb-4">
-            <CardTitle className="flex items-center gap-2 text-lg">
+            <CardTitle className="flex items-center gap-2 text-lg text-gray-900 dark:text-gray-100">
               <Calendar className="w-5 h-5" />
               Próximos Eventos
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg">
+              <div className="flex items-center gap-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
                 <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
                 <div className="flex-1">
-                  <p className="font-medium text-sm">Audiência Pública</p>
-                  <p className="text-xs text-gray-600">Hoje, 14:00</p>
+                  <p className="font-medium text-sm dark:text-gray-200">Audiência Pública</p>
+                  <p className="text-xs text-gray-600 dark:text-gray-400">Hoje, 14:00</p>
                 </div>
               </div>
-              <div className="flex items-center gap-3 p-3 bg-green-50 rounded-lg">
+              <div className="flex items-center gap-3 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
                 <div className="w-2 h-2 bg-green-600 rounded-full"></div>
                 <div className="flex-1">
-                  <p className="font-medium text-sm">Reunião com Prefeitos</p>
-                  <p className="text-xs text-gray-600">Amanhã, 09:00</p>
+                  <p className="font-medium text-sm dark:text-gray-200">Reunião com Prefeitos</p>
+                  <p className="text-xs text-gray-600 dark:text-gray-400">Amanhã, 09:00</p>
                 </div>
               </div>
-              <div className="flex items-center gap-3 p-3 bg-purple-50 rounded-lg">
+              <div className="flex items-center gap-3 p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
                 <div className="w-2 h-2 bg-purple-600 rounded-full"></div>
                 <div className="flex-1">
-                  <p className="font-medium text-sm">Live Instagram</p>
-                  <p className="text-xs text-gray-600">Sexta, 18:00</p>
+                  <p className="font-medium text-sm dark:text-gray-200">Live Instagram</p>
+                  <p className="text-xs text-gray-600 dark:text-gray-400">Sexta, 18:00</p>
                 </div>
               </div>
             </div>
@@ -194,28 +199,28 @@ const Index = () => {
       </div>
 
       {/* Atividades Recentes */}
-      <Card>
+      <Card className="border-0 shadow-sm dark:bg-gray-800/50">
         <CardHeader className="pb-4">
-          <CardTitle className="text-lg">Atividades Recentes</CardTitle>
-          <CardDescription>
+          <CardTitle className="text-lg text-gray-900 dark:text-gray-100">Atividades Recentes</CardTitle>
+          <CardDescription className="dark:text-gray-400">
             Últimas ações e atualizações do sistema
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
             {recentActivities.map((activity) => (
-              <div key={activity.id} className="flex items-center gap-4 p-3 border rounded-lg hover:bg-gray-50 transition-colors">
+              <div key={activity.id} className="flex items-center gap-4 p-3 border dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
                 <div className="flex-shrink-0">
                   {activity.type === 'demanda' && <AlertCircle className="w-5 h-5 text-orange-600" />}
                   {activity.type === 'evento' && <Calendar className="w-5 h-5 text-blue-600" />}
                   {activity.type === 'whatsapp' && <MessageSquare className="w-5 h-5 text-green-600" />}
                 </div>
                 <div className="flex-1">
-                  <h4 className="font-medium text-gray-900 text-sm">{activity.title}</h4>
-                  <p className="text-sm text-gray-600">{activity.description}</p>
+                  <h4 className="font-medium text-gray-900 dark:text-gray-100 text-sm">{activity.title}</h4>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">{activity.description}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm text-gray-500">{activity.time}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">{activity.time}</p>
                   <Badge 
                     variant={activity.status === 'enviado' ? 'default' : 'secondary'}
                     className="mt-1"

@@ -22,12 +22,13 @@ export const useDashboardStats = () => {
     try {
       setLoading(true);
       
-      // Tentar usar a nova função primeiro, se falhar usar a antiga
-      let { data, error } = await supabase.rpc('get_dashboard_stats_complete', {
+      // Use the new function directly
+      const { data, error } = await supabase.rpc('get_dashboard_stats_complete', {
         target_user_id: user.id
       });
 
-      if (error || !data || data.length === 0) {
+      if (error) {
+        console.error('Erro na função get_dashboard_stats_complete:', error);
         // Fallback para função antiga
         const { data: oldData, error: oldError } = await supabase.rpc('get_dashboard_stats', {
           target_user_id: user.id
@@ -35,29 +36,13 @@ export const useDashboardStats = () => {
 
         if (oldError) throw oldError;
 
-        if (oldData && oldData.length > 0) {
-          // Buscar aniversariantes separadamente
-          const { data: aniversariantes, error: anivError } = await supabase
-            .from('contatos')
-            .select('id')
-            .eq('user_id', user.id)
-            .not('data_nascimento', 'is', null);
-
-          let aniversariantes_hoje = 0;
-          if (!anivError && aniversariantes) {
-            const hoje = new Date();
-            aniversariantes_hoje = aniversariantes.filter(contato => {
-              // Implementar lógica de aniversário aqui se necessário
-              return false; // Por enquanto retorna 0
-            }).length;
-          }
-
+        if (oldData && Array.isArray(oldData) && oldData.length > 0) {
           setStats({
             ...oldData[0],
-            aniversariantes_hoje
+            aniversariantes_hoje: 0 // Default value
           });
         }
-      } else {
+      } else if (data && Array.isArray(data) && data.length > 0) {
         setStats(data[0]);
       }
     } catch (error) {

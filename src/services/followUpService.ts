@@ -18,8 +18,18 @@ export const followUpService = {
       if (error) throw error;
 
       return (data || []).map(item => ({
-        ...item,
+        id: item.id,
+        user_id: item.user_id,
+        lead_id: item.lead_id,
+        tipo: item.tipo as 'ligacao' | 'mensagem' | 'reuniao' | 'aniversario',
         data_agendada: new Date(item.data_agendada),
+        descricao: item.descricao,
+        status: item.status as 'pendente' | 'concluido' | 'cancelado',
+        observacoes: item.observacoes,
+        assunto: item.assunto,
+        conteudo_mensagem: item.conteudo_mensagem,
+        created_at: new Date(item.created_at),
+        updated_at: new Date(item.updated_at),
         lead_nome: item.leads?.nome
       }));
     } catch (error) {

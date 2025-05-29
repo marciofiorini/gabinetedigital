@@ -399,6 +399,86 @@ export type Database = {
         }
         Relationships: []
       }
+      follow_ups: {
+        Row: {
+          assunto: string | null
+          conteudo_mensagem: string | null
+          created_at: string
+          data_agendada: string
+          descricao: string
+          id: string
+          lead_id: string | null
+          observacoes: string | null
+          status: string
+          tipo: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          assunto?: string | null
+          conteudo_mensagem?: string | null
+          created_at?: string
+          data_agendada: string
+          descricao: string
+          id?: string
+          lead_id?: string | null
+          observacoes?: string | null
+          status?: string
+          tipo: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          assunto?: string | null
+          conteudo_mensagem?: string | null
+          created_at?: string
+          data_agendada?: string
+          descricao?: string
+          id?: string
+          lead_id?: string | null
+          observacoes?: string | null
+          status?: string
+          tipo?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "follow_ups_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      keyboard_shortcuts: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          shortcut: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          shortcut: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          shortcut?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       leads: {
         Row: {
           created_at: string | null
@@ -576,35 +656,71 @@ export type Database = {
       user_settings: {
         Row: {
           created_at: string | null
+          dark_mode: boolean | null
           email_notifications: boolean | null
           id: string
+          keyboard_shortcuts_enabled: boolean | null
           language: string | null
           push_notifications: boolean | null
           theme: string | null
           timezone: string | null
+          tour_completed: boolean | null
           updated_at: string | null
           user_id: string
         }
         Insert: {
           created_at?: string | null
+          dark_mode?: boolean | null
           email_notifications?: boolean | null
           id?: string
+          keyboard_shortcuts_enabled?: boolean | null
           language?: string | null
           push_notifications?: boolean | null
           theme?: string | null
           timezone?: string | null
+          tour_completed?: boolean | null
           updated_at?: string | null
           user_id: string
         }
         Update: {
           created_at?: string | null
+          dark_mode?: boolean | null
           email_notifications?: boolean | null
           id?: string
+          keyboard_shortcuts_enabled?: boolean | null
           language?: string | null
           push_notifications?: boolean | null
           theme?: string | null
           timezone?: string | null
+          tour_completed?: boolean | null
           updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_tours: {
+        Row: {
+          completed: boolean | null
+          completed_at: string | null
+          created_at: string
+          id: string
+          tour_name: string
+          user_id: string
+        }
+        Insert: {
+          completed?: boolean | null
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          tour_name: string
+          user_id: string
+        }
+        Update: {
+          completed?: boolean | null
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          tour_name?: string
           user_id?: string
         }
         Relationships: []
@@ -641,6 +757,16 @@ export type Database = {
           eventos_hoje: number
           novos_contatos_hoje: number
           leads_novos: number
+        }[]
+      }
+      get_dashboard_stats_complete: {
+        Args: { target_user_id: string }
+        Returns: {
+          demandas_pendentes: number
+          eventos_hoje: number
+          novos_contatos_hoje: number
+          leads_novos: number
+          aniversariantes_hoje: number
         }[]
       }
       has_role: {
