@@ -9,6 +9,39 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      access_logs: {
+        Row: {
+          action: string
+          changed_by: string | null
+          created_at: string
+          id: string
+          new_value: string | null
+          old_value: string | null
+          role_changed: string | null
+          user_id: string
+        }
+        Insert: {
+          action: string
+          changed_by?: string | null
+          created_at?: string
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+          role_changed?: string | null
+          user_id: string
+        }
+        Update: {
+          action?: string
+          changed_by?: string | null
+          created_at?: string
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+          role_changed?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       alertas_automaticos: {
         Row: {
           ativo: boolean
@@ -730,6 +763,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_create_user: {
+        Args: {
+          user_email: string
+          user_password: string
+          user_name: string
+          user_roles?: string[]
+        }
+        Returns: Json
+      }
       calcular_comparativo_temporal: {
         Args: {
           target_user_id: string

@@ -1,4 +1,3 @@
-
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from '@/contexts/AuthContext';
@@ -23,6 +22,7 @@ import ProjetosLei from '@/pages/ProjetosLei';
 import Pesquisas from '@/pages/Pesquisas';
 import Planos from '@/pages/Planos';
 import Configuracoes from '@/pages/Configuracoes';
+import Administracao from '@/pages/Administracao';
 
 const queryClient = new QueryClient();
 
@@ -52,6 +52,7 @@ function App() {
               <Route path="/pesquisas" element={<ProtectedLayout><Pesquisas /></ProtectedLayout>} />
               <Route path="/planos" element={<ProtectedLayout><Planos /></ProtectedLayout>} />
               <Route path="/configuracoes" element={<ProtectedLayout><Configuracoes /></ProtectedLayout>} />
+              <Route path="/administracao" element={<ProtectedLayout><Administracao /></ProtectedLayout>} />
             </Routes>
             <Toaster />
           </div>
