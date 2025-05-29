@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useLocation, Link } from 'react-router-dom';
 import { cn } from "@/lib/utils";
@@ -28,7 +29,10 @@ import {
   ChevronDown,
   ChevronRight,
   Scale,
-  Vote
+  Vote,
+  Monitor,
+  Search,
+  DoorOpen
 } from "lucide-react";
 import { useAuth } from '@/contexts/AuthContext';
 import { useDashboardStats } from '@/hooks/useDashboardStats';
@@ -45,7 +49,7 @@ export const SidebarNew = ({ isOpen }: SidebarProps) => {
   const { profile } = useAuth();
   const { stats, loading } = useDashboardStats();
   const { isAdmin } = useUserRoles();
-  const [openGroups, setOpenGroups] = useState<string[]>(['comunicacao']);
+  const [openGroups, setOpenGroups] = useState<string[]>(['comunicacao', 'painel']);
 
   const toggleGroup = (groupId: string) => {
     setOpenGroups(prev => 
@@ -65,7 +69,6 @@ export const SidebarNew = ({ isOpen }: SidebarProps) => {
     { name: 'CRM', icon: Target, path: '/crm', minPlan: 'premium' as UserPlan },
     { name: 'Demandas', icon: FileText, path: '/demandas', minPlan: 'basic' as UserPlan },
     { name: 'Projetos de Lei', icon: Scale, path: '/projetos-lei', minPlan: 'basic' as UserPlan },
-    { name: 'Analytics', icon: BarChart3, path: '/analytics', minPlan: 'premium' as UserPlan },
   ];
 
   // Grupo de comunicação
@@ -77,6 +80,19 @@ export const SidebarNew = ({ isOpen }: SidebarProps) => {
       { name: 'WhatsApp', icon: MessageCircle, path: '/whatsapp', minPlan: 'premium' as UserPlan },
       { name: 'Instagram', icon: Instagram, path: '/instagram', minPlan: 'premium' as UserPlan },
       { name: 'E-mail', icon: Mail, path: '/email', minPlan: 'basic' as UserPlan },
+    ]
+  };
+
+  // Grupo Painel
+  const painelGroup = {
+    id: 'painel',
+    label: 'Painel',
+    icon: BarChart3,
+    items: [
+      { name: 'Analytics', icon: BarChart3, path: '/analytics', minPlan: 'premium' as UserPlan },
+      { name: 'Monitor de Redes', icon: Monitor, path: '/monitor-redes', minPlan: 'premium' as UserPlan },
+      { name: 'Pesquisas', icon: Search, path: '/pesquisas', minPlan: 'basic' as UserPlan },
+      { name: 'Portal do Cidadão', icon: DoorOpen, path: '/portal-cidadao', minPlan: 'basic' as UserPlan },
     ]
   };
 
@@ -144,6 +160,47 @@ export const SidebarNew = ({ isOpen }: SidebarProps) => {
           </CollapsibleTrigger>
           <CollapsibleContent className="space-y-1 ml-4 mt-1">
             {comunicacaoGroup.items.map((item) => {
+              const hasAccess = hasAccessToPlan(item.minPlan) || isAdmin();
+              if (!hasAccess) return null;
+
+              return (
+                <Link
+                  to={item.path}
+                  key={item.name}
+                  className={cn(
+                    "flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-colors",
+                    location.pathname === item.path 
+                      ? "bg-blue-50 text-blue-700 border-l-2 border-blue-600" 
+                      : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                  )}
+                >
+                  <item.icon className="w-4 h-4" />
+                  <span>{item.name}</span>
+                  {!hasAccessToPlan(item.minPlan) && isAdmin() && (
+                    <Badge variant="outline" className="ml-auto text-xs">Admin</Badge>
+                  )}
+                </Link>
+              );
+            })}
+          </CollapsibleContent>
+        </Collapsible>
+
+        {/* Grupo Painel */}
+        <Collapsible open={openGroups.includes('painel')} onOpenChange={() => toggleGroup('painel')}>
+          <CollapsibleTrigger asChild>
+            <Button
+              variant="ghost"
+              className="w-full justify-between p-3 h-auto font-medium text-gray-700 hover:bg-gray-50"
+            >
+              <div className="flex items-center gap-2">
+                <painelGroup.icon className="w-4 h-4" />
+                <span className="text-sm">{painelGroup.label}</span>
+              </div>
+              {openGroups.includes('painel') ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+            </Button>
+          </CollapsibleTrigger>
+          <CollapsibleContent className="space-y-1 ml-4 mt-1">
+            {painelGroup.items.map((item) => {
               const hasAccess = hasAccessToPlan(item.minPlan) || isAdmin();
               if (!hasAccess) return null;
 

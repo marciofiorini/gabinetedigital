@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,8 +5,6 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Sidebar } from "@/components/Sidebar";
-import { Header } from "@/components/Header";
 import { 
   FileText, 
   MessageSquare, 
@@ -22,7 +19,6 @@ import {
 } from "lucide-react";
 
 const PortalCidadao = () => {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
 
   const solicitacoes = [
@@ -86,57 +82,54 @@ const PortalCidadao = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-100 flex">
-      <Sidebar isOpen={sidebarOpen} />
-      
-      <div className={`flex-1 transition-all duration-300 ${sidebarOpen ? 'ml-64' : 'ml-16'}`}>
-        <Header onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
-        
-        <main className="p-6">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-2">
-              Portal do Cidadão
-            </h1>
-            <p className="text-gray-600">
-              Interface pública para solicitações e acompanhamento de demandas
-            </p>
-          </div>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2">
+            Portal do Cidadão
+          </h1>
+          <p className="text-gray-600">
+            Interface pública para solicitações e acompanhamento de demandas
+          </p>
+        </div>
+      </div>
 
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            {[
-              { label: "Total de Solicitações", valor: "156", icone: FileText, cor: "from-blue-500 to-blue-600" },
-              { label: "Em Andamento", valor: "42", icone: AlertTriangle, cor: "from-yellow-500 to-yellow-600" },
-              { label: "Concluídas", valor: "98", icone: CheckCircle, cor: "from-green-500 to-green-600" },
-              { label: "Pendentes", valor: "16", icone: Clock, cor: "from-red-500 to-red-600" }
-            ].map((stat, index) => (
-              <Card key={index} className="border-0 shadow-lg hover:shadow-xl transition-all duration-200 bg-white/80 backdrop-blur-sm">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center">
-                      <div className={`w-12 h-12 rounded-lg bg-gradient-to-r ${stat.cor} flex items-center justify-center mr-4`}>
-                        <stat.icone className="text-white w-6 h-6" />
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-600">{stat.label}</p>
-                        <p className="text-2xl font-bold text-gray-900">{stat.valor}</p>
-                      </div>
-                    </div>
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        {[
+          { label: "Total de Solicitações", valor: "156", icone: FileText, cor: "from-blue-500 to-blue-600" },
+          { label: "Em Andamento", valor: "42", icone: AlertTriangle, cor: "from-yellow-500 to-yellow-600" },
+          { label: "Concluídas", valor: "98", icone: CheckCircle, cor: "from-green-500 to-green-600" },
+          { label: "Pendentes", valor: "16", icone: Clock, cor: "from-red-500 to-red-600" }
+        ].map((stat, index) => (
+          <Card key={index} className="border-0 shadow-lg hover:shadow-xl transition-all duration-200 bg-white/80 backdrop-blur-sm">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <div className={`w-12 h-12 rounded-lg bg-gradient-to-r ${stat.cor} flex items-center justify-center mr-4`}>
+                    <stat.icone className="text-white w-6 h-6" />
                   </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                  <div>
+                    <p className="text-sm text-gray-600">{stat.label}</p>
+                    <p className="text-2xl font-bold text-gray-900">{stat.valor}</p>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
 
-          <Tabs defaultValue="solicitacoes" className="space-y-6">
-            <TabsList>
-              <TabsTrigger value="solicitacoes">Solicitações</TabsTrigger>
-              <TabsTrigger value="nova">Nova Solicitação</TabsTrigger>
-              <TabsTrigger value="acompanhar">Acompanhar</TabsTrigger>
-            </TabsList>
+      <Tabs defaultValue="solicitacoes" className="space-y-6">
+        <TabsList>
+          <TabsTrigger value="solicitacoes">Solicitações</TabsTrigger>
+          <TabsTrigger value="nova">Nova Solicitação</TabsTrigger>
+          <TabsTrigger value="acompanhar">Acompanhar</TabsTrigger>
+        </TabsList>
 
-            <TabsContent value="solicitacoes" className="space-y-6">
-              <div className="flex gap-4 mb-6">
+        <TabsContent value="solicitacoes" className="space-y-6">
+          <div className="flex gap-4 mb-6">
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                   <Input
@@ -270,8 +263,6 @@ const PortalCidadao = () => {
               </Card>
             </TabsContent>
           </Tabs>
-        </main>
-      </div>
     </div>
   );
 };
