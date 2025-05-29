@@ -12,6 +12,8 @@ export const LayoutMain = ({ children }: LayoutMainProps) => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const location = useLocation();
   
+  console.log('LayoutMain renderizado:', { sidebarOpen, path: location.pathname });
+  
   // Páginas que devem usar toda a largura
   const fullWidthPages = ['/contatos'];
   const isFullWidth = fullWidthPages.includes(location.pathname);

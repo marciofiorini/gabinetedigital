@@ -53,6 +53,8 @@ export const SidebarNew = ({ isOpen }: SidebarProps) => {
   const { isAdmin } = useUserRoles();
   const [openGroups, setOpenGroups] = useState<string[]>(['comunicacao', 'painel']);
 
+  console.log('SidebarNew renderizado:', { isOpen, location: location.pathname });
+
   const toggleGroup = (groupId: string) => {
     setOpenGroups(prev => 
       prev.includes(groupId) 
@@ -260,20 +262,20 @@ export const SidebarNew = ({ isOpen }: SidebarProps) => {
                 <div className="flex items-center justify-between">
                   <span className="text-blue-700">Demandas pendentes:</span>
                   <Badge variant="secondary" className="bg-orange-100 text-orange-800 text-xs h-5">
-                    {stats.demandas_pendentes || 0}
+                    {stats?.demandas_pendentes || 0}
                   </Badge>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-blue-700">Novos contatos:</span>
                   <Badge variant="secondary" className="bg-green-100 text-green-800 text-xs h-5">
-                    {stats.novos_contatos_hoje || 0}
+                    {stats?.novos_contatos_hoje || 0}
                   </Badge>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-blue-700">Aniversariantes do dia:</span>
                   <Badge variant="secondary" className="bg-pink-100 text-pink-800 text-xs h-5 flex items-center gap-1">
                     <Cake className="w-3 h-3" />
-                    {stats.aniversariantes_hoje || 0}
+                    {stats?.aniversariantes_hoje || 0}
                   </Badge>
                 </div>
               </div>
@@ -281,7 +283,6 @@ export const SidebarNew = ({ isOpen }: SidebarProps) => {
           </CardContent>
         </Card>
 
-        {/* Status */}
         <div className="mt-3 text-center">
           <div className="flex items-center justify-center gap-1 mb-1">
             <CheckCircle className="w-3 h-3 text-green-600" />
@@ -304,6 +305,7 @@ export const SidebarNew = ({ isOpen }: SidebarProps) => {
           isOpen ? "translate-x-0" : "-translate-x-full",
           "hidden lg:block"
         )}
+        style={{ display: isOpen ? 'block' : 'none' }}
       >
         <SidebarContent />
       </aside>
