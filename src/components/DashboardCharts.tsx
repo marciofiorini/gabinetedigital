@@ -52,15 +52,15 @@ const chartConfig = {
 
 export const DashboardCharts = () => {
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
       {/* Demandas Chart */}
-      <Card>
+      <Card className="border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2 text-gray-900 dark:text-gray-100">
             <Target className="w-5 h-5" />
             Demandas por Mês
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="dark:text-gray-400">
             Comparativo entre demandas pendentes e concluídas
           </CardDescription>
         </CardHeader>
@@ -68,9 +68,9 @@ export const DashboardCharts = () => {
           <ChartContainer config={chartConfig} className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={demandasData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis />
+                <CartesianGrid strokeDasharray="3 3" className="stroke-gray-200 dark:stroke-gray-700" />
+                <XAxis dataKey="month" className="fill-gray-600 dark:fill-gray-400" />
+                <YAxis className="fill-gray-600 dark:fill-gray-400" />
                 <ChartTooltip content={<ChartTooltipContent />} />
                 <Bar dataKey="pendentes" fill="var(--color-pendentes)" radius={4} />
                 <Bar dataKey="concluidas" fill="var(--color-concluidas)" radius={4} />
@@ -81,13 +81,13 @@ export const DashboardCharts = () => {
       </Card>
 
       {/* Contatos por Zona */}
-      <Card>
+      <Card className="border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2 text-gray-900 dark:text-gray-100">
             <Users className="w-5 h-5" />
             Contatos por Zona
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="dark:text-gray-400">
             Distribuição geográfica dos contatos
           </CardDescription>
         </CardHeader>
@@ -115,13 +115,13 @@ export const DashboardCharts = () => {
       </Card>
 
       {/* Engajamento */}
-      <Card className="lg:col-span-2">
+      <Card className="lg:col-span-2 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2 text-gray-900 dark:text-gray-100">
             <TrendingUp className="w-5 h-5" />
             Engajamento das Redes Sociais
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="dark:text-gray-400">
             Performance dos últimos 5 dias
           </CardDescription>
         </CardHeader>
@@ -129,9 +129,9 @@ export const DashboardCharts = () => {
           <ChartContainer config={chartConfig} className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={engajamentoData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" />
-                <YAxis />
+                <CartesianGrid strokeDasharray="3 3" className="stroke-gray-200 dark:stroke-gray-700" />
+                <XAxis dataKey="date" className="fill-gray-600 dark:fill-gray-400" />
+                <YAxis className="fill-gray-600 dark:fill-gray-400" />
                 <ChartTooltip content={<ChartTooltipContent />} />
                 <Line 
                   type="monotone" 

@@ -82,7 +82,7 @@ const Index = () => {
       <TourGuide />
       
       {/* Header Section */}
-      <div>
+      <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-1">
           Dashboard - Gabinete Digital
         </h1>
@@ -92,11 +92,11 @@ const Index = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" data-tour="stats">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6" data-tour="stats">
         {statsCards.map((stat, index) => {
           const Icon = stat.icon;
           return (
-            <Card key={index} className="hover:shadow-lg transition-all duration-200 border-0 shadow-sm dark:bg-gray-800/50">
+            <Card key={index} className="hover:shadow-lg transition-all duration-200 border border-gray-200 dark:border-gray-700 shadow-sm bg-white dark:bg-gray-800">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
@@ -123,9 +123,9 @@ const Index = () => {
       {/* Charts Section */}
       <DashboardCharts />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
         {/* Métricas de Engajamento */}
-        <Card className="lg:col-span-2 border-0 shadow-sm dark:bg-gray-800/50">
+        <Card className="lg:col-span-2 border border-gray-200 dark:border-gray-700 shadow-sm bg-white dark:bg-gray-800">
           <CardHeader className="pb-4">
             <CardTitle className="flex items-center gap-2 text-lg text-gray-900 dark:text-gray-100">
               <TrendingUp className="w-5 h-5" />
@@ -163,7 +163,7 @@ const Index = () => {
         </Card>
 
         {/* Próximos Eventos */}
-        <Card className="border-0 shadow-sm dark:bg-gray-800/50">
+        <Card className="border border-gray-200 dark:border-gray-700 shadow-sm bg-white dark:bg-gray-800">
           <CardHeader className="pb-4">
             <CardTitle className="flex items-center gap-2 text-lg text-gray-900 dark:text-gray-100">
               <Calendar className="w-5 h-5" />
@@ -199,7 +199,7 @@ const Index = () => {
       </div>
 
       {/* Atividades Recentes */}
-      <Card className="border-0 shadow-sm dark:bg-gray-800/50">
+      <Card className="border border-gray-200 dark:border-gray-700 shadow-sm bg-white dark:bg-gray-800 mb-6">
         <CardHeader className="pb-4">
           <CardTitle className="text-lg text-gray-900 dark:text-gray-100">Atividades Recentes</CardTitle>
           <CardDescription className="dark:text-gray-400">
@@ -209,7 +209,7 @@ const Index = () => {
         <CardContent>
           <div className="space-y-3">
             {recentActivities.map((activity) => (
-              <div key={activity.id} className="flex items-center gap-4 p-3 border dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+              <div key={activity.id} className="flex items-center gap-4 p-3 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
                 <div className="flex-shrink-0">
                   {activity.type === 'demanda' && <AlertCircle className="w-5 h-5 text-orange-600" />}
                   {activity.type === 'evento' && <Calendar className="w-5 h-5 text-blue-600" />}
