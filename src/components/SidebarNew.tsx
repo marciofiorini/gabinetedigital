@@ -72,7 +72,7 @@ export const SidebarNew = ({ isOpen }: SidebarProps) => {
 
   const userPlan: UserPlan = 'premium';
 
-  // Links principais soltos
+  // Links principais soltos (removido Comunicação)
   const mainLinks = [
     { name: 'Dashboard', icon: LayoutDashboard, path: '/', minPlan: 'basic' as UserPlan },
     { name: 'Contatos', icon: Users, path: '/contatos', minPlan: 'basic' as UserPlan },
@@ -80,15 +80,15 @@ export const SidebarNew = ({ isOpen }: SidebarProps) => {
     { name: 'CRM', icon: Target, path: '/crm', minPlan: 'premium' as UserPlan },
     { name: 'Demandas', icon: FileText, path: '/demandas', minPlan: 'basic' as UserPlan },
     { name: 'Projetos de Lei', icon: Scale, path: '/projetos-lei', minPlan: 'basic' as UserPlan },
-    { name: 'Comunicação', icon: Zap, path: '/comunicacao', minPlan: 'premium' as UserPlan },
   ];
 
-  // Grupo de comunicação
+  // Grupo de comunicação (adicionado Comunicação)
   const comunicacaoGroup = {
     id: 'comunicacao',
     label: 'Canais',
     icon: MessageCircle,
     items: [
+      { name: 'Comunicação', icon: Zap, path: '/comunicacao', minPlan: 'premium' as UserPlan },
       { name: 'WhatsApp', icon: MessageCircle, path: '/whatsapp', minPlan: 'premium' as UserPlan },
       { name: 'Instagram', icon: Instagram, path: '/instagram', minPlan: 'premium' as UserPlan },
       { name: 'E-mail', icon: Mail, path: '/email', minPlan: 'basic' as UserPlan },
