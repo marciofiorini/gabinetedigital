@@ -2,28 +2,46 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Check, Crown, Star, Zap, Shield, BarChart3, Database, Mail, FileDown, FileUp, Settings, TrendingUp, Bell, Activity } from "lucide-react";
-import { useUserPlans } from "@/hooks/useUserPlans";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Check, Crown, Star, Zap, Shield, BarChart3, Database, Mail, FileDown, FileUp, Settings, TrendingUp, Bell, Activity, RefreshCw } from "lucide-react";
+import { useSubscription } from "@/hooks/useSubscription";
 import { useAuth } from "@/contexts/AuthContext";
-import { useState } from "react";
-import { createClient } from "@supabase/supabase-js";
-
-const supabase = createClient(
-  import.meta.env.VITE_SUPABASE_URL!,
-  import.meta.env.VITE_SUPABASE_ANON_KEY!
-);
+import { useState, useEffect } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 const Planos = () => {
-  const { userPlan, hasAccessToPlan } = useUserPlans();
   const { user } = useAuth();
-  const [loading, setLoading] = useState(false);
+  const { subscribed, subscription_tier, loading, createCheckout, openCustomerPortal, hasAccessToPlan, checkSubscription } = useSubscription();
+  const [actionLoading, setActionLoading] = useState(false);
+  const { toast } = useToast();
+
+  // Check for success/cancel params
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('success') === 'true') {
+      toast({
+        title: "Pagamento realizado com sucesso!",
+        description: "Sua assinatura foi ativada. Verificando status...",
+      });
+      // Refresh subscription status after a delay
+      setTimeout(() => {
+        checkSubscription();
+      }, 3000);
+    } else if (urlParams.get('canceled') === 'true') {
+      toast({
+        title: "Pagamento cancelado",
+        description: "Você pode tentar novamente quando quiser.",
+        variant: "destructive",
+      });
+    }
+  }, []);
 
   const planos = [
     {
       nome: "Básico",
       preco: "R$ 97",
       periodo: "/mês",
-      stripePriceId: "price_basic_monthly", // Substituir pelo ID real do Stripe
+      stripePriceId: "price_1234567890", // TODO: Substituir pelo ID real do Stripe
       descricao: "Ideal para candidatos iniciantes",
       icone: Star,
       cor: "from-blue-500 to-blue-600",
@@ -46,7 +64,7 @@ const Planos = () => {
       nome: "Premium",
       preco: "R$ 197",
       periodo: "/mês",
-      stripePriceId: "price_premium_monthly", // Substituir pelo ID real do Stripe
+      stripePriceId: "price_0987654321", // TODO: Substituir pelo ID real do Stripe
       descricao: "Para candidatos em crescimento",
       icone: Crown,
       cor: "from-purple-500 to-purple-600",
@@ -71,7 +89,7 @@ const Planos = () => {
       nome: "Enterprise",
       preco: "R$ 397",
       periodo: "/mês",
-      stripePriceId: "price_enterprise_monthly", // Substituir pelo ID real do Stripe
+      stripePriceId: "price_1122334455", // TODO: Substituir pelo ID real do Stripe
       descricao: "Para grandes campanhas políticas",
       icone: Zap,
       cor: "from-indigo-500 to-indigo-600",
@@ -168,38 +186,63 @@ const Planos = () => {
     }
   ];
 
-  const verificarDisponibilidade = (disponivel: string[]) => {
-    return disponivel.includes(userPlan);
-  };
-
   const handleSubscribe = async (stripePriceId: string, planType: string) => {
     if (!user) {
-      alert('Você precisa estar logado para assinar um plano');
+      toast({
+        title: "Login necessário",
+        description: "Você precisa estar logado para assinar um plano",
+        variant: "destructive",
+      });
       return;
     }
 
-    setLoading(true);
+    setActionLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('create-checkout', {
-        body: { 
-          priceId: stripePriceId,
-          planType: planType
-        }
-      });
-
-      if (error) throw error;
-
-      // Abrir Stripe checkout em nova aba
-      if (data?.url) {
-        window.open(data.url, '_blank');
-      }
+      await createCheckout(stripePriceId, planType as any);
     } catch (error) {
       console.error('Erro ao criar checkout:', error);
-      alert('Erro ao processar pagamento. Tente novamente.');
+      toast({
+        title: "Erro no pagamento",
+        description: "Não foi possível processar o pagamento. Tente novamente.",
+        variant: "destructive",
+      });
     } finally {
-      setLoading(false);
+      setActionLoading(false);
     }
   };
+
+  const handleManageSubscription = async () => {
+    if (!user) {
+      toast({
+        title: "Login necessário",
+        description: "Você precisa estar logado para gerenciar sua assinatura",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setActionLoading(true);
+    try {
+      await openCustomerPortal();
+    } catch (error) {
+      console.error('Erro ao abrir portal do cliente:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível abrir o portal de gerenciamento. Tente novamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const verificarDisponibilidade = (disponivel: string[]) => {
+    return disponivel.includes(subscription_tier || 'basic');
+  };
+
+  const currentPlanName = subscription_tier === 'basic' ? 'Básico' : 
+                         subscription_tier === 'premium' ? 'Premium' : 
+                         subscription_tier === 'enterprise' ? 'Enterprise' : 'Básico';
 
   return (
     <div className="space-y-8">
@@ -211,200 +254,232 @@ const Planos = () => {
         <p className="text-xl text-gray-600 max-w-2xl mx-auto">
           Encontre o plano ideal para sua campanha política e maximize seus resultados
         </p>
-        <Badge variant="outline" className="text-sm">
-          Plano Atual: {userPlan === 'basic' ? 'Básico' : userPlan === 'premium' ? 'Premium' : 'Enterprise'}
-        </Badge>
-      </div>
-
-      {/* Planos */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-        {planos.map((plano, index) => (
-          <Card 
-            key={index} 
-            className={`relative border-0 shadow-xl hover:shadow-2xl transition-all duration-300 bg-white/90 backdrop-blur-sm ${
-              plano.popular ? 'ring-2 ring-purple-500 ring-offset-2 scale-105' : ''
-            } ${
-              userPlan === plano.planType ? 'ring-2 ring-green-500 ring-offset-2' : ''
-            }`}
+        <div className="flex items-center justify-center gap-4">
+          <Badge variant="outline" className="text-sm">
+            Plano Atual: {currentPlanName}
+          </Badge>
+          {subscribed && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleManageSubscription}
+              disabled={actionLoading}
+            >
+              Gerenciar Assinatura
+            </Button>
+          )}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={checkSubscription}
+            disabled={loading}
           >
-            {plano.popular && (
-              <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                <Badge className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-4 py-1 text-sm font-semibold">
-                  Mais Popular
-                </Badge>
-              </div>
-            )}
-
-            {userPlan === plano.planType && (
-              <div className="absolute -top-4 right-4">
-                <Badge className="bg-gradient-to-r from-green-600 to-emerald-600 text-white px-3 py-1 text-xs font-semibold">
-                  Seu Plano
-                </Badge>
-              </div>
-            )}
-            
-            <CardHeader className="text-center pb-4">
-              <div className={`w-16 h-16 rounded-full bg-gradient-to-r ${plano.cor} flex items-center justify-center mx-auto mb-4`}>
-                <plano.icone className="w-8 h-8 text-white" />
-              </div>
-              
-              <CardTitle className="text-2xl font-bold text-gray-900">
-                {plano.nome}
-              </CardTitle>
-              
-              <CardDescription className="text-gray-600 mb-4">
-                {plano.descricao}
-              </CardDescription>
-              
-              <div className="flex items-baseline justify-center">
-                <span className="text-4xl font-bold text-gray-900">{plano.preco}</span>
-                <span className="text-gray-600 ml-1">{plano.periodo}</span>
-              </div>
-            </CardHeader>
-            
-            <CardContent className="space-y-6">
-              {/* Recursos */}
-              <div className="space-y-3">
-                {plano.recursos.map((recurso, idx) => (
-                  <div key={idx} className="flex items-center gap-3">
-                    <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                      <Check className="w-3 h-3 text-green-600" />
-                    </div>
-                    <span className="text-gray-700 text-sm">{recurso}</span>
-                  </div>
-                ))}
-              </div>
-
-              {/* Limitações (se existirem) */}
-              {plano.limitacoes && (
-                <div className="space-y-2 pt-4 border-t border-gray-100">
-                  <p className="text-xs text-gray-500 font-medium">Limitações:</p>
-                  {plano.limitacoes.map((limitacao, idx) => (
-                    <div key={idx} className="flex items-center gap-3">
-                      <div className="w-5 h-5 bg-yellow-100 rounded-full flex items-center justify-center flex-shrink-0">
-                        <span className="text-yellow-600 text-xs">!</span>
-                      </div>
-                      <span className="text-gray-600 text-xs">{limitacao}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-              
-              {/* Botão */}
-              <Button 
-                className={`w-full bg-gradient-to-r ${plano.cor} hover:from-indigo-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 ${
-                  userPlan === plano.planType ? 'opacity-50 cursor-not-allowed' : ''
-                }`}
-                disabled={userPlan === plano.planType || loading}
-                onClick={() => handleSubscribe(plano.stripePriceId, plano.planType)}
-              >
-                {loading ? 'Processando...' : userPlan === plano.planType ? 'Plano Atual' : plano.popular ? 'Começar Agora' : 'Escolher Plano'}
-              </Button>
-            </CardContent>
-          </Card>
-        ))}
+            <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+            Atualizar Status
+          </Button>
+        </div>
       </div>
 
-      {/* Funcionalidades Especiais */}
-      <div className="space-y-8 pt-16">
-        <div className="text-center">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">
-            Funcionalidades Avançadas
-          </h2>
-          <p className="text-gray-600">Recursos especializados para potencializar sua campanha</p>
-        </div>
+      {/* Tabs */}
+      <Tabs defaultValue="planos" className="w-full">
+        <TabsList className="grid w-full grid-cols-1">
+          <TabsTrigger value="planos">Planos</TabsTrigger>
+        </TabsList>
 
-        {funcionalidadesEspeciais.map((categoria, catIndex) => (
-          <div key={catIndex} className="space-y-6">
+        <TabsContent value="planos" className="space-y-8">
+          {/* Planos */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            {planos.map((plano, index) => (
+              <Card 
+                key={index} 
+                className={`relative border-0 shadow-xl hover:shadow-2xl transition-all duration-300 bg-white/90 backdrop-blur-sm ${
+                  plano.popular ? 'ring-2 ring-purple-500 ring-offset-2 scale-105' : ''
+                } ${
+                  subscription_tier === plano.planType ? 'ring-2 ring-green-500 ring-offset-2' : ''
+                }`}
+              >
+                {plano.popular && (
+                  <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                    <Badge className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-4 py-1 text-sm font-semibold">
+                      Mais Popular
+                    </Badge>
+                  </div>
+                )}
+
+                {subscription_tier === plano.planType && (
+                  <div className="absolute -top-4 right-4">
+                    <Badge className="bg-gradient-to-r from-green-600 to-emerald-600 text-white px-3 py-1 text-xs font-semibold">
+                      Seu Plano
+                    </Badge>
+                  </div>
+                )}
+                
+                <CardHeader className="text-center pb-4">
+                  <div className={`w-16 h-16 rounded-full bg-gradient-to-r ${plano.cor} flex items-center justify-center mx-auto mb-4`}>
+                    <plano.icone className="w-8 h-8 text-white" />
+                  </div>
+                  
+                  <CardTitle className="text-2xl font-bold text-gray-900">
+                    {plano.nome}
+                  </CardTitle>
+                  
+                  <CardDescription className="text-gray-600 mb-4">
+                    {plano.descricao}
+                  </CardDescription>
+                  
+                  <div className="flex items-baseline justify-center">
+                    <span className="text-4xl font-bold text-gray-900">{plano.preco}</span>
+                    <span className="text-gray-600 ml-1">{plano.periodo}</span>
+                  </div>
+                </CardHeader>
+                
+                <CardContent className="space-y-6">
+                  {/* Recursos */}
+                  <div className="space-y-3">
+                    {plano.recursos.map((recurso, idx) => (
+                      <div key={idx} className="flex items-center gap-3">
+                        <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                          <Check className="w-3 h-3 text-green-600" />
+                        </div>
+                        <span className="text-gray-700 text-sm">{recurso}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Limitações (se existirem) */}
+                  {plano.limitacoes && (
+                    <div className="space-y-2 pt-4 border-t border-gray-100">
+                      <p className="text-xs text-gray-500 font-medium">Limitações:</p>
+                      {plano.limitacoes.map((limitacao, idx) => (
+                        <div key={idx} className="flex items-center gap-3">
+                          <div className="w-5 h-5 bg-yellow-100 rounded-full flex items-center justify-center flex-shrink-0">
+                            <span className="text-yellow-600 text-xs">!</span>
+                          </div>
+                          <span className="text-gray-600 text-xs">{limitacao}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  
+                  {/* Botão */}
+                  <Button 
+                    className={`w-full bg-gradient-to-r ${plano.cor} hover:from-indigo-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 ${
+                      subscription_tier === plano.planType ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}
+                    disabled={subscription_tier === plano.planType || actionLoading || loading}
+                    onClick={() => handleSubscribe(plano.stripePriceId, plano.planType)}
+                  >
+                    {actionLoading ? 'Processando...' : 
+                     subscription_tier === plano.planType ? 'Plano Atual' : 
+                     plano.popular ? 'Começar Agora' : 'Escolher Plano'}
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {/* Funcionalidades Especiais */}
+          <div className="space-y-8 pt-16">
             <div className="text-center">
-              <div className={`w-16 h-16 rounded-full bg-gradient-to-r ${categoria.cor} flex items-center justify-center mx-auto mb-4`}>
-                <categoria.icone className="w-8 h-8 text-white" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">{categoria.categoria}</h3>
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">
+                Funcionalidades Avançadas
+              </h2>
+              <p className="text-gray-600">Recursos especializados para potencializar sua campanha</p>
             </div>
 
+            {funcionalidadesEspeciais.map((categoria, catIndex) => (
+              <div key={catIndex} className="space-y-6">
+                <div className="text-center">
+                  <div className={`w-16 h-16 rounded-full bg-gradient-to-r ${categoria.cor} flex items-center justify-center mx-auto mb-4`}>
+                    <categoria.icone className="w-8 h-8 text-white" />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">{categoria.categoria}</h3>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {categoria.items.map((funcionalidade, index) => {
+                    const temAcesso = verificarDisponibilidade(funcionalidade.disponivel);
+                    const Icon = funcionalidade.icone;
+                    
+                    return (
+                      <Card key={index} className={`transition-all duration-200 ${temAcesso ? 'border-green-200 bg-green-50/50' : 'border-gray-200 opacity-60'}`}>
+                        <CardContent className="p-6">
+                          <div className="flex items-start gap-4">
+                            <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${temAcesso ? 'bg-green-100' : 'bg-gray-100'}`}>
+                              <Icon className={`w-6 h-6 ${temAcesso ? 'text-green-600' : 'text-gray-400'}`} />
+                            </div>
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-2">
+                                <h4 className="font-semibold text-gray-900">{funcionalidade.nome}</h4>
+                                {temAcesso && <Check className="w-4 h-4 text-green-600" />}
+                              </div>
+                              <p className="text-gray-600 text-sm mb-3">{funcionalidade.descricao}</p>
+                              <p className="text-xs text-gray-500">{funcionalidade.detalhes}</p>
+                              <div className="mt-3">
+                                <Badge variant={temAcesso ? "default" : "secondary"} className="text-xs">
+                                  {funcionalidade.disponivel.map(plan => 
+                                    plan === 'basic' ? 'Básico' : 
+                                    plan === 'premium' ? 'Premium' : 'Enterprise'
+                                  ).join(', ')}
+                                </Badge>
+                              </div>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* FAQ Section */}
+          <div className="max-w-4xl mx-auto space-y-6 pt-16">
+            <div className="text-center">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                Perguntas Frequentes
+              </h2>
+            </div>
+            
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {categoria.items.map((funcionalidade, index) => {
-                const temAcesso = verificarDisponibilidade(funcionalidade.disponivel);
-                const Icon = funcionalidade.icone;
-                
-                return (
-                  <Card key={index} className={`transition-all duration-200 ${temAcesso ? 'border-green-200 bg-green-50/50' : 'border-gray-200 opacity-60'}`}>
-                    <CardContent className="p-6">
-                      <div className="flex items-start gap-4">
-                        <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${temAcesso ? 'bg-green-100' : 'bg-gray-100'}`}>
-                          <Icon className={`w-6 h-6 ${temAcesso ? 'text-green-600' : 'text-gray-400'}`} />
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <h4 className="font-semibold text-gray-900">{funcionalidade.nome}</h4>
-                            {temAcesso && <Check className="w-4 h-4 text-green-600" />}
-                          </div>
-                          <p className="text-gray-600 text-sm mb-3">{funcionalidade.descricao}</p>
-                          <p className="text-xs text-gray-500">{funcionalidade.detalhes}</p>
-                          <div className="mt-3">
-                            <Badge variant={temAcesso ? "default" : "secondary"} className="text-xs">
-                              {funcionalidade.disponivel.map(plan => 
-                                plan === 'basic' ? 'Básico' : 
-                                plan === 'premium' ? 'Premium' : 'Enterprise'
-                              ).join(', ')}
-                            </Badge>
-                          </div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
+              {[
+                {
+                  pergunta: "Posso mudar de plano a qualquer momento?",
+                  resposta: "Sim, você pode fazer upgrade ou downgrade do seu plano a qualquer momento através do painel do cliente."
+                },
+                {
+                  pergunta: "Como funciona o pagamento?",
+                  resposta: "Utilizamos o Stripe para processar pagamentos de forma segura. Aceitamos cartões de crédito e débito."
+                },
+                {
+                  pergunta: "Os dados são seguros?",
+                  resposta: "Sim, utilizamos criptografia de ponta e seguimos as melhores práticas de segurança para proteger seus dados."
+                },
+                {
+                  pergunta: "Posso cancelar a qualquer momento?",
+                  resposta: "Sim, não há fidelidade. Você pode cancelar quando quiser através do portal do cliente."
+                },
+                {
+                  pergunta: "Como funciona o backup automático?",
+                  resposta: "Realizamos backups diários automáticos com retenção de 30 dias no plano Enterprise."
+                },
+                {
+                  pergunta: "Existe suporte técnico?",
+                  resposta: "Sim, oferecemos suporte por email no plano básico e suporte prioritário 24/7 nos planos superiores."
+                }
+              ].map((faq, index) => (
+                <Card key={index} className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+                  <CardContent className="p-6">
+                    <h4 className="font-semibold text-gray-900 mb-2">{faq.pergunta}</h4>
+                    <p className="text-gray-600 text-sm">{faq.resposta}</p>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
           </div>
-        ))}
-      </div>
-
-      {/* FAQ Section */}
-      <div className="max-w-4xl mx-auto space-y-6 pt-16">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">
-            Perguntas Frequentes
-          </h2>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {[
-            {
-              pergunta: "Posso mudar de plano a qualquer momento?",
-              resposta: "Sim, você pode fazer upgrade ou downgrade do seu plano a qualquer momento através do painel do cliente."
-            },
-            {
-              pergunta: "Como funciona o pagamento?",
-              resposta: "Utilizamos o Stripe para processar pagamentos de forma segura. Aceitamos cartões de crédito e débito."
-            },
-            {
-              pergunta: "Os dados são seguros?",
-              resposta: "Sim, utilizamos criptografia de ponta e seguimos as melhores práticas de segurança para proteger seus dados."
-            },
-            {
-              pergunta: "Posso cancelar a qualquer momento?",
-              resposta: "Sim, não há fidelidade. Você pode cancelar quando quiser através do portal do cliente."
-            },
-            {
-              pergunta: "Como funciona o backup automático?",
-              resposta: "Realizamos backups diários automáticos com retenção de 30 dias no plano Enterprise."
-            },
-            {
-              pergunta: "Existe suporte técnico?",
-              resposta: "Sim, oferecemos suporte por email no plano básico e suporte prioritário 24/7 nos planos superiores."
-            }
-          ].map((faq, index) => (
-            <Card key={index} className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
-              <CardContent className="p-6">
-                <h4 className="font-semibold text-gray-900 mb-2">{faq.pergunta}</h4>
-                <p className="text-gray-600 text-sm">{faq.resposta}</p>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
