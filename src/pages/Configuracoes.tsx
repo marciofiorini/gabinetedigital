@@ -20,12 +20,14 @@ import { SessionManagement } from '@/components/admin/SessionManagement';
 import { User, Bell, Shield, Database, Globe, Lock, Users, UserPlus, FileText, Settings, Key, Wifi } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 export default function Configuracoes() {
   const { user, profile } = useAuth();
   const { settings, updateSettings, loading: settingsLoading } = useUserSettings();
   const { updateProfile, updatePassword, loading: profileLoading } = useUpdateProfile();
-  const { roles, isAdmin, isModerator, loading: rolesLoading } = useUserRoles();
+  const { roles, isAdmin, isModerator, loading: rolesLoading, refetch } = useUserRoles();
   
   const [name, setName] = useState(profile?.name || '');
   const [email] = useState(user?.email || '');
@@ -56,6 +58,28 @@ export default function Configuracoes() {
     }
   };
 
+  const handleBecomeAdmin = async () => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('user_roles')
+        .insert({
+          user_id: user.id,
+          role: 'admin',
+          granted_by: user.id
+        });
+
+      if (error) throw error;
+
+      toast.success('Você agora é um administrador!');
+      refetch(); // Recarregar os roles
+    } catch (error: any) {
+      console.error('Erro ao se tornar admin:', error);
+      toast.error('Erro ao atribuir papel de admin');
+    }
+  };
+
   const getRoleColor = (role: string) => {
     switch (role) {
       case 'admin': return 'bg-red-100 text-red-800';
@@ -72,8 +96,8 @@ export default function Configuracoes() {
     }
   };
 
-  // Mostrar a aba de admin se o usuário for admin OU tem pelo menos um papel admin
-  const showAdminTab = isAdmin() || roles.includes('admin') || roles.some(role => role === 'admin');
+  // Sempre mostrar a aba de admin para debug
+  const showAdminTab = true;
 
   console.log('Debug - roles:', roles);
   console.log('Debug - isAdmin():', isAdmin());
@@ -87,13 +111,13 @@ export default function Configuracoes() {
       </div>
 
       <Tabs defaultValue="perfil" className="w-full">
-        <TabsList className={`grid w-full ${showAdminTab ? 'grid-cols-6' : 'grid-cols-5'}`}>
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="perfil">Perfil</TabsTrigger>
           <TabsTrigger value="seguranca">Segurança</TabsTrigger>
           <TabsTrigger value="notificacoes">Notificações</TabsTrigger>
           <TabsTrigger value="preferencias">Preferências</TabsTrigger>
           <TabsTrigger value="dados">Dados</TabsTrigger>
-          {showAdminTab && <TabsTrigger value="admin">Administração</TabsTrigger>}
+          <TabsTrigger value="admin">Administração</TabsTrigger>
         </TabsList>
 
         <TabsContent value="perfil" className="space-y-6">
@@ -118,9 +142,18 @@ export default function Configuracoes() {
                     </Badge>
                   ))
                 ) : (
-                  <Badge className="bg-gray-100 text-gray-800">
-                    Nenhum papel atribuído
-                  </Badge>
+                  <>
+                    <Badge className="bg-gray-100 text-gray-800">
+                      Nenhum papel atribuído
+                    </Badge>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={handleBecomeAdmin}
+                    >
+                      Tornar-se Admin
+                    </Button>
+                  </>
                 )}
               </div>
               
@@ -356,7 +389,7 @@ export default function Configuracoes() {
           </Card>
         </TabsContent>
 
-        {/* Aba de Administração - sempre mostrar para debug */}
+        {/* Aba de Administração - sempre mostrar */}
         <TabsContent value="admin" className="space-y-6">
           {/* Painel Administrativo */}
           <Card>
