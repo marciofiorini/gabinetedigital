@@ -5,6 +5,7 @@ import { Progress } from "@/components/ui/progress";
 import { Users, MessageSquare, Calendar, MessageCircle, TrendingUp, AlertCircle, Cake } from "lucide-react";
 import { useDashboardStats } from "@/hooks/useDashboardStats";
 import { DashboardCharts } from "@/components/DashboardCharts";
+import { AniversariantesSection } from "@/components/AniversariantesSection";
 
 const Index = () => {
   const { stats, loading } = useDashboardStats();
@@ -187,6 +188,40 @@ const Index = () => {
                     <p className="font-medium text-sm dark:text-gray-200">Live Instagram</p>
                     <p className="text-xs text-gray-600 dark:text-gray-400">Sexta, 18:00</p>
                   </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Aniversariantes Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          <AniversariantesSection />
+          
+          {/* Card placeholder para manter o layout balanceado */}
+          <Card className="border border-gray-200 dark:border-gray-700 shadow-sm bg-white dark:bg-gray-800">
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-2 text-lg text-gray-900 dark:text-gray-100">
+                <TrendingUp className="w-5 h-5" />
+                Resumo Semanal
+              </CardTitle>
+              <CardDescription className="dark:text-gray-400">
+                Principais métricas da semana
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600 dark:text-gray-400">Demandas resolvidas</span>
+                  <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400">+15</Badge>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600 dark:text-gray-400">Novos leads</span>
+                  <Badge variant="secondary" className="bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400">+23</Badge>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600 dark:text-gray-400">Eventos realizados</span>
+                  <Badge variant="secondary" className="bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400">8</Badge>
                 </div>
               </div>
             </CardContent>
