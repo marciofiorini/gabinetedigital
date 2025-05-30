@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,9 +13,12 @@ import { useUpdateProfile } from '@/hooks/useUpdateProfile';
 import { useUserRoles } from '@/hooks/useUserRoles';
 import { UserManagement } from '@/components/admin/UserManagement';
 import { CreateUser } from '@/components/admin/CreateUser';
-import { AccessLogs } from '@/components/admin/AccessLogs';
+import { EnhancedAccessLogs } from '@/components/admin/EnhancedAccessLogs';
 import { SystemSettings } from '@/components/admin/SystemSettings';
-import { User, Bell, Shield, Database, Globe, Lock, Users, UserPlus, FileText, Settings } from 'lucide-react';
+import { PasswordPolicy } from '@/components/admin/PasswordPolicy';
+import { TwoFactorAuth } from '@/components/admin/TwoFactorAuth';
+import { SessionManagement } from '@/components/admin/SessionManagement';
+import { User, Bell, Shield, Database, Globe, Lock, Users, UserPlus, FileText, Settings, Key, Wifi } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
@@ -29,11 +33,6 @@ export default function Configuracoes() {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPasswordSection, setShowPasswordSection] = useState(false);
-
-  console.log('Configurações - User ID:', user?.id);
-  console.log('Configurações - Roles:', roles);
-  console.log('Configurações - Roles Loading:', rolesLoading);
-  console.log('Configurações - Is Admin:', isAdmin());
 
   const handleSaveProfile = async () => {
     if (name.trim()) {
@@ -85,8 +84,9 @@ export default function Configuracoes() {
       </div>
 
       <Tabs defaultValue="perfil" className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="perfil">Perfil</TabsTrigger>
+          <TabsTrigger value="seguranca">Segurança</TabsTrigger>
           <TabsTrigger value="notificacoes">Notificações</TabsTrigger>
           <TabsTrigger value="preferencias">Preferências</TabsTrigger>
           <TabsTrigger value="dados">Dados</TabsTrigger>
@@ -149,16 +149,21 @@ export default function Configuracoes() {
               </Button>
             </CardContent>
           </Card>
+        </TabsContent>
 
-          {/* Segurança */}
+        <TabsContent value="seguranca" className="space-y-6">
+          {/* Autenticação de Dois Fatores */}
+          <TwoFactorAuth />
+
+          {/* Alteração de Senha */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Lock className="w-5 h-5" />
-                Segurança
+                Alteração de Senha
               </CardTitle>
               <CardDescription>
-                Gerencie a segurança da sua conta
+                Atualize sua senha para manter sua conta segura
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -214,6 +219,9 @@ export default function Configuracoes() {
               )}
             </CardContent>
           </Card>
+
+          {/* Gerenciamento de Sessões */}
+          <SessionManagement />
         </TabsContent>
 
         <TabsContent value="notificacoes" className="space-y-6">
@@ -354,12 +362,12 @@ export default function Configuracoes() {
                 Painel Administrativo
               </CardTitle>
               <CardDescription>
-                Ferramentas completas de administração do sistema
+                Ferramentas completas de administração e segurança do sistema
               </CardDescription>
             </CardHeader>
             <CardContent>
               <Tabs defaultValue="usuarios" className="w-full">
-                <TabsList className="grid w-full grid-cols-4">
+                <TabsList className="grid w-full grid-cols-6">
                   <TabsTrigger value="usuarios" className="flex items-center gap-2">
                     <Users className="w-4 h-4" />
                     Usuários
@@ -371,6 +379,14 @@ export default function Configuracoes() {
                   <TabsTrigger value="logs" className="flex items-center gap-2">
                     <FileText className="w-4 h-4" />
                     Logs
+                  </TabsTrigger>
+                  <TabsTrigger value="senhas" className="flex items-center gap-2">
+                    <Key className="w-4 h-4" />
+                    Senhas
+                  </TabsTrigger>
+                  <TabsTrigger value="sessoes" className="flex items-center gap-2">
+                    <Wifi className="w-4 h-4" />
+                    Sessões
                   </TabsTrigger>
                   <TabsTrigger value="sistema" className="flex items-center gap-2">
                     <Settings className="w-4 h-4" />
@@ -387,7 +403,15 @@ export default function Configuracoes() {
                 </TabsContent>
 
                 <TabsContent value="logs" className="mt-6">
-                  <AccessLogs />
+                  <EnhancedAccessLogs />
+                </TabsContent>
+
+                <TabsContent value="senhas" className="mt-6">
+                  <PasswordPolicy />
+                </TabsContent>
+
+                <TabsContent value="sessoes" className="mt-6">
+                  <SessionManagement />
                 </TabsContent>
 
                 <TabsContent value="sistema" className="mt-6">
