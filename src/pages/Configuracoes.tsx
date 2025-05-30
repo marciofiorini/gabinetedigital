@@ -22,7 +22,7 @@ export default function Configuracoes() {
   const { user, profile } = useAuth();
   const { settings, updateSettings, loading: settingsLoading } = useUserSettings();
   const { updateProfile, updatePassword, loading: profileLoading } = useUpdateProfile();
-  const { roles, isAdmin, isModerator } = useUserRoles();
+  const { roles, isAdmin, isModerator, loading: rolesLoading } = useUserRoles();
   
   const [name, setName] = useState(profile?.name || '');
   const [email] = useState(user?.email || '');
@@ -30,7 +30,9 @@ export default function Configuracoes() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPasswordSection, setShowPasswordSection] = useState(false);
 
+  console.log('Configurações - User ID:', user?.id);
   console.log('Configurações - Roles:', roles);
+  console.log('Configurações - Roles Loading:', rolesLoading);
   console.log('Configurações - Is Admin:', isAdmin());
 
   const handleSaveProfile = async () => {
@@ -72,26 +74,29 @@ export default function Configuracoes() {
     }
   };
 
-  // Determinar quais abas mostrar
-  const tabsToShow = ['perfil', 'notificacoes', 'preferencias', 'dados'];
-  if (isAdmin()) {
-    tabsToShow.push('admin');
-  }
+  // Determinar se deve mostrar a aba de admin
+  const showAdminTab = isAdmin();
+  console.log('Configurações - Show Admin Tab:', showAdminTab);
 
   return (
     <div className="p-6 space-y-6 max-w-6xl mx-auto">
       <div>
         <h1 className="text-2xl font-bold">Configurações</h1>
         <p className="text-gray-600">Gerencie suas preferências e configurações da conta</p>
+        
+        {/* Debug info */}
+        <div className="mt-2 text-xs text-gray-500">
+          Debug: Roles: {JSON.stringify(roles)} | Loading: {rolesLoading.toString()} | Is Admin: {isAdmin().toString()}
+        </div>
       </div>
 
       <Tabs defaultValue="perfil" className="w-full">
-        <TabsList className={`grid w-full ${isAdmin() ? 'grid-cols-5' : 'grid-cols-4'}`}>
+        <TabsList className={`grid w-full ${showAdminTab ? 'grid-cols-5' : 'grid-cols-4'}`}>
           <TabsTrigger value="perfil">Perfil</TabsTrigger>
           <TabsTrigger value="notificacoes">Notificações</TabsTrigger>
           <TabsTrigger value="preferencias">Preferências</TabsTrigger>
           <TabsTrigger value="dados">Dados</TabsTrigger>
-          {isAdmin() && <TabsTrigger value="admin">Administração</TabsTrigger>}
+          {showAdminTab && <TabsTrigger value="admin">Administração</TabsTrigger>}
         </TabsList>
 
         <TabsContent value="perfil" className="space-y-6">
@@ -109,11 +114,17 @@ export default function Configuracoes() {
             <CardContent className="space-y-4">
               <div className="flex items-center gap-2 mb-4">
                 <span className="text-sm font-medium">Papéis:</span>
-                {roles.map((role) => (
-                  <Badge key={role} className={getRoleColor(role)}>
-                    {getRoleLabel(role)}
+                {roles.length > 0 ? (
+                  roles.map((role) => (
+                    <Badge key={role} className={getRoleColor(role)}>
+                      {getRoleLabel(role)}
+                    </Badge>
+                  ))
+                ) : (
+                  <Badge className="bg-gray-100 text-gray-800">
+                    Nenhum papel atribuído
                   </Badge>
-                ))}
+                )}
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -340,7 +351,7 @@ export default function Configuracoes() {
           </Card>
         </TabsContent>
 
-        {isAdmin() && (
+        {showAdminTab && (
           <TabsContent value="admin" className="space-y-6">
             {/* Painel Administrativo */}
             <Card>
