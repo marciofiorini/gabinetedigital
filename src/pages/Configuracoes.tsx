@@ -74,21 +74,14 @@ export default function Configuracoes() {
     }
   };
 
-  // Determinar se deve mostrar a aba de admin - FORÇAR TRUE TEMPORARIAMENTE PARA TESTE
-  const showAdminTab = true; // isAdmin() || roles.includes('admin');
-  console.log('Configurações - Show Admin Tab:', showAdminTab);
-  console.log('Configurações - FORÇANDO ADMIN TAB PARA APARECER');
+  // Mostrar a aba de admin se o usuário for admin
+  const showAdminTab = isAdmin() || roles.includes('admin');
 
   return (
     <div className="p-6 space-y-6 max-w-6xl mx-auto">
       <div>
         <h1 className="text-2xl font-bold">Configurações</h1>
         <p className="text-gray-600">Gerencie suas preferências e configurações da conta</p>
-        
-        {/* Debug info */}
-        <div className="mt-2 text-xs text-gray-500 bg-gray-100 p-2 rounded">
-          Debug: Roles: {JSON.stringify(roles)} | Loading: {rolesLoading.toString()} | Is Admin: {isAdmin().toString()} | Show Admin Tab: {showAdminTab.toString()}
-        </div>
       </div>
 
       <Tabs defaultValue="perfil" className="w-full">
@@ -97,7 +90,7 @@ export default function Configuracoes() {
           <TabsTrigger value="notificacoes">Notificações</TabsTrigger>
           <TabsTrigger value="preferencias">Preferências</TabsTrigger>
           <TabsTrigger value="dados">Dados</TabsTrigger>
-          <TabsTrigger value="admin">Administração</TabsTrigger>
+          {showAdminTab && <TabsTrigger value="admin">Administração</TabsTrigger>}
         </TabsList>
 
         <TabsContent value="perfil" className="space-y-6">
