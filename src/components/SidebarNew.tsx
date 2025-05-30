@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useLocation, Link } from 'react-router-dom';
 import { cn } from "@/lib/utils";
@@ -241,18 +240,6 @@ export const SidebarNew = ({ isOpen }: SidebarProps) => {
         </Collapsible>
 
         {/* Link de Planos no final */}
-        <Link
-          to="/planos"
-          className={cn(
-            "flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-colors",
-            location.pathname === "/planos" 
-              ? "bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border-l-2 border-blue-600" 
-              : "text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white"
-          )}
-        >
-          <BookOpen className="w-4 h-4" />
-          <span>Planos</span>
-        </Link>
       </nav>
 
       {/* Bottom Stats Card - Resumo de Hoje */}
