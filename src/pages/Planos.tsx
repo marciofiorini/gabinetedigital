@@ -1,7 +1,8 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Check, Crown, Star, Zap, Shield, BarChart3, Database, Mail, FileDown, FileUp, Settings, TrendingUp, Bell, Activity, RefreshCw } from "lucide-react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Check, Crown, Star, Zap, Shield, BarChart3, Database, Mail, FileDown, FileUp, Settings, TrendingUp, Bell, Activity, RefreshCw, X, Quote, Users, Target, Building2 } from "lucide-react";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useAuth } from "@/contexts/AuthContext";
 import { useState, useEffect } from "react";
@@ -191,6 +192,45 @@ const Planos = () => {
           detalhes: "Alertas personalizáveis para métricas críticas"
         }
       ]
+    }
+  ];
+
+  // Dados para comparação de planos
+  const comparacaoRecursos = [
+    { recurso: "Contatos", basico: "1.000", premium: "10.000", enterprise: "Ilimitado" },
+    { recurso: "Campanhas de Email", basico: "5/mês", premium: "Ilimitadas", enterprise: "Ilimitadas" },
+    { recurso: "WhatsApp", basico: "100 msg/mês", premium: "Integrado", enterprise: "Avançado" },
+    { recurso: "Instagram", basico: "Básico", premium: "Avançado", enterprise: "Completo" },
+    { recurso: "CRM", basico: "❌", premium: "✅", enterprise: "✅" },
+    { recurso: "Analytics", basico: "Limitado", premium: "Completo", enterprise: "Avançado" },
+    { recurso: "Suporte", basico: "Email", premium: "Prioritário", enterprise: "24/7" },
+    { recurso: "API", basico: "❌", premium: "❌", enterprise: "✅" },
+    { recurso: "Backup Automático", basico: "❌", premium: "❌", enterprise: "✅" },
+    { recurso: "Gerente de Conta", basico: "❌", premium: "❌", enterprise: "✅" }
+  ];
+
+  // Depoimentos por plano
+  const depoimentos = [
+    {
+      plano: "basic",
+      autor: "Maria Silva",
+      cargo: "Candidata a Vereadora",
+      texto: "O plano básico foi perfeito para começar minha campanha. Consegui organizar meus contatos e acompanhar o engajamento inicial.",
+      icone: Users
+    },
+    {
+      plano: "premium",
+      autor: "João Santos",
+      cargo: "Candidato a Prefeito",
+      texto: "Com o plano premium, consegui integrar WhatsApp e Instagram, o que triplicou meu alcance. O CRM é fundamental para campanhas maiores.",
+      icone: Target
+    },
+    {
+      plano: "enterprise",
+      autor: "Ana Costa",
+      cargo: "Coordenadora de Campanha",
+      texto: "Para nossa campanha estadual, o Enterprise foi essencial. O suporte 24/7 e as integrações personalizadas fizeram toda a diferença.",
+      icone: Building2
     }
   ];
 
@@ -420,6 +460,87 @@ const Planos = () => {
         ))}
       </div>
 
+      {/* Comparação Detalhada dos Planos */}
+      <div className="max-w-6xl mx-auto pt-16">
+        <div className="text-center mb-8">
+          <h2 className="text-3xl font-bold text-gray-900 mb-4">
+            Comparação Detalhada dos Planos
+          </h2>
+          <p className="text-gray-600">Compare todos os recursos lado a lado</p>
+        </div>
+
+        <Card className="border-0 shadow-xl bg-white/90 backdrop-blur-sm">
+          <CardContent className="p-0">
+            <Table>
+              <TableHeader>
+                <TableRow className="border-b-2">
+                  <TableHead className="font-bold text-gray-900 p-6">Recursos</TableHead>
+                  <TableHead className="font-bold text-center text-gray-900 p-6">Básico</TableHead>
+                  <TableHead className="font-bold text-center text-gray-900 p-6">
+                    <div className="flex items-center justify-center gap-2">
+                      Premium
+                      <Badge className="bg-purple-100 text-purple-800">Popular</Badge>
+                    </div>
+                  </TableHead>
+                  <TableHead className="font-bold text-center text-gray-900 p-6">Enterprise</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {comparacaoRecursos.map((item, index) => (
+                  <TableRow key={index} className="hover:bg-gray-50/50">
+                    <TableCell className="font-medium p-6">{item.recurso}</TableCell>
+                    <TableCell className="text-center p-6">{item.basico}</TableCell>
+                    <TableCell className="text-center p-6 bg-purple-50/50">{item.premium}</TableCell>
+                    <TableCell className="text-center p-6">{item.enterprise}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Depoimentos por Plano */}
+      <div className="max-w-6xl mx-auto pt-16">
+        <div className="text-center mb-8">
+          <h2 className="text-3xl font-bold text-gray-900 mb-4">
+            Cases de Sucesso
+          </h2>
+          <p className="text-gray-600">Veja como nossos clientes estão usando cada plano</p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {depoimentos.map((depoimento, index) => {
+            const Icon = depoimento.icone;
+            return (
+              <Card key={index} className="border-0 shadow-xl bg-white/90 backdrop-blur-sm hover:shadow-2xl transition-all duration-300">
+                <CardContent className="p-6">
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
+                      <Icon className="w-6 h-6 text-white" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Quote className="w-4 h-4 text-gray-400" />
+                        <Badge variant="outline" className="text-xs">
+                          {depoimento.plano === 'basic' ? 'Básico' : 
+                           depoimento.plano === 'premium' ? 'Premium' : 'Enterprise'}
+                        </Badge>
+                      </div>
+                      <p className="text-gray-700 text-sm mb-4 italic">"{depoimento.texto}"</p>
+                      <div>
+                        <p className="font-semibold text-gray-900 text-sm">{depoimento.autor}</p>
+                        <p className="text-gray-500 text-xs">{depoimento.cargo}</p>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      </div>
+
       {/* Funcionalidades Especiais */}
       <div className="space-y-8 pt-16">
         <div className="text-center">
@@ -474,6 +595,85 @@ const Planos = () => {
             </div>
           </div>
         ))}
+      </div>
+
+      {/* Garantias e Políticas */}
+      <div className="max-w-4xl mx-auto pt-16">
+        <div className="text-center mb-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">
+            Garantias e Políticas
+          </h2>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <Card className="border-0 shadow-lg bg-green-50/50 backdrop-blur-sm">
+            <CardContent className="p-6">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                  <Shield className="w-6 h-6 text-green-600" />
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-2">Garantia de 30 dias</h4>
+                  <p className="text-gray-600 text-sm">
+                    Experimente qualquer plano por 30 dias. Se não ficar satisfeito, 
+                    devolvemos 100% do seu dinheiro, sem perguntas.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 shadow-lg bg-blue-50/50 backdrop-blur-sm">
+            <CardContent className="p-6">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                  <RefreshCw className="w-6 h-6 text-blue-600" />
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-2">Mudança de plano flexível</h4>
+                  <p className="text-gray-600 text-sm">
+                    Mude de plano a qualquer momento. Upgrade imediato ou 
+                    downgrade no próximo ciclo de cobrança.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 shadow-lg bg-purple-50/50 backdrop-blur-sm">
+            <CardContent className="p-6">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0">
+                  <Database className="w-6 h-6 text-purple-600" />
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-2">Seus dados sempre seguros</h4>
+                  <p className="text-gray-600 text-sm">
+                    Todos os dados são criptografados e armazenados com segurança. 
+                    Você pode exportar tudo a qualquer momento.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 shadow-lg bg-orange-50/50 backdrop-blur-sm">
+            <CardContent className="p-6">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0">
+                  <X className="w-6 h-6 text-orange-600" />
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-2">Cancelamento sem multa</h4>
+                  <p className="text-gray-600 text-sm">
+                    Cancele quando quiser, sem taxas ou multas. 
+                    Mantenha acesso até o fim do período pago.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
       {/* FAQ Section */}
