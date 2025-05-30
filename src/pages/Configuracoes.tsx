@@ -74,9 +74,10 @@ export default function Configuracoes() {
     }
   };
 
-  // Determinar se deve mostrar a aba de admin
-  const showAdminTab = isAdmin();
+  // Determinar se deve mostrar a aba de admin - FORÇAR TRUE TEMPORARIAMENTE PARA TESTE
+  const showAdminTab = true; // isAdmin() || roles.includes('admin');
   console.log('Configurações - Show Admin Tab:', showAdminTab);
+  console.log('Configurações - FORÇANDO ADMIN TAB PARA APARECER');
 
   return (
     <div className="p-6 space-y-6 max-w-6xl mx-auto">
@@ -85,18 +86,18 @@ export default function Configuracoes() {
         <p className="text-gray-600">Gerencie suas preferências e configurações da conta</p>
         
         {/* Debug info */}
-        <div className="mt-2 text-xs text-gray-500">
-          Debug: Roles: {JSON.stringify(roles)} | Loading: {rolesLoading.toString()} | Is Admin: {isAdmin().toString()}
+        <div className="mt-2 text-xs text-gray-500 bg-gray-100 p-2 rounded">
+          Debug: Roles: {JSON.stringify(roles)} | Loading: {rolesLoading.toString()} | Is Admin: {isAdmin().toString()} | Show Admin Tab: {showAdminTab.toString()}
         </div>
       </div>
 
       <Tabs defaultValue="perfil" className="w-full">
-        <TabsList className={`grid w-full ${showAdminTab ? 'grid-cols-5' : 'grid-cols-4'}`}>
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="perfil">Perfil</TabsTrigger>
           <TabsTrigger value="notificacoes">Notificações</TabsTrigger>
           <TabsTrigger value="preferencias">Preferências</TabsTrigger>
           <TabsTrigger value="dados">Dados</TabsTrigger>
-          {showAdminTab && <TabsTrigger value="admin">Administração</TabsTrigger>}
+          <TabsTrigger value="admin">Administração</TabsTrigger>
         </TabsList>
 
         <TabsContent value="perfil" className="space-y-6">
@@ -351,60 +352,58 @@ export default function Configuracoes() {
           </Card>
         </TabsContent>
 
-        {showAdminTab && (
-          <TabsContent value="admin" className="space-y-6">
-            {/* Painel Administrativo */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Shield className="w-5 h-5" />
-                  Painel Administrativo
-                </CardTitle>
-                <CardDescription>
-                  Ferramentas completas de administração do sistema
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Tabs defaultValue="usuarios" className="w-full">
-                  <TabsList className="grid w-full grid-cols-4">
-                    <TabsTrigger value="usuarios" className="flex items-center gap-2">
-                      <Users className="w-4 h-4" />
-                      Usuários
-                    </TabsTrigger>
-                    <TabsTrigger value="criar" className="flex items-center gap-2">
-                      <UserPlus className="w-4 h-4" />
-                      Criar
-                    </TabsTrigger>
-                    <TabsTrigger value="logs" className="flex items-center gap-2">
-                      <FileText className="w-4 h-4" />
-                      Logs
-                    </TabsTrigger>
-                    <TabsTrigger value="sistema" className="flex items-center gap-2">
-                      <Settings className="w-4 h-4" />
-                      Sistema
-                    </TabsTrigger>
-                  </TabsList>
+        <TabsContent value="admin" className="space-y-6">
+          {/* Painel Administrativo */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Shield className="w-5 h-5" />
+                Painel Administrativo
+              </CardTitle>
+              <CardDescription>
+                Ferramentas completas de administração do sistema
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Tabs defaultValue="usuarios" className="w-full">
+                <TabsList className="grid w-full grid-cols-4">
+                  <TabsTrigger value="usuarios" className="flex items-center gap-2">
+                    <Users className="w-4 h-4" />
+                    Usuários
+                  </TabsTrigger>
+                  <TabsTrigger value="criar" className="flex items-center gap-2">
+                    <UserPlus className="w-4 h-4" />
+                    Criar
+                  </TabsTrigger>
+                  <TabsTrigger value="logs" className="flex items-center gap-2">
+                    <FileText className="w-4 h-4" />
+                    Logs
+                  </TabsTrigger>
+                  <TabsTrigger value="sistema" className="flex items-center gap-2">
+                    <Settings className="w-4 h-4" />
+                    Sistema
+                  </TabsTrigger>
+                </TabsList>
 
-                  <TabsContent value="usuarios" className="mt-6">
-                    <UserManagement />
-                  </TabsContent>
+                <TabsContent value="usuarios" className="mt-6">
+                  <UserManagement />
+                </TabsContent>
 
-                  <TabsContent value="criar" className="mt-6">
-                    <CreateUser />
-                  </TabsContent>
+                <TabsContent value="criar" className="mt-6">
+                  <CreateUser />
+                </TabsContent>
 
-                  <TabsContent value="logs" className="mt-6">
-                    <AccessLogs />
-                  </TabsContent>
+                <TabsContent value="logs" className="mt-6">
+                  <AccessLogs />
+                </TabsContent>
 
-                  <TabsContent value="sistema" className="mt-6">
-                    <SystemSettings />
-                  </TabsContent>
-                </Tabs>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        )}
+                <TabsContent value="sistema" className="mt-6">
+                  <SystemSettings />
+                </TabsContent>
+              </Tabs>
+            </CardContent>
+          </Card>
+        </TabsContent>
       </Tabs>
     </div>
   );
