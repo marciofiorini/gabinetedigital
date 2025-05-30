@@ -1,3 +1,4 @@
+
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from '@/contexts/AuthContext';
@@ -28,6 +29,7 @@ import CrmCompleto from '@/pages/CrmCompleto';
 import AgendaCompleta from '@/pages/AgendaCompleta';
 import MapaInfluencia from '@/pages/MapaInfluencia';
 import SistemaVotacoes from '@/pages/SistemaVotacoes';
+import Comunicacao from '@/pages/Comunicacao';
 
 const queryClient = new QueryClient();
 

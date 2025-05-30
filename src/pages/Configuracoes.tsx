@@ -84,7 +84,7 @@ export default function Configuracoes() {
       </div>
 
       <Tabs defaultValue="perfil" className="w-full">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className={`grid w-full ${showAdminTab ? 'grid-cols-6' : 'grid-cols-5'}`}>
           <TabsTrigger value="perfil">Perfil</TabsTrigger>
           <TabsTrigger value="seguranca">Segurança</TabsTrigger>
           <TabsTrigger value="notificacoes">Notificações</TabsTrigger>
@@ -353,74 +353,76 @@ export default function Configuracoes() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="admin" className="space-y-6">
-          {/* Painel Administrativo */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Shield className="w-5 h-5" />
-                Painel Administrativo
-              </CardTitle>
-              <CardDescription>
-                Ferramentas completas de administração e segurança do sistema
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Tabs defaultValue="usuarios" className="w-full">
-                <TabsList className="grid w-full grid-cols-6">
-                  <TabsTrigger value="usuarios" className="flex items-center gap-2">
-                    <Users className="w-4 h-4" />
-                    Usuários
-                  </TabsTrigger>
-                  <TabsTrigger value="criar" className="flex items-center gap-2">
-                    <UserPlus className="w-4 h-4" />
-                    Criar
-                  </TabsTrigger>
-                  <TabsTrigger value="logs" className="flex items-center gap-2">
-                    <FileText className="w-4 h-4" />
-                    Logs
-                  </TabsTrigger>
-                  <TabsTrigger value="senhas" className="flex items-center gap-2">
-                    <Key className="w-4 h-4" />
-                    Senhas
-                  </TabsTrigger>
-                  <TabsTrigger value="sessoes" className="flex items-center gap-2">
-                    <Wifi className="w-4 h-4" />
-                    Sessões
-                  </TabsTrigger>
-                  <TabsTrigger value="sistema" className="flex items-center gap-2">
-                    <Settings className="w-4 h-4" />
-                    Sistema
-                  </TabsTrigger>
-                </TabsList>
+        {showAdminTab && (
+          <TabsContent value="admin" className="space-y-6">
+            {/* Painel Administrativo */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Shield className="w-5 h-5" />
+                  Painel Administrativo
+                </CardTitle>
+                <CardDescription>
+                  Ferramentas completas de administração e segurança do sistema
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Tabs defaultValue="usuarios" className="w-full">
+                  <TabsList className="grid w-full grid-cols-6">
+                    <TabsTrigger value="usuarios" className="flex items-center gap-2">
+                      <Users className="w-4 h-4" />
+                      Usuários
+                    </TabsTrigger>
+                    <TabsTrigger value="criar" className="flex items-center gap-2">
+                      <UserPlus className="w-4 h-4" />
+                      Criar
+                    </TabsTrigger>
+                    <TabsTrigger value="logs" className="flex items-center gap-2">
+                      <FileText className="w-4 h-4" />
+                      Logs
+                    </TabsTrigger>
+                    <TabsTrigger value="senhas" className="flex items-center gap-2">
+                      <Key className="w-4 h-4" />
+                      Senhas
+                    </TabsTrigger>
+                    <TabsTrigger value="sessoes" className="flex items-center gap-2">
+                      <Wifi className="w-4 h-4" />
+                      Sessões
+                    </TabsTrigger>
+                    <TabsTrigger value="sistema" className="flex items-center gap-2">
+                      <Settings className="w-4 h-4" />
+                      Sistema
+                    </TabsTrigger>
+                  </TabsList>
 
-                <TabsContent value="usuarios" className="mt-6">
-                  <UserManagement />
-                </TabsContent>
+                  <TabsContent value="usuarios" className="mt-6">
+                    <UserManagement />
+                  </TabsContent>
 
-                <TabsContent value="criar" className="mt-6">
-                  <CreateUser />
-                </TabsContent>
+                  <TabsContent value="criar" className="mt-6">
+                    <CreateUser />
+                  </TabsContent>
 
-                <TabsContent value="logs" className="mt-6">
-                  <EnhancedAccessLogs />
-                </TabsContent>
+                  <TabsContent value="logs" className="mt-6">
+                    <EnhancedAccessLogs />
+                  </TabsContent>
 
-                <TabsContent value="senhas" className="mt-6">
-                  <PasswordPolicy />
-                </TabsContent>
+                  <TabsContent value="senhas" className="mt-6">
+                    <PasswordPolicy />
+                  </TabsContent>
 
-                <TabsContent value="sessoes" className="mt-6">
-                  <SessionManagement />
-                </TabsContent>
+                  <TabsContent value="sessoes" className="mt-6">
+                    <SessionManagement />
+                  </TabsContent>
 
-                <TabsContent value="sistema" className="mt-6">
-                  <SystemSettings />
-                </TabsContent>
-              </Tabs>
-            </CardContent>
-          </Card>
-        </TabsContent>
+                  <TabsContent value="sistema" className="mt-6">
+                    <SystemSettings />
+                  </TabsContent>
+                </Tabs>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   );
