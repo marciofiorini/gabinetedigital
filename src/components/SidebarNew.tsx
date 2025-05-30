@@ -35,7 +35,8 @@ import {
   DoorOpen,
   Map,
   AlertCircle,
-  Cake
+  Cake,
+  Zap
 } from "lucide-react";
 import { useAuth } from '@/contexts/AuthContext';
 import { useDashboardStats } from '@/hooks/useDashboardStats';
@@ -79,12 +80,13 @@ export const SidebarNew = ({ isOpen }: SidebarProps) => {
     { name: 'CRM', icon: Target, path: '/crm', minPlan: 'premium' as UserPlan },
     { name: 'Demandas', icon: FileText, path: '/demandas', minPlan: 'basic' as UserPlan },
     { name: 'Projetos de Lei', icon: Scale, path: '/projetos-lei', minPlan: 'basic' as UserPlan },
+    { name: 'Comunicação', icon: Zap, path: '/comunicacao', minPlan: 'premium' as UserPlan },
   ];
 
   // Grupo de comunicação
   const comunicacaoGroup = {
     id: 'comunicacao',
-    label: 'Comunicação',
+    label: 'Canais',
     icon: MessageCircle,
     items: [
       { name: 'WhatsApp', icon: MessageCircle, path: '/whatsapp', minPlan: 'premium' as UserPlan },
@@ -156,7 +158,7 @@ export const SidebarNew = ({ isOpen }: SidebarProps) => {
           );
         })}
 
-        {/* Grupo de Comunicação */}
+        {/* Grupo de Canais */}
         <Collapsible open={openGroups.includes('comunicacao')} onOpenChange={() => toggleGroup('comunicacao')}>
           <CollapsibleTrigger asChild>
             <Button
