@@ -1,7 +1,8 @@
 
-import { useSubscription, UserPlan } from './useSubscription';
+import { useSubscription } from './useSubscription';
+import type { UserPlan } from './useSubscription';
 
-export { UserPlan } from './useSubscription';
+export type { UserPlan } from './useSubscription';
 
 export const useUserPlans = () => {
   const subscriptionData = useSubscription();
