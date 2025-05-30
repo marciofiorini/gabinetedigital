@@ -12,20 +12,38 @@ export const useTheme = () => {
   });
 
   useEffect(() => {
-    // Aplica o tema imediatamente
-    if (isDarkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
+    // Adiciona uma pequena transição antes de aplicar o tema
+    const applyTheme = () => {
+      const root = document.documentElement;
+      
+      if (isDarkMode) {
+        root.classList.add('dark');
+      } else {
+        root.classList.remove('dark');
+      }
+    };
+
+    // Pequeno delay para transição suave
+    const timer = setTimeout(applyTheme, 50);
     
     // Salva a preferência
     localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
+
+    return () => clearTimeout(timer);
   }, [isDarkMode]);
 
   const toggleTheme = () => {
     setIsDarkMode(!isDarkMode);
   };
 
-  return { isDarkMode, toggleTheme };
+  const setTheme = (theme: 'light' | 'dark' | 'system') => {
+    if (theme === 'system') {
+      const systemPreference = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      setIsDarkMode(systemPreference);
+    } else {
+      setIsDarkMode(theme === 'dark');
+    }
+  };
+
+  return { isDarkMode, toggleTheme, setTheme };
 };
