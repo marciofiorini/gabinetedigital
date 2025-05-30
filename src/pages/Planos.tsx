@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +11,7 @@ const Planos = () => {
   const { user } = useAuth();
   const { subscribed, subscription_tier, loading, createCheckout, openCustomerPortal, hasAccessToPlan, checkSubscription } = useSubscription();
   const [actionLoading, setActionLoading] = useState(false);
+  const [isAnnual, setIsAnnual] = useState(false);
   const { toast } = useToast();
 
   // Check for success/cancel params
@@ -38,13 +38,16 @@ const Planos = () => {
   const planos = [
     {
       nome: "Básico",
-      preco: "R$ 97",
-      periodo: "/mês",
-      stripePriceId: "price_1234567890", // TODO: Substituir pelo ID real do Stripe
+      precoMensal: "R$ 97",
+      precoAnual: "R$ 970",
+      periodo: isAnnual ? "/ano" : "/mês",
+      stripePriceIdMensal: "price_1234567890", // TODO: Substituir pelo ID real do Stripe
+      stripePriceIdAnual: "price_1234567891", // TODO: Substituir pelo ID real do Stripe
       descricao: "Ideal para candidatos iniciantes",
       icone: Star,
       cor: "from-blue-500 to-blue-600",
       planType: "basic" as const,
+      economia: isAnnual ? "2 meses grátis" : null,
       recursos: [
         "Até 1.000 contatos",
         "5 campanhas de e-mail por mês",
@@ -61,14 +64,17 @@ const Planos = () => {
     },
     {
       nome: "Premium",
-      preco: "R$ 197",
-      periodo: "/mês",
-      stripePriceId: "price_0987654321", // TODO: Substituir pelo ID real do Stripe
+      precoMensal: "R$ 197",
+      precoAnual: "R$ 1.970",
+      periodo: isAnnual ? "/ano" : "/mês",
+      stripePriceIdMensal: "price_0987654321", // TODO: Substituir pelo ID real do Stripe
+      stripePriceIdAnual: "price_0987654322", // TODO: Substituir pelo ID real do Stripe
       descricao: "Para candidatos em crescimento",
       icone: Crown,
       cor: "from-purple-500 to-purple-600",
       planType: "premium" as const,
       popular: true,
+      economia: isAnnual ? "2 meses grátis" : null,
       recursos: [
         "Até 10.000 contatos",
         "Campanhas ilimitadas",
@@ -86,13 +92,16 @@ const Planos = () => {
     },
     {
       nome: "Enterprise",
-      preco: "R$ 397",
-      periodo: "/mês",
-      stripePriceId: "price_1122334455", // TODO: Substituir pelo ID real do Stripe
+      precoMensal: "R$ 397",
+      precoAnual: "R$ 3.970",
+      periodo: isAnnual ? "/ano" : "/mês",
+      stripePriceIdMensal: "price_1122334455", // TODO: Substituir pelo ID real do Stripe
+      stripePriceIdAnual: "price_1122334456", // TODO: Substituir pelo ID real do Stripe
       descricao: "Para grandes campanhas políticas",
       icone: Zap,
       cor: "from-indigo-500 to-indigo-600",
       planType: "enterprise" as const,
+      economia: isAnnual ? "2 meses grátis" : null,
       recursos: [
         "Contatos ilimitados",
         "Tudo do Premium",
@@ -185,7 +194,7 @@ const Planos = () => {
     }
   ];
 
-  const handleSubscribe = async (stripePriceId: string, planType: string) => {
+  const handleSubscribe = async (plano: any) => {
     if (!user) {
       toast({
         title: "Login necessário",
@@ -195,9 +204,10 @@ const Planos = () => {
       return;
     }
 
+    const stripePriceId = isAnnual ? plano.stripePriceIdAnual : plano.stripePriceIdMensal;
     setActionLoading(true);
     try {
-      await createCheckout(stripePriceId, planType as any);
+      await createCheckout(stripePriceId, plano.planType as any);
     } catch (error) {
       console.error('Erro ao criar checkout:', error);
       toast({
@@ -279,6 +289,31 @@ const Planos = () => {
         </div>
       </div>
 
+      {/* Toggle Mensal/Anual */}
+      <div className="flex items-center justify-center">
+        <div className="flex items-center space-x-3 bg-gray-100 rounded-lg p-1">
+          <Button
+            variant={!isAnnual ? "default" : "ghost"}
+            size="sm"
+            onClick={() => setIsAnnual(false)}
+            className={`transition-all duration-200 ${!isAnnual ? 'bg-white shadow-sm' : 'hover:bg-gray-200'}`}
+          >
+            Mensal
+          </Button>
+          <Button
+            variant={isAnnual ? "default" : "ghost"}
+            size="sm"
+            onClick={() => setIsAnnual(true)}
+            className={`transition-all duration-200 ${isAnnual ? 'bg-white shadow-sm' : 'hover:bg-gray-200'}`}
+          >
+            Anual
+            <Badge variant="secondary" className="ml-2 bg-green-100 text-green-800">
+              -17%
+            </Badge>
+          </Button>
+        </div>
+      </div>
+
       {/* Planos */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
         {planos.map((plano, index) => (
@@ -306,6 +341,14 @@ const Planos = () => {
               </div>
             )}
             
+            {plano.economia && isAnnual && (
+              <div className="absolute -top-4 left-4">
+                <Badge className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-3 py-1 text-xs font-semibold">
+                  {plano.economia}
+                </Badge>
+              </div>
+            )}
+            
             <CardHeader className="text-center pb-4">
               <div className={`w-16 h-16 rounded-full bg-gradient-to-r ${plano.cor} flex items-center justify-center mx-auto mb-4`}>
                 <plano.icone className="w-8 h-8 text-white" />
@@ -320,9 +363,16 @@ const Planos = () => {
               </CardDescription>
               
               <div className="flex items-baseline justify-center">
-                <span className="text-4xl font-bold text-gray-900">{plano.preco}</span>
+                <span className="text-4xl font-bold text-gray-900">
+                  {isAnnual ? plano.precoAnual : plano.precoMensal}
+                </span>
                 <span className="text-gray-600 ml-1">{plano.periodo}</span>
               </div>
+              {isAnnual && (
+                <p className="text-sm text-green-600 font-medium">
+                  Economize 2 meses no plano anual
+                </p>
+              )}
             </CardHeader>
             
             <CardContent className="space-y-6">
@@ -359,7 +409,7 @@ const Planos = () => {
                   subscription_tier === plano.planType ? 'opacity-50 cursor-not-allowed' : ''
                 }`}
                 disabled={subscription_tier === plano.planType || actionLoading || loading}
-                onClick={() => handleSubscribe(plano.stripePriceId, plano.planType)}
+                onClick={() => handleSubscribe(plano)}
               >
                 {actionLoading ? 'Processando...' : 
                  subscription_tier === plano.planType ? 'Plano Atual' : 
