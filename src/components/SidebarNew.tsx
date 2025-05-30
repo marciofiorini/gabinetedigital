@@ -35,8 +35,7 @@ import {
   DoorOpen,
   Map,
   AlertCircle,
-  Cake,
-  Settings
+  Cake
 } from "lucide-react";
 import { useAuth } from '@/contexts/AuthContext';
 import { useDashboardStats } from '@/hooks/useDashboardStats';
@@ -239,20 +238,7 @@ export const SidebarNew = ({ isOpen }: SidebarProps) => {
           </CollapsibleContent>
         </Collapsible>
 
-        {/* Links soltos no final */}
-        <Link
-          to="/configuracoes"
-          className={cn(
-            "flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-colors",
-            location.pathname === "/configuracoes" 
-              ? "bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border-l-2 border-blue-600" 
-              : "text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white"
-          )}
-        >
-          <Settings className="w-4 h-4" />
-          <span>Configurações</span>
-        </Link>
-
+        {/* Link de Planos no final */}
         <Link
           to="/planos"
           className={cn(
