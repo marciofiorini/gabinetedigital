@@ -2,18 +2,28 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Check, Crown, Star, Zap, Shield, BarChart3, Database, Mail, FileDown, FileUp, Settings, TrendingUp, Bell, Download, Users, Activity } from "lucide-react";
+import { Check, Crown, Star, Zap, Shield, BarChart3, Database, Mail, FileDown, FileUp, Settings, TrendingUp, Bell, Activity } from "lucide-react";
 import { useUserPlans } from "@/hooks/useUserPlans";
+import { useAuth } from "@/contexts/AuthContext";
+import { useState } from "react";
+import { createClient } from "@supabase/supabase-js";
+
+const supabase = createClient(
+  import.meta.env.VITE_SUPABASE_URL!,
+  import.meta.env.VITE_SUPABASE_ANON_KEY!
+);
 
 const Planos = () => {
   const { userPlan, hasAccessToPlan } = useUserPlans();
+  const { user } = useAuth();
+  const [loading, setLoading] = useState(false);
 
   const planos = [
     {
       nome: "Básico",
       preco: "R$ 97",
       periodo: "/mês",
+      stripePriceId: "price_basic_monthly", // Substituir pelo ID real do Stripe
       descricao: "Ideal para candidatos iniciantes",
       icone: Star,
       cor: "from-blue-500 to-blue-600",
@@ -36,6 +46,7 @@ const Planos = () => {
       nome: "Premium",
       preco: "R$ 197",
       periodo: "/mês",
+      stripePriceId: "price_premium_monthly", // Substituir pelo ID real do Stripe
       descricao: "Para candidatos em crescimento",
       icone: Crown,
       cor: "from-purple-500 to-purple-600",
@@ -60,6 +71,7 @@ const Planos = () => {
       nome: "Enterprise",
       preco: "R$ 397",
       periodo: "/mês",
+      stripePriceId: "price_enterprise_monthly", // Substituir pelo ID real do Stripe
       descricao: "Para grandes campanhas políticas",
       icone: Zap,
       cor: "from-indigo-500 to-indigo-600",
@@ -83,70 +95,110 @@ const Planos = () => {
     }
   ];
 
-  const funcionalidadesAdministrativas = [
+  const funcionalidadesEspeciais = [
     {
-      nome: "Backup Automático",
-      descricao: "Sistema de backup dos dados em tempo real",
-      icone: Database,
-      disponivel: ["enterprise"],
-      detalhes: "Backup diário automático com retenção de 30 dias"
+      categoria: "Funcionalidades Administrativas",
+      icone: Shield,
+      cor: "from-green-500 to-emerald-600",
+      items: [
+        {
+          nome: "Backup Automático",
+          descricao: "Sistema de backup dos dados em tempo real",
+          icone: Database,
+          disponivel: ["enterprise"],
+          detalhes: "Backup diário automático com retenção de 30 dias"
+        },
+        {
+          nome: "Import/Export em Massa",
+          descricao: "Operações em lote de usuários e dados",
+          icone: FileDown,
+          disponivel: ["premium", "enterprise"],
+          detalhes: "Importação e exportação de contatos, leads e demandas"
+        },
+        {
+          nome: "Templates de Email",
+          descricao: "Sistema de notificações customizáveis",
+          icone: Mail,
+          disponivel: ["premium", "enterprise"],
+          detalhes: "Editor avançado com variáveis dinâmicas"
+        },
+        {
+          nome: "Configurações Avançadas",
+          descricao: "Parâmetros globais do sistema",
+          icone: Settings,
+          disponivel: ["enterprise"],
+          detalhes: "Controle total sobre comportamentos do sistema"
+        }
+      ]
     },
     {
-      nome: "Import/Export em Massa",
-      descricao: "Operações em lote de usuários e dados",
-      icone: FileDown,
-      disponivel: ["premium", "enterprise"],
-      detalhes: "Importação e exportação de contatos, leads e demandas"
-    },
-    {
-      nome: "Templates de Email",
-      descricao: "Sistema de notificações customizáveis",
-      icone: Mail,
-      disponivel: ["premium", "enterprise"],
-      detalhes: "Editor avançado com variáveis dinâmicas"
-    },
-    {
-      nome: "Configurações Avançadas",
-      descricao: "Parâmetros globais do sistema",
-      icone: Settings,
-      disponivel: ["enterprise"],
-      detalhes: "Controle total sobre comportamentos do sistema"
-    }
-  ];
-
-  const dashboardAnalytics = [
-    {
-      nome: "Métricas em Tempo Real",
-      descricao: "Contadores dinâmicos de usuários ativos",
-      icone: Activity,
-      disponivel: ["premium", "enterprise"],
-      detalhes: "Atualizações automáticas a cada 30 segundos"
-    },
-    {
-      nome: "Gráficos Avançados",
-      descricao: "Charts de performance e uso do sistema",
-      icone: BarChart3,
-      disponivel: ["premium", "enterprise"],
-      detalhes: "Visualizações interativas com drill-down"
-    },
-    {
-      nome: "Relatórios Automáticos",
-      descricao: "Envio de relatórios por email",
-      icone: FileUp,
-      disponivel: ["enterprise"],
-      detalhes: "Relatórios semanais e mensais automáticos"
-    },
-    {
-      nome: "Alertas Inteligentes",
-      descricao: "Notificações baseadas em thresholds",
-      icone: Bell,
-      disponivel: ["enterprise"],
-      detalhes: "Alertas personalizáveis para métricas críticas"
+      categoria: "Dashboard & Analytics",
+      icone: TrendingUp,
+      cor: "from-blue-500 to-indigo-600",
+      items: [
+        {
+          nome: "Métricas em Tempo Real",
+          descricao: "Contadores dinâmicos de usuários ativos",
+          icone: Activity,
+          disponivel: ["premium", "enterprise"],
+          detalhes: "Atualizações automáticas a cada 30 segundos"
+        },
+        {
+          nome: "Gráficos Avançados",
+          descricao: "Charts de performance e uso do sistema",
+          icone: BarChart3,
+          disponivel: ["premium", "enterprise"],
+          detalhes: "Visualizações interativas com drill-down"
+        },
+        {
+          nome: "Relatórios Automáticos",
+          descricao: "Envio de relatórios por email",
+          icone: FileUp,
+          disponivel: ["enterprise"],
+          detalhes: "Relatórios semanais e mensais automáticos"
+        },
+        {
+          nome: "Alertas Inteligentes",
+          descricao: "Notificações baseadas em thresholds",
+          icone: Bell,
+          disponivel: ["enterprise"],
+          detalhes: "Alertas personalizáveis para métricas críticas"
+        }
+      ]
     }
   ];
 
   const verificarDisponibilidade = (disponivel: string[]) => {
     return disponivel.includes(userPlan);
+  };
+
+  const handleSubscribe = async (stripePriceId: string, planType: string) => {
+    if (!user) {
+      alert('Você precisa estar logado para assinar um plano');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('create-checkout', {
+        body: { 
+          priceId: stripePriceId,
+          planType: planType
+        }
+      });
+
+      if (error) throw error;
+
+      // Abrir Stripe checkout em nova aba
+      if (data?.url) {
+        window.open(data.url, '_blank');
+      }
+    } catch (error) {
+      console.error('Erro ao criar checkout:', error);
+      alert('Erro ao processar pagamento. Tente novamente.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -164,193 +216,150 @@ const Planos = () => {
         </Badge>
       </div>
 
-      <Tabs defaultValue="planos" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="planos">Planos</TabsTrigger>
-          <TabsTrigger value="admin">Funcionalidades Admin</TabsTrigger>
-          <TabsTrigger value="analytics">Dashboard & Analytics</TabsTrigger>
-        </TabsList>
+      {/* Planos */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+        {planos.map((plano, index) => (
+          <Card 
+            key={index} 
+            className={`relative border-0 shadow-xl hover:shadow-2xl transition-all duration-300 bg-white/90 backdrop-blur-sm ${
+              plano.popular ? 'ring-2 ring-purple-500 ring-offset-2 scale-105' : ''
+            } ${
+              userPlan === plano.planType ? 'ring-2 ring-green-500 ring-offset-2' : ''
+            }`}
+          >
+            {plano.popular && (
+              <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                <Badge className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-4 py-1 text-sm font-semibold">
+                  Mais Popular
+                </Badge>
+              </div>
+            )}
 
-        <TabsContent value="planos" className="space-y-8">
-          {/* Planos */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {planos.map((plano, index) => (
-              <Card 
-                key={index} 
-                className={`relative border-0 shadow-xl hover:shadow-2xl transition-all duration-300 bg-white/90 backdrop-blur-sm ${
-                  plano.popular ? 'ring-2 ring-purple-500 ring-offset-2 scale-105' : ''
-                } ${
-                  userPlan === plano.planType ? 'ring-2 ring-green-500 ring-offset-2' : ''
+            {userPlan === plano.planType && (
+              <div className="absolute -top-4 right-4">
+                <Badge className="bg-gradient-to-r from-green-600 to-emerald-600 text-white px-3 py-1 text-xs font-semibold">
+                  Seu Plano
+                </Badge>
+              </div>
+            )}
+            
+            <CardHeader className="text-center pb-4">
+              <div className={`w-16 h-16 rounded-full bg-gradient-to-r ${plano.cor} flex items-center justify-center mx-auto mb-4`}>
+                <plano.icone className="w-8 h-8 text-white" />
+              </div>
+              
+              <CardTitle className="text-2xl font-bold text-gray-900">
+                {plano.nome}
+              </CardTitle>
+              
+              <CardDescription className="text-gray-600 mb-4">
+                {plano.descricao}
+              </CardDescription>
+              
+              <div className="flex items-baseline justify-center">
+                <span className="text-4xl font-bold text-gray-900">{plano.preco}</span>
+                <span className="text-gray-600 ml-1">{plano.periodo}</span>
+              </div>
+            </CardHeader>
+            
+            <CardContent className="space-y-6">
+              {/* Recursos */}
+              <div className="space-y-3">
+                {plano.recursos.map((recurso, idx) => (
+                  <div key={idx} className="flex items-center gap-3">
+                    <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                      <Check className="w-3 h-3 text-green-600" />
+                    </div>
+                    <span className="text-gray-700 text-sm">{recurso}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Limitações (se existirem) */}
+              {plano.limitacoes && (
+                <div className="space-y-2 pt-4 border-t border-gray-100">
+                  <p className="text-xs text-gray-500 font-medium">Limitações:</p>
+                  {plano.limitacoes.map((limitacao, idx) => (
+                    <div key={idx} className="flex items-center gap-3">
+                      <div className="w-5 h-5 bg-yellow-100 rounded-full flex items-center justify-center flex-shrink-0">
+                        <span className="text-yellow-600 text-xs">!</span>
+                      </div>
+                      <span className="text-gray-600 text-xs">{limitacao}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              
+              {/* Botão */}
+              <Button 
+                className={`w-full bg-gradient-to-r ${plano.cor} hover:from-indigo-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 ${
+                  userPlan === plano.planType ? 'opacity-50 cursor-not-allowed' : ''
                 }`}
+                disabled={userPlan === plano.planType || loading}
+                onClick={() => handleSubscribe(plano.stripePriceId, plano.planType)}
               >
-                {plano.popular && (
-                  <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                    <Badge className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-4 py-1 text-sm font-semibold">
-                      Mais Popular
-                    </Badge>
-                  </div>
-                )}
+                {loading ? 'Processando...' : userPlan === plano.planType ? 'Plano Atual' : plano.popular ? 'Começar Agora' : 'Escolher Plano'}
+              </Button>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
 
-                {userPlan === plano.planType && (
-                  <div className="absolute -top-4 right-4">
-                    <Badge className="bg-gradient-to-r from-green-600 to-emerald-600 text-white px-3 py-1 text-xs font-semibold">
-                      Seu Plano
-                    </Badge>
-                  </div>
-                )}
+      {/* Funcionalidades Especiais */}
+      <div className="space-y-8 pt-16">
+        <div className="text-center">
+          <h2 className="text-3xl font-bold text-gray-900 mb-4">
+            Funcionalidades Avançadas
+          </h2>
+          <p className="text-gray-600">Recursos especializados para potencializar sua campanha</p>
+        </div>
+
+        {funcionalidadesEspeciais.map((categoria, catIndex) => (
+          <div key={catIndex} className="space-y-6">
+            <div className="text-center">
+              <div className={`w-16 h-16 rounded-full bg-gradient-to-r ${categoria.cor} flex items-center justify-center mx-auto mb-4`}>
+                <categoria.icone className="w-8 h-8 text-white" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">{categoria.categoria}</h3>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {categoria.items.map((funcionalidade, index) => {
+                const temAcesso = verificarDisponibilidade(funcionalidade.disponivel);
+                const Icon = funcionalidade.icone;
                 
-                <CardHeader className="text-center pb-4">
-                  <div className={`w-16 h-16 rounded-full bg-gradient-to-r ${plano.cor} flex items-center justify-center mx-auto mb-4`}>
-                    <plano.icone className="w-8 h-8 text-white" />
-                  </div>
-                  
-                  <CardTitle className="text-2xl font-bold text-gray-900">
-                    {plano.nome}
-                  </CardTitle>
-                  
-                  <CardDescription className="text-gray-600 mb-4">
-                    {plano.descricao}
-                  </CardDescription>
-                  
-                  <div className="flex items-baseline justify-center">
-                    <span className="text-4xl font-bold text-gray-900">{plano.preco}</span>
-                    <span className="text-gray-600 ml-1">{plano.periodo}</span>
-                  </div>
-                </CardHeader>
-                
-                <CardContent className="space-y-6">
-                  {/* Recursos */}
-                  <div className="space-y-3">
-                    {plano.recursos.map((recurso, idx) => (
-                      <div key={idx} className="flex items-center gap-3">
-                        <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                          <Check className="w-3 h-3 text-green-600" />
+                return (
+                  <Card key={index} className={`transition-all duration-200 ${temAcesso ? 'border-green-200 bg-green-50/50' : 'border-gray-200 opacity-60'}`}>
+                    <CardContent className="p-6">
+                      <div className="flex items-start gap-4">
+                        <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${temAcesso ? 'bg-green-100' : 'bg-gray-100'}`}>
+                          <Icon className={`w-6 h-6 ${temAcesso ? 'text-green-600' : 'text-gray-400'}`} />
                         </div>
-                        <span className="text-gray-700 text-sm">{recurso}</span>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Limitações (se existirem) */}
-                  {plano.limitacoes && (
-                    <div className="space-y-2 pt-4 border-t border-gray-100">
-                      <p className="text-xs text-gray-500 font-medium">Limitações:</p>
-                      {plano.limitacoes.map((limitacao, idx) => (
-                        <div key={idx} className="flex items-center gap-3">
-                          <div className="w-5 h-5 bg-yellow-100 rounded-full flex items-center justify-center flex-shrink-0">
-                            <span className="text-yellow-600 text-xs">!</span>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <h4 className="font-semibold text-gray-900">{funcionalidade.nome}</h4>
+                            {temAcesso && <Check className="w-4 h-4 text-green-600" />}
                           </div>
-                          <span className="text-gray-600 text-xs">{limitacao}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  
-                  {/* Botão */}
-                  <Button 
-                    className={`w-full bg-gradient-to-r ${plano.cor} hover:from-indigo-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 ${
-                      userPlan === plano.planType ? 'opacity-50 cursor-not-allowed' : ''
-                    }`}
-                    disabled={userPlan === plano.planType}
-                  >
-                    {userPlan === plano.planType ? 'Plano Atual' : plano.popular ? 'Começar Agora' : 'Escolher Plano'}
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="admin" className="space-y-6">
-          <div className="text-center mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2 flex items-center justify-center gap-2">
-              <Shield className="w-6 h-6" />
-              Funcionalidades Administrativas
-            </h2>
-            <p className="text-gray-600">Recursos avançados para gestão e automação</p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {funcionalidadesAdministrativas.map((funcionalidade, index) => {
-              const temAcesso = verificarDisponibilidade(funcionalidade.disponivel);
-              const Icon = funcionalidade.icone;
-              
-              return (
-                <Card key={index} className={`transition-all duration-200 ${temAcesso ? 'border-green-200 bg-green-50/50' : 'border-gray-200 opacity-60'}`}>
-                  <CardContent className="p-6">
-                    <div className="flex items-start gap-4">
-                      <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${temAcesso ? 'bg-green-100' : 'bg-gray-100'}`}>
-                        <Icon className={`w-6 h-6 ${temAcesso ? 'text-green-600' : 'text-gray-400'}`} />
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          <h4 className="font-semibold text-gray-900">{funcionalidade.nome}</h4>
-                          {temAcesso && <Check className="w-4 h-4 text-green-600" />}
-                        </div>
-                        <p className="text-gray-600 text-sm mb-3">{funcionalidade.descricao}</p>
-                        <p className="text-xs text-gray-500">{funcionalidade.detalhes}</p>
-                        <div className="mt-3">
-                          <Badge variant={temAcesso ? "default" : "secondary"} className="text-xs">
-                            {funcionalidade.disponivel.map(plan => 
-                              plan === 'basic' ? 'Básico' : 
-                              plan === 'premium' ? 'Premium' : 'Enterprise'
-                            ).join(', ')}
-                          </Badge>
+                          <p className="text-gray-600 text-sm mb-3">{funcionalidade.descricao}</p>
+                          <p className="text-xs text-gray-500">{funcionalidade.detalhes}</p>
+                          <div className="mt-3">
+                            <Badge variant={temAcesso ? "default" : "secondary"} className="text-xs">
+                              {funcionalidade.disponivel.map(plan => 
+                                plan === 'basic' ? 'Básico' : 
+                                plan === 'premium' ? 'Premium' : 'Enterprise'
+                              ).join(', ')}
+                            </Badge>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
           </div>
-        </TabsContent>
-
-        <TabsContent value="analytics" className="space-y-6">
-          <div className="text-center mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2 flex items-center justify-center gap-2">
-              <TrendingUp className="w-6 h-6" />
-              Dashboard & Analytics
-            </h2>
-            <p className="text-gray-600">Insights avançados e métricas em tempo real</p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {dashboardAnalytics.map((analytic, index) => {
-              const temAcesso = verificarDisponibilidade(analytic.disponivel);
-              const Icon = analytic.icone;
-              
-              return (
-                <Card key={index} className={`transition-all duration-200 ${temAcesso ? 'border-blue-200 bg-blue-50/50' : 'border-gray-200 opacity-60'}`}>
-                  <CardContent className="p-6">
-                    <div className="flex items-start gap-4">
-                      <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${temAcesso ? 'bg-blue-100' : 'bg-gray-100'}`}>
-                        <Icon className={`w-6 h-6 ${temAcesso ? 'text-blue-600' : 'text-gray-400'}`} />
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          <h4 className="font-semibold text-gray-900">{analytic.nome}</h4>
-                          {temAcesso && <Check className="w-4 h-4 text-blue-600" />}
-                        </div>
-                        <p className="text-gray-600 text-sm mb-3">{analytic.descricao}</p>
-                        <p className="text-xs text-gray-500">{analytic.detalhes}</p>
-                        <div className="mt-3">
-                          <Badge variant={temAcesso ? "default" : "secondary"} className="text-xs">
-                            {analytic.disponivel.map(plan => 
-                              plan === 'basic' ? 'Básico' : 
-                              plan === 'premium' ? 'Premium' : 'Enterprise'
-                            ).join(', ')}
-                          </Badge>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-        </TabsContent>
-      </Tabs>
+        ))}
+      </div>
 
       {/* FAQ Section */}
       <div className="max-w-4xl mx-auto space-y-6 pt-16">
@@ -364,27 +373,27 @@ const Planos = () => {
           {[
             {
               pergunta: "Posso mudar de plano a qualquer momento?",
-              resposta: "Sim, você pode fazer upgrade ou downgrade do seu plano a qualquer momento."
+              resposta: "Sim, você pode fazer upgrade ou downgrade do seu plano a qualquer momento através do painel do cliente."
             },
             {
-              pergunta: "Existe período de teste gratuito?",
-              resposta: "Sim, oferecemos 7 dias grátis para testar todas as funcionalidades."
+              pergunta: "Como funciona o pagamento?",
+              resposta: "Utilizamos o Stripe para processar pagamentos de forma segura. Aceitamos cartões de crédito e débito."
             },
             {
               pergunta: "Os dados são seguros?",
-              resposta: "Sim, utilizamos criptografia de ponta e seguimos as melhores práticas de segurança."
+              resposta: "Sim, utilizamos criptografia de ponta e seguimos as melhores práticas de segurança para proteger seus dados."
             },
             {
               pergunta: "Posso cancelar a qualquer momento?",
-              resposta: "Sim, não há fidelidade. Você pode cancelar quando quiser."
+              resposta: "Sim, não há fidelidade. Você pode cancelar quando quiser através do portal do cliente."
             },
             {
               pergunta: "Como funciona o backup automático?",
-              resposta: "Realizamos backups diários com retenção de 30 dias no plano Enterprise."
+              resposta: "Realizamos backups diários automáticos com retenção de 30 dias no plano Enterprise."
             },
             {
-              pergunta: "Posso exportar meus dados?",
-              resposta: "Sim, oferecemos export completo de dados nos planos Premium e Enterprise."
+              pergunta: "Existe suporte técnico?",
+              resposta: "Sim, oferecemos suporte por email no plano básico e suporte prioritário 24/7 nos planos superiores."
             }
           ].map((faq, index) => (
             <Card key={index} className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
