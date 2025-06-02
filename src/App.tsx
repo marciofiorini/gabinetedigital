@@ -32,6 +32,7 @@ import SistemaVotacoes from '@/pages/SistemaVotacoes';
 import Comunicacao from '@/pages/Comunicacao';
 import { IntegrationManager } from '@/components/IntegrationManager';
 import { NotificationToasts } from '@/components/NotificationToasts';
+import { Sonner } from '@/components/Sonner';
 
 const queryClient = new QueryClient();
 
@@ -76,6 +77,7 @@ function App() {
           </div>
         </Router>
       </AuthProvider>
+      <Sonner />
     </QueryClientProvider>
   );
 }

@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 
 export interface Contato {
   id: string;
@@ -12,8 +12,8 @@ export interface Contato {
   endereco?: string;
   zona?: string;
   data_nascimento?: string;
-  tags?: string[];
   observacoes?: string;
+  tags?: string[];
   created_at: string;
   updated_at: string;
 }
@@ -21,63 +21,61 @@ export interface Contato {
 export const useContatos = () => {
   const [contatos, setContatos] = useState<Contato[]>([]);
   const [loading, setLoading] = useState(true);
-  const { user } = useAuth();
+  const { toast } = useToast();
 
   const fetchContatos = async () => {
-    if (!user) return;
-
     try {
-      setLoading(true);
       const { data, error } = await supabase
         .from('contatos')
         .select('*')
-        .eq('user_id', user.id)
-        .order('nome', { ascending: true });
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
       setContatos(data || []);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao buscar contatos:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao carregar contatos",
+        variant: "destructive"
+      });
     } finally {
       setLoading(false);
     }
   };
 
   const createContato = async (contato: Omit<Contato, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => {
-    if (!user) return null;
-
     try {
       const { data, error } = await supabase
         .from('contatos')
-        .insert({
-          ...contato,
-          user_id: user.id
-        })
+        .insert([contato])
         .select()
         .single();
 
       if (error) throw error;
-      await fetchContatos();
+      setContatos(prev => [data, ...prev]);
       return data;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao criar contato:', error);
-      return null;
+      throw error;
     }
   };
 
   const updateContato = async (id: string, updates: Partial<Contato>) => {
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('contatos')
-        .update({ ...updates, updated_at: new Date().toISOString() })
-        .eq('id', id);
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
 
       if (error) throw error;
-      await fetchContatos();
-      return true;
-    } catch (error) {
+      setContatos(prev => prev.map(c => c.id === id ? data : c));
+      return data;
+    } catch (error: any) {
       console.error('Erro ao atualizar contato:', error);
-      return false;
+      throw error;
     }
   };
 
@@ -89,17 +87,19 @@ export const useContatos = () => {
         .eq('id', id);
 
       if (error) throw error;
-      await fetchContatos();
+      setContatos(prev => prev.filter(c => c.id !== id));
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao deletar contato:', error);
       return false;
     }
   };
 
+  const refetch = fetchContatos;
+
   useEffect(() => {
     fetchContatos();
-  }, [user]);
+  }, []);
 
   return {
     contatos,
@@ -107,6 +107,7 @@ export const useContatos = () => {
     fetchContatos,
     createContato,
     updateContato,
-    deleteContato
+    deleteContato,
+    refetch
   };
 };

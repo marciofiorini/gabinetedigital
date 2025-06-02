@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -93,14 +92,19 @@ const CrmCompleto = () => {
     }
 
     try {
+      const leadData = {
+        ...formData,
+        status: formData.status as LeadStatus
+      };
+
       if (editingLead) {
-        await updateLead(editingLead.id, formData);
+        await updateLead(editingLead.id, leadData);
         toast({
           title: "Sucesso",
           description: "Lead atualizado com sucesso!"
         });
       } else {
-        await createLead(formData);
+        await createLead(leadData);
         toast({
           title: "Sucesso",
           description: "Lead criado com sucesso!"

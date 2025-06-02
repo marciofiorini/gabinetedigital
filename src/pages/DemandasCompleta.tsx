@@ -80,14 +80,20 @@ const DemandasCompleta = () => {
     }
 
     try {
+      const demandaData = {
+        ...formData,
+        prioridade: formData.prioridade as DemandaPrioridade,
+        status: formData.status as DemandaStatus
+      };
+
       if (editingDemanda) {
-        await updateDemanda(editingDemanda.id, formData);
+        await updateDemanda(editingDemanda.id, demandaData);
         toast({
           title: "Sucesso",
           description: "Demanda atualizada com sucesso!"
         });
       } else {
-        await createDemanda(formData);
+        await createDemanda(demandaData);
         toast({
           title: "Sucesso",
           description: "Demanda criada com sucesso!"
