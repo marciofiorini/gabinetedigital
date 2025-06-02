@@ -1,4 +1,3 @@
-
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from '@/contexts/AuthContext';
@@ -31,6 +30,8 @@ import AgendaCompleta from '@/pages/AgendaCompleta';
 import MapaInfluencia from '@/pages/MapaInfluencia';
 import SistemaVotacoes from '@/pages/SistemaVotacoes';
 import Comunicacao from '@/pages/Comunicacao';
+import { IntegrationManager } from '@/components/IntegrationManager';
+import { NotificationToasts } from '@/components/NotificationToasts';
 
 const queryClient = new QueryClient();
 
@@ -64,12 +65,14 @@ function App() {
               <Route path="/administracao" element={<ProtectedLayout><Administracao /></ProtectedLayout>} />
               <Route path="/configuracoes" element={<ProtectedLayout><Configuracoes /></ProtectedLayout>} />
               <Route path="/comunicacao" element={<ProtectedLayout><Comunicacao /></ProtectedLayout>} />
+              <Route path="/integracoes" element={<ProtectedLayout><IntegrationManager /></ProtectedLayout>} />
               <Route path="/email" element={<ProtectedLayout><Email /></ProtectedLayout>} />
               <Route path="/whatsapp" element={<ProtectedLayout><WhatsApp /></ProtectedLayout>} />
               <Route path="/instagram" element={<ProtectedLayout><Instagram /></ProtectedLayout>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
             <Toaster />
+            <NotificationToasts />
           </div>
         </Router>
       </AuthProvider>
