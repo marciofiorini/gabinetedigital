@@ -2,21 +2,22 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Plus, Search, Edit, Trash2, Phone, Mail, TrendingUp, Users, Target, CheckCircle } from "lucide-react";
+import { Plus, Edit, Trash2, Phone, Mail, TrendingUp, Users, Target, CheckCircle } from "lucide-react";
 import { useLeads, type Lead } from "@/hooks/useLeads";
 import { useToast } from "@/hooks/use-toast";
+import { useFormValidation, leadSchema } from "@/hooks/useFormValidation";
+import { ValidatedInput, ValidatedTextarea, ValidatedSelect } from "@/components/ValidatedForm";
+import { AdvancedFilters, type FilterOptions } from "@/components/AdvancedFilters";
+import { useRealTimeData } from "@/hooks/useRealTimeData";
 
 const CrmCompleto = () => {
-  const { leads, loading, createLead, updateLead, deleteLead } = useLeads();
+  const { leads, loading, createLead, updateLead, deleteLead, refetch } = useLeads();
   const { toast } = useToast();
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("todos");
+  useRealTimeData('leads', refetch);
+  
+  const [filters, setFilters] = useState<FilterOptions>({});
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingLead, setEditingLead] = useState<Lead | null>(null);
   const [formData, setFormData] = useState({
@@ -29,19 +30,50 @@ const CrmCompleto = () => {
     observacoes: ""
   });
 
+  const { validate, errors, getFieldError, clearErrors } = useFormValidation(leadSchema);
+
   const statusOptions = [
     { value: "novo", label: "Novo", color: "bg-blue-100 text-blue-800" },
-    { value: "qualificado", label: "Qualificado", color: "bg-yellow-100 text-yellow-800" },
-    { value: "proposta", label: "Proposta Enviada", color: "bg-orange-100 text-orange-800" },
+    { value: "contatado", label: "Contatado", color: "bg-yellow-100 text-yellow-800" },
+    { value: "interesse", label: "Interesse", color: "bg-orange-100 text-orange-800" },
+    { value: "proposta", label: "Proposta", color: "bg-purple-100 text-purple-800" },
     { value: "fechado", label: "Fechado", color: "bg-green-100 text-green-800" },
     { value: "perdido", label: "Perdido", color: "bg-red-100 text-red-800" }
   ];
 
   const filteredLeads = leads.filter(lead => {
-    const matchesSearch = lead.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         lead.email?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === "todos" || lead.status === statusFilter;
-    return matchesSearch && matchesStatus;
+    // Search filter
+    if (filters.search) {
+      const searchLower = filters.search.toLowerCase();
+      const matchesSearch = 
+        lead.nome.toLowerCase().includes(searchLower) ||
+        lead.email?.toLowerCase().includes(searchLower) ||
+        lead.fonte?.toLowerCase().includes(searchLower);
+      if (!matchesSearch) return false;
+    }
+
+    // Status filter
+    if (filters.status && lead.status !== filters.status) {
+      return false;
+    }
+
+    // Source filter
+    if (filters.fonte && lead.fonte !== filters.fonte) {
+      return false;
+    }
+
+    // Date filters
+    if (filters.dataInicio && lead.created_at) {
+      const leadDate = new Date(lead.created_at);
+      if (leadDate < filters.dataInicio) return false;
+    }
+
+    if (filters.dataFim && lead.created_at) {
+      const leadDate = new Date(lead.created_at);
+      if (leadDate > filters.dataFim) return false;
+    }
+
+    return true;
   });
 
   const getStatusConfig = (status: string) => {
@@ -51,10 +83,10 @@ const CrmCompleto = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.nome.trim()) {
+    if (!validate(formData)) {
       toast({
-        title: "Erro",
-        description: "Nome é obrigatório",
+        title: "Erro de Validação",
+        description: "Por favor, corrija os erros no formulário",
         variant: "destructive"
       });
       return;
@@ -77,15 +109,7 @@ const CrmCompleto = () => {
       
       setIsDialogOpen(false);
       setEditingLead(null);
-      setFormData({
-        nome: "",
-        email: "",
-        telefone: "",
-        status: "novo",
-        fonte: "",
-        interesse: "",
-        observacoes: ""
-      });
+      resetForm();
     } catch (error) {
       toast({
         title: "Erro",
@@ -93,6 +117,19 @@ const CrmCompleto = () => {
         variant: "destructive"
       });
     }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      nome: "",
+      email: "",
+      telefone: "",
+      status: "novo",
+      fonte: "",
+      interesse: "",
+      observacoes: ""
+    });
+    clearErrors();
   };
 
   const handleEdit = (lead: Lead) => {
@@ -106,6 +143,7 @@ const CrmCompleto = () => {
       interesse: lead.interesse || "",
       observacoes: lead.observacoes || ""
     });
+    clearErrors();
     setIsDialogOpen(true);
   };
 
@@ -123,6 +161,10 @@ const CrmCompleto = () => {
 
   const getLeadsByStatus = (status: string) => {
     return leads.filter(lead => lead.status === status);
+  };
+
+  const clearFilters = () => {
+    setFilters({});
   };
 
   if (loading) {
@@ -146,15 +188,7 @@ const CrmCompleto = () => {
           <DialogTrigger asChild>
             <Button onClick={() => {
               setEditingLead(null);
-              setFormData({
-                nome: "",
-                email: "",
-                telefone: "",
-                status: "novo",
-                fonte: "",
-                interesse: "",
-                observacoes: ""
-              });
+              resetForm();
             }}>
               <Plus className="w-4 h-4 mr-2" />
               Novo Lead
@@ -168,73 +202,75 @@ const CrmCompleto = () => {
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="nome">Nome *</Label>
-                <Input
-                  id="nome"
-                  value={formData.nome}
-                  onChange={(e) => setFormData(prev => ({ ...prev, nome: e.target.value }))}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="telefone">Telefone</Label>
-                <Input
-                  id="telefone"
-                  value={formData.telefone}
-                  onChange={(e) => setFormData(prev => ({ ...prev, telefone: e.target.value }))}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="status">Status</Label>
-                <Select value={formData.status} onValueChange={(value) => setFormData(prev => ({ ...prev, status: value }))}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {statusOptions.map(option => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="fonte">Fonte</Label>
-                <Input
-                  id="fonte"
-                  value={formData.fonte}
-                  onChange={(e) => setFormData(prev => ({ ...prev, fonte: e.target.value }))}
-                  placeholder="Ex: Site, Indicação, Evento"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="interesse">Interesse</Label>
-                <Input
-                  id="interesse"
-                  value={formData.interesse}
-                  onChange={(e) => setFormData(prev => ({ ...prev, interesse: e.target.value }))}
-                  placeholder="Ex: Saúde, Educação, Infraestrutura"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="observacoes">Observações</Label>
-                <Textarea
-                  id="observacoes"
-                  value={formData.observacoes}
-                  onChange={(e) => setFormData(prev => ({ ...prev, observacoes: e.target.value }))}
-                />
-              </div>
+              <ValidatedInput
+                label="Nome"
+                name="nome"
+                value={formData.nome}
+                onChange={(value) => setFormData(prev => ({ ...prev, nome: value }))}
+                error={getFieldError('nome')}
+                required
+              />
+              
+              <ValidatedInput
+                label="Email"
+                name="email"
+                type="email"
+                value={formData.email}
+                onChange={(value) => setFormData(prev => ({ ...prev, email: value }))}
+                error={getFieldError('email')}
+              />
+              
+              <ValidatedInput
+                label="Telefone"
+                name="telefone"
+                value={formData.telefone}
+                onChange={(value) => setFormData(prev => ({ ...prev, telefone: value }))}
+                error={getFieldError('telefone')}
+              />
+              
+              <ValidatedSelect
+                label="Status"
+                name="status"
+                value={formData.status}
+                onChange={(value) => setFormData(prev => ({ ...prev, status: value }))}
+                error={getFieldError('status')}
+                options={statusOptions.map(opt => ({ value: opt.value, label: opt.label }))}
+                required
+              />
+              
+              <ValidatedSelect
+                label="Fonte"
+                name="fonte"
+                value={formData.fonte}
+                onChange={(value) => setFormData(prev => ({ ...prev, fonte: value }))}
+                error={getFieldError('fonte')}
+                options={[
+                  { value: "site", label: "Site" },
+                  { value: "redes_sociais", label: "Redes Sociais" },
+                  { value: "indicacao", label: "Indicação" },
+                  { value: "evento", label: "Evento" },
+                  { value: "campanha", label: "Campanha" },
+                  { value: "outros", label: "Outros" }
+                ]}
+              />
+              
+              <ValidatedInput
+                label="Interesse"
+                name="interesse"
+                value={formData.interesse}
+                onChange={(value) => setFormData(prev => ({ ...prev, interesse: value }))}
+                error={getFieldError('interesse')}
+                placeholder="Ex: Saúde, Educação, Infraestrutura"
+              />
+              
+              <ValidatedTextarea
+                label="Observações"
+                name="observacoes"
+                value={formData.observacoes}
+                onChange={(value) => setFormData(prev => ({ ...prev, observacoes: value }))}
+                error={getFieldError('observacoes')}
+              />
+              
               <div className="flex justify-end gap-2">
                 <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                   Cancelar
@@ -247,6 +283,14 @@ const CrmCompleto = () => {
           </DialogContent>
         </Dialog>
       </div>
+
+      {/* Advanced Filters */}
+      <AdvancedFilters
+        type="leads"
+        filters={filters}
+        onFiltersChange={setFilters}
+        onClearFilters={clearFilters}
+      />
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -266,8 +310,8 @@ const CrmCompleto = () => {
             <div className="flex items-center gap-2">
               <Target className="w-8 h-8 text-yellow-600" />
               <div>
-                <div className="text-2xl font-bold">{getLeadsByStatus("qualificado").length}</div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Qualificados</p>
+                <div className="text-2xl font-bold">{getLeadsByStatus("contatado").length}</div>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Contatados</p>
               </div>
             </div>
           </CardContent>
@@ -295,36 +339,6 @@ const CrmCompleto = () => {
           </CardContent>
         </Card>
       </div>
-
-      {/* Filters */}
-      <Card>
-        <CardHeader>
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="flex items-center gap-2">
-              <Search className="w-5 h-5" />
-              <Input
-                placeholder="Buscar leads..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="max-w-sm"
-              />
-            </div>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="max-w-sm">
-                <SelectValue placeholder="Filtrar por status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="todos">Todos os Status</SelectItem>
-                {statusOptions.map(option => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </CardHeader>
-      </Card>
 
       {/* Leads List */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -394,7 +408,7 @@ const CrmCompleto = () => {
         <Card>
           <CardContent className="p-12 text-center">
             <p className="text-gray-500 dark:text-gray-400">
-              {searchTerm || statusFilter !== "todos" 
+              {Object.keys(filters).length > 0 
                 ? 'Nenhum lead encontrado com os filtros aplicados.' 
                 : 'Nenhum lead cadastrado ainda.'}
             </p>

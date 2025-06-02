@@ -2,42 +2,22 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from "@/components/ui/table";
-import { 
-  Plus, 
-  Search, 
-  Filter, 
-  Clock, 
-  CheckCircle, 
-  AlertCircle, 
-  User, 
-  MapPin,
-  Calendar,
-  FileText,
-  Edit,
-  Trash2
-} from "lucide-react";
+import { Plus, Edit, Trash2, Calendar, User, AlertTriangle } from "lucide-react";
 import { useDemandas, type Demanda } from "@/hooks/useDemandas";
 import { useToast } from "@/hooks/use-toast";
+import { useFormValidation, demandaSchema } from "@/hooks/useFormValidation";
+import { ValidatedInput, ValidatedTextarea, ValidatedSelect } from "@/components/ValidatedForm";
+import { AdvancedFilters, type FilterOptions } from "@/components/AdvancedFilters";
+import { useRealTimeData } from "@/hooks/useRealTimeData";
 
 const DemandasCompleta = () => {
-  const { demandas, loading, createDemanda, updateDemanda, deleteDemanda } = useDemandas();
+  const { demandas, loading, createDemanda, updateDemanda, deleteDemanda, refetch } = useDemandas();
   const { toast } = useToast();
-  const [searchTerm, setSearchTerm] = useState("");
+  useRealTimeData('demandas', refetch);
+  
+  const [filters, setFilters] = useState<FilterOptions>({});
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingDemanda, setEditingDemanda] = useState<Demanda | null>(null);
   const [formData, setFormData] = useState({
@@ -51,19 +31,49 @@ const DemandasCompleta = () => {
     data_limite: ""
   });
 
-  const filteredDemandas = demandas.filter(demanda =>
-    demanda.titulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    demanda.solicitante?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    demanda.categoria?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const { validate, errors, getFieldError, clearErrors } = useFormValidation(demandaSchema);
+
+  const filteredDemandas = demandas.filter(demanda => {
+    // Search filter
+    if (filters.search) {
+      const searchLower = filters.search.toLowerCase();
+      const matchesSearch = 
+        demanda.titulo.toLowerCase().includes(searchLower) ||
+        demanda.descricao?.toLowerCase().includes(searchLower) ||
+        demanda.solicitante?.toLowerCase().includes(searchLower);
+      if (!matchesSearch) return false;
+    }
+
+    // Status filter
+    if (filters.status && demanda.status !== filters.status) {
+      return false;
+    }
+
+    // Category filter
+    if (filters.categoria && demanda.categoria !== filters.categoria) {
+      return false;
+    }
+
+    // Priority filter
+    if (filters.prioridade && demanda.prioridade !== filters.prioridade) {
+      return false;
+    }
+
+    // Zone filter
+    if (filters.zona && demanda.zona !== filters.zona) {
+      return false;
+    }
+
+    return true;
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.titulo.trim()) {
+    if (!validate(formData)) {
       toast({
-        title: "Erro",
-        description: "Título é obrigatório",
+        title: "Erro de Validação",
+        description: "Por favor, corrija os erros no formulário",
         variant: "destructive"
       });
       return;
@@ -86,16 +96,7 @@ const DemandasCompleta = () => {
       
       setIsDialogOpen(false);
       setEditingDemanda(null);
-      setFormData({
-        titulo: "",
-        descricao: "",
-        categoria: "",
-        prioridade: "media",
-        status: "pendente",
-        solicitante: "",
-        zona: "",
-        data_limite: ""
-      });
+      resetForm();
     } catch (error) {
       toast({
         title: "Erro",
@@ -105,18 +106,33 @@ const DemandasCompleta = () => {
     }
   };
 
+  const resetForm = () => {
+    setFormData({
+      titulo: "",
+      descricao: "",
+      categoria: "",
+      prioridade: "media",
+      status: "pendente",
+      solicitante: "",
+      zona: "",
+      data_limite: ""
+    });
+    clearErrors();
+  };
+
   const handleEdit = (demanda: Demanda) => {
     setEditingDemanda(demanda);
     setFormData({
       titulo: demanda.titulo,
       descricao: demanda.descricao || "",
       categoria: demanda.categoria || "",
-      prioridade: demanda.prioridade,
-      status: demanda.status,
+      prioridade: demanda.prioridade || "media",
+      status: demanda.status || "pendente",
       solicitante: demanda.solicitante || "",
       zona: demanda.zona || "",
       data_limite: demanda.data_limite || ""
     });
+    clearErrors();
     setIsDialogOpen(true);
   };
 
@@ -132,32 +148,28 @@ const DemandasCompleta = () => {
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "pendente": return "bg-yellow-100 text-yellow-800 border-yellow-200";
-      case "em_andamento": return "bg-blue-100 text-blue-800 border-blue-200";
-      case "concluida": return "bg-green-100 text-green-800 border-green-200";
-      case "cancelada": return "bg-red-100 text-red-800 border-red-200";
-      default: return "bg-gray-100 text-gray-800 border-gray-200";
-    }
-  };
-
   const getPrioridadeColor = (prioridade: string) => {
     switch (prioridade) {
-      case "alta": return "bg-red-100 text-red-800 border-red-200";
-      case "media": return "bg-yellow-100 text-yellow-800 border-yellow-200";
-      case "baixa": return "bg-green-100 text-green-800 border-green-200";
-      default: return "bg-gray-100 text-gray-800 border-gray-200";
+      case "baixa": return "bg-gray-100 text-gray-800";
+      case "media": return "bg-blue-100 text-blue-800";
+      case "alta": return "bg-orange-100 text-orange-800";
+      case "urgente": return "bg-red-100 text-red-800";
+      default: return "bg-gray-100 text-gray-800";
     }
   };
 
-  const getStatusIcon = (status: string) => {
+  const getStatusColor = (status: string) => {
     switch (status) {
-      case "pendente": return <Clock className="w-4 h-4" />;
-      case "em_andamento": return <AlertCircle className="w-4 h-4" />;
-      case "concluida": return <CheckCircle className="w-4 h-4" />;
-      default: return <FileText className="w-4 h-4" />;
+      case "pendente": return "bg-yellow-100 text-yellow-800";
+      case "em_andamento": return "bg-blue-100 text-blue-800";
+      case "concluida": return "bg-green-100 text-green-800";
+      case "cancelada": return "bg-red-100 text-red-800";
+      default: return "bg-gray-100 text-gray-800";
     }
+  };
+
+  const clearFilters = () => {
+    setFilters({});
   };
 
   if (loading) {
@@ -168,33 +180,23 @@ const DemandasCompleta = () => {
     );
   }
 
+  const demandasPendentes = demandas.filter(d => d.status === 'pendente');
+  const demandasUrgentes = demandas.filter(d => d.prioridade === 'urgente');
+
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2">
-            Demandas
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400">
-            Gerencie solicitações e demandas da comunidade
-          </p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Demandas</h1>
+          <p className="text-gray-600 dark:text-gray-400">Gerencie as demandas dos cidadãos</p>
         </div>
         
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button onClick={() => {
               setEditingDemanda(null);
-              setFormData({
-                titulo: "",
-                descricao: "",
-                categoria: "",
-                prioridade: "media",
-                status: "pendente",
-                solicitante: "",
-                zona: "",
-                data_limite: ""
-              });
+              resetForm();
             }}>
               <Plus className="w-4 h-4 mr-2" />
               Nova Demanda
@@ -208,96 +210,105 @@ const DemandasCompleta = () => {
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="titulo">Título *</Label>
-                <Input
-                  id="titulo"
-                  value={formData.titulo}
-                  onChange={(e) => setFormData(prev => ({ ...prev, titulo: e.target.value }))}
+              <ValidatedInput
+                label="Título"
+                name="titulo"
+                value={formData.titulo}
+                onChange={(value) => setFormData(prev => ({ ...prev, titulo: value }))}
+                error={getFieldError('titulo')}
+                required
+              />
+              
+              <ValidatedTextarea
+                label="Descrição"
+                name="descricao"
+                value={formData.descricao}
+                onChange={(value) => setFormData(prev => ({ ...prev, descricao: value }))}
+                error={getFieldError('descricao')}
+              />
+              
+              <ValidatedSelect
+                label="Categoria"
+                name="categoria"
+                value={formData.categoria}
+                onChange={(value) => setFormData(prev => ({ ...prev, categoria: value }))}
+                error={getFieldError('categoria')}
+                options={[
+                  { value: "saude", label: "Saúde" },
+                  { value: "educacao", label: "Educação" },
+                  { value: "infraestrutura", label: "Infraestrutura" },
+                  { value: "seguranca", label: "Segurança" },
+                  { value: "meio_ambiente", label: "Meio Ambiente" },
+                  { value: "social", label: "Social" },
+                  { value: "economia", label: "Economia" },
+                  { value: "outros", label: "Outros" }
+                ]}
+                required
+              />
+              
+              <div className="grid grid-cols-2 gap-4">
+                <ValidatedSelect
+                  label="Prioridade"
+                  name="prioridade"
+                  value={formData.prioridade}
+                  onChange={(value) => setFormData(prev => ({ ...prev, prioridade: value }))}
+                  error={getFieldError('prioridade')}
+                  options={[
+                    { value: "baixa", label: "Baixa" },
+                    { value: "media", label: "Média" },
+                    { value: "alta", label: "Alta" },
+                    { value: "urgente", label: "Urgente" }
+                  ]}
+                  required
+                />
+                
+                <ValidatedSelect
+                  label="Status"
+                  name="status"
+                  value={formData.status}
+                  onChange={(value) => setFormData(prev => ({ ...prev, status: value }))}
+                  error={getFieldError('status')}
+                  options={[
+                    { value: "pendente", label: "Pendente" },
+                    { value: "em_andamento", label: "Em Andamento" },
+                    { value: "concluida", label: "Concluída" },
+                    { value: "cancelada", label: "Cancelada" }
+                  ]}
                   required
                 />
               </div>
               
-              <div className="space-y-2">
-                <Label htmlFor="descricao">Descrição</Label>
-                <Textarea
-                  id="descricao"
-                  value={formData.descricao}
-                  onChange={(e) => setFormData(prev => ({ ...prev, descricao: e.target.value }))}
-                />
-              </div>
+              <ValidatedInput
+                label="Solicitante"
+                name="solicitante"
+                value={formData.solicitante}
+                onChange={(value) => setFormData(prev => ({ ...prev, solicitante: value }))}
+                error={getFieldError('solicitante')}
+              />
               
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="categoria">Categoria</Label>
-                  <Input
-                    id="categoria"
-                    value={formData.categoria}
-                    onChange={(e) => setFormData(prev => ({ ...prev, categoria: e.target.value }))}
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="prioridade">Prioridade</Label>
-                  <Select value={formData.prioridade} onValueChange={(value) => setFormData(prev => ({ ...prev, prioridade: value }))}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="baixa">Baixa</SelectItem>
-                      <SelectItem value="media">Média</SelectItem>
-                      <SelectItem value="alta">Alta</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
+              <ValidatedSelect
+                label="Zona"
+                name="zona"
+                value={formData.zona}
+                onChange={(value) => setFormData(prev => ({ ...prev, zona: value }))}
+                error={getFieldError('zona')}
+                options={[
+                  { value: "norte", label: "Norte" },
+                  { value: "sul", label: "Sul" },
+                  { value: "leste", label: "Leste" },
+                  { value: "oeste", label: "Oeste" },
+                  { value: "centro", label: "Centro" }
+                ]}
+              />
               
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="status">Status</Label>
-                  <Select value={formData.status} onValueChange={(value) => setFormData(prev => ({ ...prev, status: value }))}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="pendente">Pendente</SelectItem>
-                      <SelectItem value="em_andamento">Em Andamento</SelectItem>
-                      <SelectItem value="concluida">Concluída</SelectItem>
-                      <SelectItem value="cancelada">Cancelada</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="zona">Zona</Label>
-                  <Input
-                    id="zona"
-                    value={formData.zona}
-                    onChange={(e) => setFormData(prev => ({ ...prev, zona: e.target.value }))}
-                  />
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="solicitante">Solicitante</Label>
-                  <Input
-                    id="solicitante"
-                    value={formData.solicitante}
-                    onChange={(e) => setFormData(prev => ({ ...prev, solicitante: e.target.value }))}
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="data_limite">Data Limite</Label>
-                  <Input
-                    id="data_limite"
-                    type="date"
-                    value={formData.data_limite}
-                    onChange={(e) => setFormData(prev => ({ ...prev, data_limite: e.target.value }))}
-                  />
-                </div>
-              </div>
+              <ValidatedInput
+                label="Data Limite"
+                name="data_limite"
+                type="date"
+                value={formData.data_limite}
+                onChange={(value) => setFormData(prev => ({ ...prev, data_limite: value }))}
+                error={getFieldError('data_limite')}
+              />
               
               <div className="flex justify-end gap-2">
                 <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
@@ -312,192 +323,123 @@ const DemandasCompleta = () => {
         </Dialog>
       </div>
 
-      <Tabs defaultValue="lista" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="lista">Lista de Demandas</TabsTrigger>
-          <TabsTrigger value="estatisticas">Estatísticas</TabsTrigger>
-        </TabsList>
+      {/* Advanced Filters */}
+      <AdvancedFilters
+        type="demandas"
+        filters={filters}
+        onFiltersChange={setFilters}
+        onClearFilters={clearFilters}
+      />
 
-        <TabsContent value="lista" className="space-y-6">
-          {/* Filtros */}
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex flex-col lg:flex-row gap-4">
-                <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                  <Input
-                    placeholder="Buscar demandas..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10"
-                  />
-                </div>
-                <Button variant="outline">
-                  <Filter className="w-4 h-4 mr-2" />
-                  Filtros
-                </Button>
+      {/* Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center gap-2">
+              <Calendar className="w-8 h-8 text-blue-600" />
+              <div>
+                <div className="text-2xl font-bold">{demandasPendentes.length}</div>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Pendentes</p>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="w-8 h-8 text-red-600" />
+              <div>
+                <div className="text-2xl font-bold">{demandasUrgentes.length}</div>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Urgentes</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center gap-2">
+              <User className="w-8 h-8 text-green-600" />
+              <div>
+                <div className="text-2xl font-bold">{filteredDemandas.length}</div>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Total Filtradas</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            {[
-              { 
-                label: "Total", 
-                valor: demandas.length.toString(), 
-                cor: "from-indigo-500 to-indigo-600", 
-                icon: FileText 
-              },
-              { 
-                label: "Pendentes", 
-                valor: demandas.filter(d => d.status === 'pendente').length.toString(), 
-                cor: "from-yellow-500 to-yellow-600", 
-                icon: Clock 
-              },
-              { 
-                label: "Em Andamento", 
-                valor: demandas.filter(d => d.status === 'em_andamento').length.toString(), 
-                cor: "from-blue-500 to-blue-600", 
-                icon: AlertCircle 
-              },
-              { 
-                label: "Concluídas", 
-                valor: demandas.filter(d => d.status === 'concluida').length.toString(), 
-                cor: "from-green-500 to-green-600", 
-                icon: CheckCircle 
-              }
-            ].map((stat, index) => (
-              <Card key={index}>
-                <CardContent className="p-6">
-                  <div className="flex items-center">
-                    <div className={`w-12 h-12 rounded-lg bg-gradient-to-r ${stat.cor} flex items-center justify-center mr-4`}>
-                      <stat.icon className="text-white w-6 h-6" />
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">{stat.label}</p>
-                      <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{stat.valor}</p>
-                    </div>
+      {/* Demandas List */}
+      <div className="grid grid-cols-1 gap-4">
+        {filteredDemandas.map((demanda) => (
+          <Card key={demanda.id} className="hover:shadow-lg transition-shadow">
+            <CardHeader className="pb-2">
+              <div className="flex justify-between items-start">
+                <div className="flex-1">
+                  <CardTitle className="text-lg">{demanda.titulo}</CardTitle>
+                  <div className="flex gap-2 mt-2">
+                    <Badge className={getPrioridadeColor(demanda.prioridade || 'media')}>
+                      {demanda.prioridade}
+                    </Badge>
+                    <Badge className={getStatusColor(demanda.status || 'pendente')}>
+                      {demanda.status}
+                    </Badge>
+                    {demanda.categoria && (
+                      <Badge variant="outline">{demanda.categoria}</Badge>
+                    )}
                   </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-
-          {/* Tabela de Demandas */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Lista de Demandas</CardTitle>
-              <CardDescription>
-                Acompanhe todas as demandas registradas
-              </CardDescription>
+                </div>
+                <div className="flex gap-1">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleEdit(demanda)}
+                  >
+                    <Edit className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleDelete(demanda.id)}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
             </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Demanda</TableHead>
-                    <TableHead>Solicitante</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Prioridade</TableHead>
-                    <TableHead>Categoria</TableHead>
-                    <TableHead>Data Criação</TableHead>
-                    <TableHead>Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredDemandas.map((demanda) => (
-                    <TableRow key={demanda.id}>
-                      <TableCell>
-                        <div className="space-y-1">
-                          <p className="font-semibold text-gray-900 dark:text-gray-100">{demanda.titulo}</p>
-                          {demanda.descricao && (
-                            <p className="text-sm text-gray-600 dark:text-gray-400 truncate max-w-xs">{demanda.descricao}</p>
-                          )}
-                          {demanda.zona && (
-                            <div className="flex items-center gap-1 text-xs text-gray-500">
-                              <MapPin className="w-3 h-3" />
-                              {demanda.zona}
-                            </div>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        {demanda.solicitante ? (
-                          <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full flex items-center justify-center">
-                              <User className="w-4 h-4 text-white" />
-                            </div>
-                            <div>
-                              <p className="font-medium text-gray-900 dark:text-gray-100">{demanda.solicitante}</p>
-                            </div>
-                          </div>
-                        ) : (
-                          <span className="text-gray-400">-</span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <Badge className={`${getStatusColor(demanda.status)} border flex items-center gap-1 w-fit`}>
-                          {getStatusIcon(demanda.status)}
-                          {demanda.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge className={`${getPrioridadeColor(demanda.prioridade)} border`}>
-                          {demanda.prioridade}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-sm text-gray-600 dark:text-gray-400">{demanda.categoria || '-'}</span>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400">
-                          <Calendar className="w-3 h-3" />
-                          {new Date(demanda.created_at).toLocaleDateString('pt-BR')}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleEdit(demanda)}
-                          >
-                            <Edit className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDelete(demanda.id)}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="estatisticas">
-          <Card>
-            <CardContent className="p-6">
-              <div className="h-96 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center">
-                <p className="text-gray-500 dark:text-gray-400">Gráficos de estatísticas serão implementados aqui</p>
+            <CardContent className="space-y-2">
+              {demanda.descricao && (
+                <p className="text-gray-600 dark:text-gray-400">{demanda.descricao}</p>
+              )}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm">
+                {demanda.solicitante && (
+                  <div className="flex items-center gap-2">
+                    <User className="w-4 h-4 text-gray-400" />
+                    <span>{demanda.solicitante}</span>
+                  </div>
+                )}
+                {demanda.zona && (
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">Zona:</span>
+                    <span>{demanda.zona}</span>
+                  </div>
+                )}
+                {demanda.data_limite && (
+                  <div className="flex items-center gap-2">
+                    <Calendar className="w-4 h-4 text-gray-400" />
+                    <span>{new Date(demanda.data_limite).toLocaleDateString('pt-BR')}</span>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
-        </TabsContent>
-      </Tabs>
+        ))}
+      </div>
 
       {filteredDemandas.length === 0 && (
         <Card>
           <CardContent className="p-12 text-center">
             <p className="text-gray-500 dark:text-gray-400">
-              {searchTerm ? 'Nenhuma demanda encontrada com este termo de busca.' : 'Nenhuma demanda cadastrada ainda.'}
+              {Object.keys(filters).length > 0 ? 'Nenhuma demanda encontrada com os filtros aplicados.' : 'Nenhuma demanda cadastrada ainda.'}
             </p>
           </CardContent>
         </Card>

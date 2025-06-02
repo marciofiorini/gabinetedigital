@@ -2,19 +2,22 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Plus, Search, Edit, Trash2, Phone, Mail, MapPin, Calendar } from "lucide-react";
+import { Plus, Edit, Trash2, Phone, Mail, MapPin, Calendar } from "lucide-react";
 import { useContatos, type Contato } from "@/hooks/useContatos";
 import { useToast } from "@/hooks/use-toast";
+import { useFormValidation, contatoSchema } from "@/hooks/useFormValidation";
+import { ValidatedInput, ValidatedTextarea, ValidatedSelect } from "@/components/ValidatedForm";
+import { AdvancedFilters, type FilterOptions } from "@/components/AdvancedFilters";
+import { useRealTimeData } from "@/hooks/useRealTimeData";
 
 const Contatos = () => {
-  const { contatos, loading, createContato, updateContato, deleteContato } = useContatos();
+  const { contatos, loading, createContato, updateContato, deleteContato, refetch } = useContatos();
   const { toast } = useToast();
-  const [searchTerm, setSearchTerm] = useState("");
+  useRealTimeData('contatos', refetch);
+  
+  const [filters, setFilters] = useState<FilterOptions>({});
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingContato, setEditingContato] = useState<Contato | null>(null);
   const [formData, setFormData] = useState({
@@ -27,19 +30,52 @@ const Contatos = () => {
     observacoes: ""
   });
 
-  const filteredContatos = contatos.filter(contato =>
-    contato.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    contato.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    contato.telefone?.includes(searchTerm)
-  );
+  const { validate, errors, getFieldError, clearErrors } = useFormValidation(contatoSchema);
+
+  const filteredContatos = contatos.filter(contato => {
+    // Search filter
+    if (filters.search) {
+      const searchLower = filters.search.toLowerCase();
+      const matchesSearch = 
+        contato.nome.toLowerCase().includes(searchLower) ||
+        contato.email?.toLowerCase().includes(searchLower) ||
+        contato.telefone?.includes(filters.search);
+      if (!matchesSearch) return false;
+    }
+
+    // Zone filter
+    if (filters.zona && contato.zona !== filters.zona) {
+      return false;
+    }
+
+    // Date filters
+    if (filters.dataInicio && contato.created_at) {
+      const contatoDate = new Date(contato.created_at);
+      if (contatoDate < filters.dataInicio) return false;
+    }
+
+    if (filters.dataFim && contato.created_at) {
+      const contatoDate = new Date(contato.created_at);
+      if (contatoDate > filters.dataFim) return false;
+    }
+
+    // Tags filter
+    if (filters.tags && filters.tags.length > 0) {
+      if (!contato.tags || !filters.tags.some(tag => contato.tags?.includes(tag))) {
+        return false;
+      }
+    }
+
+    return true;
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.nome.trim()) {
+    if (!validate(formData)) {
       toast({
-        title: "Erro",
-        description: "Nome é obrigatório",
+        title: "Erro de Validação",
+        description: "Por favor, corrija os erros no formulário",
         variant: "destructive"
       });
       return;
@@ -62,15 +98,7 @@ const Contatos = () => {
       
       setIsDialogOpen(false);
       setEditingContato(null);
-      setFormData({
-        nome: "",
-        email: "",
-        telefone: "",
-        endereco: "",
-        zona: "",
-        data_nascimento: "",
-        observacoes: ""
-      });
+      resetForm();
     } catch (error) {
       toast({
         title: "Erro",
@@ -78,6 +106,19 @@ const Contatos = () => {
         variant: "destructive"
       });
     }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      nome: "",
+      email: "",
+      telefone: "",
+      endereco: "",
+      zona: "",
+      data_nascimento: "",
+      observacoes: ""
+    });
+    clearErrors();
   };
 
   const handleEdit = (contato: Contato) => {
@@ -91,6 +132,7 @@ const Contatos = () => {
       data_nascimento: contato.data_nascimento || "",
       observacoes: contato.observacoes || ""
     });
+    clearErrors();
     setIsDialogOpen(true);
   };
 
@@ -109,6 +151,10 @@ const Contatos = () => {
   const formatDate = (dateString: string) => {
     if (!dateString) return "";
     return new Date(dateString).toLocaleDateString('pt-BR');
+  };
+
+  const clearFilters = () => {
+    setFilters({});
   };
 
   if (loading) {
@@ -132,15 +178,7 @@ const Contatos = () => {
           <DialogTrigger asChild>
             <Button onClick={() => {
               setEditingContato(null);
-              setFormData({
-                nome: "",
-                email: "",
-                telefone: "",
-                endereco: "",
-                zona: "",
-                data_nascimento: "",
-                observacoes: ""
-              });
+              resetForm();
             }}>
               <Plus className="w-4 h-4 mr-2" />
               Novo Contato
@@ -154,65 +192,72 @@ const Contatos = () => {
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="nome">Nome *</Label>
-                <Input
-                  id="nome"
-                  value={formData.nome}
-                  onChange={(e) => setFormData(prev => ({ ...prev, nome: e.target.value }))}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="telefone">Telefone</Label>
-                <Input
-                  id="telefone"
-                  value={formData.telefone}
-                  onChange={(e) => setFormData(prev => ({ ...prev, telefone: e.target.value }))}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="endereco">Endereço</Label>
-                <Input
-                  id="endereco"
-                  value={formData.endereco}
-                  onChange={(e) => setFormData(prev => ({ ...prev, endereco: e.target.value }))}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="zona">Zona</Label>
-                <Input
-                  id="zona"
-                  value={formData.zona}
-                  onChange={(e) => setFormData(prev => ({ ...prev, zona: e.target.value }))}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="data_nascimento">Data de Nascimento</Label>
-                <Input
-                  id="data_nascimento"
-                  type="date"
-                  value={formData.data_nascimento}
-                  onChange={(e) => setFormData(prev => ({ ...prev, data_nascimento: e.target.value }))}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="observacoes">Observações</Label>
-                <Textarea
-                  id="observacoes"
-                  value={formData.observacoes}
-                  onChange={(e) => setFormData(prev => ({ ...prev, observacoes: e.target.value }))}
-                />
-              </div>
+              <ValidatedInput
+                label="Nome"
+                name="nome"
+                value={formData.nome}
+                onChange={(value) => setFormData(prev => ({ ...prev, nome: value }))}
+                error={getFieldError('nome')}
+                required
+              />
+              
+              <ValidatedInput
+                label="Email"
+                name="email"
+                type="email"
+                value={formData.email}
+                onChange={(value) => setFormData(prev => ({ ...prev, email: value }))}
+                error={getFieldError('email')}
+              />
+              
+              <ValidatedInput
+                label="Telefone"
+                name="telefone"
+                value={formData.telefone}
+                onChange={(value) => setFormData(prev => ({ ...prev, telefone: value }))}
+                error={getFieldError('telefone')}
+              />
+              
+              <ValidatedInput
+                label="Endereço"
+                name="endereco"
+                value={formData.endereco}
+                onChange={(value) => setFormData(prev => ({ ...prev, endereco: value }))}
+                error={getFieldError('endereco')}
+              />
+              
+              <ValidatedSelect
+                label="Zona"
+                name="zona"
+                value={formData.zona}
+                onChange={(value) => setFormData(prev => ({ ...prev, zona: value }))}
+                error={getFieldError('zona')}
+                options={[
+                  { value: "norte", label: "Norte" },
+                  { value: "sul", label: "Sul" },
+                  { value: "leste", label: "Leste" },
+                  { value: "oeste", label: "Oeste" },
+                  { value: "centro", label: "Centro" }
+                ]}
+              />
+              
+              <ValidatedInput
+                label="Data de Nascimento"
+                name="data_nascimento"
+                type="date"
+                value={formData.data_nascimento}
+                onChange={(value) => setFormData(prev => ({ ...prev, data_nascimento: value }))}
+                error={getFieldError('data_nascimento')}
+              />
+              
+              <ValidatedTextarea
+                label="Observações"
+                name="observacoes"
+                value={formData.observacoes}
+                onChange={(value) => setFormData(prev => ({ ...prev, observacoes: value }))}
+                error={getFieldError('observacoes')}
+              />
+              
               <div className="flex justify-end gap-2">
                 <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                   Cancelar
@@ -226,27 +271,20 @@ const Contatos = () => {
         </Dialog>
       </div>
 
-      {/* Search */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center gap-2">
-            <Search className="w-5 h-5" />
-            <Input
-              placeholder="Buscar contatos..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="max-w-sm"
-            />
-          </div>
-        </CardHeader>
-      </Card>
+      {/* Advanced Filters */}
+      <AdvancedFilters
+        type="contatos"
+        filters={filters}
+        onFiltersChange={setFilters}
+        onClearFilters={clearFilters}
+      />
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardContent className="p-6">
-            <div className="text-2xl font-bold">{contatos.length}</div>
-            <p className="text-sm text-gray-600 dark:text-gray-400">Total de Contatos</p>
+            <div className="text-2xl font-bold">{filteredContatos.length}</div>
+            <p className="text-sm text-gray-600 dark:text-gray-400">Contatos Filtrados</p>
           </CardContent>
         </Card>
         <Card>
@@ -333,7 +371,7 @@ const Contatos = () => {
         <Card>
           <CardContent className="p-12 text-center">
             <p className="text-gray-500 dark:text-gray-400">
-              {searchTerm ? 'Nenhum contato encontrado com este termo de busca.' : 'Nenhum contato cadastrado ainda.'}
+              {Object.keys(filters).length > 0 ? 'Nenhum contato encontrado com os filtros aplicados.' : 'Nenhum contato cadastrado ainda.'}
             </p>
           </CardContent>
         </Card>
