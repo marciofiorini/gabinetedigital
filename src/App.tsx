@@ -15,6 +15,7 @@ import WhatsApp from '@/pages/WhatsApp';
 import Instagram from '@/pages/Instagram';
 import Email from '@/pages/Email';
 import Demandas from '@/pages/Demandas';
+import DemandasCompleta from '@/pages/DemandasCompleta';
 import MonitorRedes from '@/pages/MonitorRedes';
 import ComunicacaoIntegrada from '@/pages/ComunicacaoIntegrada';
 import BancoMidia from '@/pages/BancoMidia';
@@ -44,6 +45,7 @@ function App() {
               <Route path="/contatos" element={<ProtectedLayout><Contatos /></ProtectedLayout>} />
               <Route path="/lideres" element={<ProtectedLayout><Lideres /></ProtectedLayout>} />
               <Route path="/demandas" element={<ProtectedLayout><Demandas /></ProtectedLayout>} />
+              <Route path="/demandas-completa" element={<ProtectedLayout><DemandasCompleta /></ProtectedLayout>} />
               <Route path="/crm" element={<ProtectedLayout><CrmKanban /></ProtectedLayout>} />
               <Route path="/crm-completo" element={<ProtectedLayout><CrmCompleto /></ProtectedLayout>} />
               <Route path="/agenda" element={<ProtectedLayout><Agenda /></ProtectedLayout>} />
