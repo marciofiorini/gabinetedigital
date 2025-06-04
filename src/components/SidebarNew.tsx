@@ -101,13 +101,13 @@ export const SidebarNew = ({ isOpen }: SidebarProps) => {
     ]
   };
 
-  // Grupo Painel
+  // Grupo Painel - ATUALIZADO para usar apenas Analytics Avançado
   const painelGroup = {
     id: 'painel',
     label: 'Painel',
     icon: BarChart3,
     items: [
-      { name: 'Analytics', icon: BarChart3, path: '/analytics', minPlan: 'premium' as UserPlan },
+      { name: 'Analytics Completo', icon: BarChart3, path: '/analytics-avancado', minPlan: 'premium' as UserPlan },
       { name: 'Monitor de Redes', icon: Monitor, path: '/monitor-redes', minPlan: 'premium' as UserPlan },
       { name: 'Pesquisas', icon: Search, path: '/pesquisas', minPlan: 'basic' as UserPlan },
       { name: 'Portal do Cidadão', icon: DoorOpen, path: '/portal-cidadao', minPlan: 'basic' as UserPlan },

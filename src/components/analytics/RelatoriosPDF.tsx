@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,7 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, FileText, Download, Calendar, Mail, Settings } from "lucide-react";
+import { Plus, FileText, Download, Calendar, Mail, Settings, Trash2, Clock, Play, Eye } from "lucide-react";
 import { useRelatoriosAutomatizados } from '@/hooks/useRelatoriosAutomatizados';
 
 export const RelatoriosPDF = () => {
@@ -44,6 +45,25 @@ export const RelatoriosPDF = () => {
     { value: 'excel', label: 'Excel' },
     { value: 'csv', label: 'CSV' }
   ];
+
+  const getFrequenciaColor = (freq: string) => {
+    switch (freq) {
+      case 'diario': return 'bg-green-100 text-green-800';
+      case 'semanal': return 'bg-blue-100 text-blue-800';
+      case 'mensal': return 'bg-purple-100 text-purple-800';
+      case 'trimestral': return 'bg-orange-100 text-orange-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getFormatoIcon = (formato: string) => {
+    switch (formato) {
+      case 'pdf': return <FileText className="w-4 h-4" />;
+      case 'excel': return <FileText className="w-4 h-4 text-green-600" />;
+      case 'csv': return <FileText className="w-4 h-4 text-blue-600" />;
+      default: return <FileText className="w-4 h-4" />;
+    }
+  };
 
   const handleCreateRelatorio = async () => {
     try {

@@ -29,7 +29,7 @@ export const GlobalSearch = () => {
         { name: 'WhatsApp', path: '/whatsapp', icon: Users },
         { name: 'Instagram', path: '/instagram', icon: Users },
         { name: 'E-mail', path: '/email', icon: Users },
-        { name: 'Analytics', path: '/analytics', icon: Users },
+        { name: 'Analytics Completo', path: '/analytics-avancado', icon: Users },
         { name: 'Monitor Redes', path: '/monitor-redes', icon: Users },
         { name: 'Portal Cidadão', path: '/portal-cidadao', icon: Users },
         { name: 'Projetos de Lei', path: '/projetos-lei', icon: Users },
