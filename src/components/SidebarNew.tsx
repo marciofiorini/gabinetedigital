@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useLocation, Link } from 'react-router-dom';
 import { cn } from "@/lib/utils";
@@ -35,7 +36,9 @@ import {
   Map,
   AlertCircle,
   Cake,
-  Zap
+  Zap,
+  Settings,
+  CreditCard
 } from "lucide-react";
 import { useAuth } from '@/contexts/AuthContext';
 import { useDashboardStats } from '@/hooks/useDashboardStats';
@@ -52,7 +55,7 @@ export const SidebarNew = ({ isOpen }: SidebarProps) => {
   const { profile } = useAuth();
   const { stats, loading } = useDashboardStats();
   const { isAdmin } = useUserRoles();
-  const [openGroups, setOpenGroups] = useState<string[]>(['comunicacao', 'painel']);
+  const [openGroups, setOpenGroups] = useState<string[]>(['comunicacao', 'painel', 'gestao']);
 
   console.log('SidebarNew - Renderizando:', { 
     isOpen, 
@@ -79,10 +82,9 @@ export const SidebarNew = ({ isOpen }: SidebarProps) => {
     { name: 'CRM', icon: Target, path: '/crm', minPlan: 'premium' as UserPlan },
     { name: 'Demandas', icon: FileText, path: '/demandas', minPlan: 'basic' as UserPlan },
     { name: 'Projetos de Lei', icon: Scale, path: '/projetos-lei', minPlan: 'basic' as UserPlan },
-    { name: 'Equipe', icon: Users, path: '/equipe', minPlan: 'premium' as UserPlan },
   ];
 
-  // Grupo de comunicação (adicionado Comunicação)
+  // Grupo de comunicação
   const comunicacaoGroup = {
     id: 'comunicacao',
     label: 'Canais',
@@ -107,6 +109,18 @@ export const SidebarNew = ({ isOpen }: SidebarProps) => {
       { name: 'Portal do Cidadão', icon: DoorOpen, path: '/portal-cidadao', minPlan: 'basic' as UserPlan },
       { name: 'Mapa de Influência', icon: Map, path: '/mapa-influencia', minPlan: 'premium' as UserPlan },
       { name: 'Sistema de Votações', icon: Vote, path: '/sistema-votacoes', minPlan: 'basic' as UserPlan },
+    ]
+  };
+
+  // Grupo Gestão
+  const gestaoGroup = {
+    id: 'gestao',
+    label: 'Gestão',
+    icon: Settings,
+    items: [
+      { name: 'Equipe', icon: Users, path: '/equipe', minPlan: 'premium' as UserPlan },
+      { name: 'Configurações', icon: Settings, path: '/configuracoes', minPlan: 'basic' as UserPlan },
+      { name: 'Planos', icon: CreditCard, path: '/planos', minPlan: 'basic' as UserPlan },
     ]
   };
 
@@ -240,7 +254,46 @@ export const SidebarNew = ({ isOpen }: SidebarProps) => {
           </CollapsibleContent>
         </Collapsible>
 
-        {/* Link de Planos no final */}
+        {/* Grupo Gestão */}
+        <Collapsible open={openGroups.includes('gestao')} onOpenChange={() => toggleGroup('gestao')}>
+          <CollapsibleTrigger asChild>
+            <Button
+              variant="ghost"
+              className="w-full justify-between p-3 h-auto font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+            >
+              <div className="flex items-center gap-2">
+                <gestaoGroup.icon className="w-4 h-4" />
+                <span className="text-sm">{gestaoGroup.label}</span>
+              </div>
+              {openGroups.includes('gestao') ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+            </Button>
+          </CollapsibleTrigger>
+          <CollapsibleContent className="space-y-1 ml-4 mt-1">
+            {gestaoGroup.items.map((item) => {
+              const hasAccess = hasAccessToPlan(item.minPlan) || isAdmin();
+              if (!hasAccess) return null;
+
+              return (
+                <Link
+                  to={item.path}
+                  key={item.name}
+                  className={cn(
+                    "flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-colors",
+                    location.pathname === item.path 
+                      ? "bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border-l-2 border-blue-600" 
+                      : "text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white"
+                  )}
+                >
+                  <item.icon className="w-4 h-4" />
+                  <span>{item.name}</span>
+                  {!hasAccessToPlan(item.minPlan) && isAdmin() && (
+                    <Badge variant="outline" className="ml-auto text-xs">Admin</Badge>
+                  )}
+                </Link>
+              );
+            })}
+          </CollapsibleContent>
+        </Collapsible>
       </nav>
 
       {/* Bottom Stats Card - Resumo de Hoje */}

@@ -42,7 +42,7 @@ export const useTarefasEquipe = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setTarefas(data || []);
+      setTarefas((data || []) as TarefaEquipe[]);
     } catch (error: any) {
       console.error('Erro ao buscar tarefas:', error);
       toast({
@@ -67,8 +67,8 @@ export const useTarefasEquipe = () => {
         .single();
 
       if (error) throw error;
-      setTarefas(prev => [data, ...prev]);
-      return data;
+      setTarefas(prev => [data as TarefaEquipe, ...prev]);
+      return data as TarefaEquipe;
     } catch (error: any) {
       console.error('Erro ao criar tarefa:', error);
       throw error;
@@ -85,8 +85,8 @@ export const useTarefasEquipe = () => {
         .single();
 
       if (error) throw error;
-      setTarefas(prev => prev.map(t => t.id === id ? data : t));
-      return data;
+      setTarefas(prev => prev.map(t => t.id === id ? data as TarefaEquipe : t));
+      return data as TarefaEquipe;
     } catch (error: any) {
       console.error('Erro ao atualizar tarefa:', error);
       throw error;

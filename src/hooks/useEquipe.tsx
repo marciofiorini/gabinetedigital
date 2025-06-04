@@ -36,7 +36,7 @@ export const useEquipe = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setFuncionarios(data || []);
+      setFuncionarios((data || []) as Funcionario[]);
     } catch (error: any) {
       console.error('Erro ao buscar funcionários:', error);
       toast({
@@ -61,8 +61,8 @@ export const useEquipe = () => {
         .single();
 
       if (error) throw error;
-      setFuncionarios(prev => [data, ...prev]);
-      return data;
+      setFuncionarios(prev => [data as Funcionario, ...prev]);
+      return data as Funcionario;
     } catch (error: any) {
       console.error('Erro ao criar funcionário:', error);
       throw error;
@@ -79,8 +79,8 @@ export const useEquipe = () => {
         .single();
 
       if (error) throw error;
-      setFuncionarios(prev => prev.map(f => f.id === id ? data : f));
-      return data;
+      setFuncionarios(prev => prev.map(f => f.id === id ? data as Funcionario : f));
+      return data as Funcionario;
     } catch (error: any) {
       console.error('Erro ao atualizar funcionário:', error);
       throw error;
