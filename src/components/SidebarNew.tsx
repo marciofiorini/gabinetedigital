@@ -114,18 +114,18 @@ export const SidebarNew = ({ isOpen }: SidebarProps) => {
     ]
   };
 
-  // Grupo Gestão
+  // Grupo Gestão (reorganizado com Planos e Configurações ao final)
   const gestaoGroup = {
     id: 'gestao',
     label: 'Gestão',
     icon: Settings,
     items: [
       { name: 'Equipe', icon: Users, path: '/equipe', minPlan: 'premium' as UserPlan },
-      { name: 'Configurações', icon: Settings, path: '/configuracoes', minPlan: 'basic' as UserPlan },
-      { name: 'Planos', icon: CreditCard, path: '/planos', minPlan: 'basic' as UserPlan },
       { name: 'Orçamento Público', icon: DollarSign, path: '/orcamento-publico', minPlan: 'premium' as UserPlan },
       { name: 'Prestação de Contas', icon: Receipt, path: '/prestacao-contas', minPlan: 'premium' as UserPlan },
       { name: 'Projetos c/ Impacto Financeiro', icon: PieChart, path: '/projetos-financeiro', minPlan: 'premium' as UserPlan },
+      { name: 'Configurações', icon: Settings, path: '/configuracoes', minPlan: 'basic' as UserPlan },
+      { name: 'Planos', icon: CreditCard, path: '/planos', minPlan: 'basic' as UserPlan },
     ]
   };
 

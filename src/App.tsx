@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -34,6 +35,9 @@ import AgendaCompleta from "./pages/AgendaCompleta";
 import BancoMidia from "./pages/BancoMidia";
 import Integracoes from "./pages/Integracoes";
 import Administracao from "./pages/Administracao";
+import OrcamentoPublico from "./pages/OrcamentoPublico";
+import PrestacaoContas from "./pages/PrestacaoContas";
+import ProjetosFinanceiro from "./pages/ProjetosFinanceiro";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -77,6 +81,9 @@ function App() {
                 <Route path="banco-midia" element={<BancoMidia />} />
                 <Route path="integracoes" element={<Integracoes />} />
                 <Route path="administracao" element={<Administracao />} />
+                <Route path="orcamento-publico" element={<OrcamentoPublico />} />
+                <Route path="prestacao-contas" element={<PrestacaoContas />} />
+                <Route path="projetos-financeiro" element={<ProjetosFinanceiro />} />
                 <Route path="*" element={<NotFound />} />
               </Route>
             </Routes>

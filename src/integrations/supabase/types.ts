@@ -932,6 +932,66 @@ export type Database = {
         }
         Relationships: []
       }
+      orcamento_publico: {
+        Row: {
+          created_at: string
+          data_aprovacao: string | null
+          data_limite: string | null
+          descricao: string
+          destino: string | null
+          documentos: Json | null
+          id: string
+          numero_emenda: string | null
+          observacoes: string | null
+          origem: string | null
+          status: string | null
+          tipo: string
+          updated_at: string
+          user_id: string | null
+          valor_executado: number | null
+          valor_pendente: number | null
+          valor_total: number
+        }
+        Insert: {
+          created_at?: string
+          data_aprovacao?: string | null
+          data_limite?: string | null
+          descricao: string
+          destino?: string | null
+          documentos?: Json | null
+          id?: string
+          numero_emenda?: string | null
+          observacoes?: string | null
+          origem?: string | null
+          status?: string | null
+          tipo: string
+          updated_at?: string
+          user_id?: string | null
+          valor_executado?: number | null
+          valor_pendente?: number | null
+          valor_total: number
+        }
+        Update: {
+          created_at?: string
+          data_aprovacao?: string | null
+          data_limite?: string | null
+          descricao?: string
+          destino?: string | null
+          documentos?: Json | null
+          id?: string
+          numero_emenda?: string | null
+          observacoes?: string | null
+          origem?: string | null
+          status?: string | null
+          tipo?: string
+          updated_at?: string
+          user_id?: string | null
+          valor_executado?: number | null
+          valor_pendente?: number | null
+          valor_total?: number
+        }
+        Relationships: []
+      }
       ponto_eletronico: {
         Row: {
           created_at: string
@@ -970,6 +1030,69 @@ export type Database = {
           },
         ]
       }
+      prestacao_contas: {
+        Row: {
+          categoria: string
+          centro_custo: string | null
+          comprovantes: Json | null
+          created_at: string
+          data_pagamento: string | null
+          descricao: string
+          fornecedor: string | null
+          id: string
+          numero_nota_fiscal: string | null
+          observacoes: string | null
+          periodo_fim: string
+          periodo_inicio: string
+          projeto_relacionado: string | null
+          status: string | null
+          subcategoria: string | null
+          updated_at: string
+          user_id: string | null
+          valor: number
+        }
+        Insert: {
+          categoria: string
+          centro_custo?: string | null
+          comprovantes?: Json | null
+          created_at?: string
+          data_pagamento?: string | null
+          descricao: string
+          fornecedor?: string | null
+          id?: string
+          numero_nota_fiscal?: string | null
+          observacoes?: string | null
+          periodo_fim: string
+          periodo_inicio: string
+          projeto_relacionado?: string | null
+          status?: string | null
+          subcategoria?: string | null
+          updated_at?: string
+          user_id?: string | null
+          valor: number
+        }
+        Update: {
+          categoria?: string
+          centro_custo?: string | null
+          comprovantes?: Json | null
+          created_at?: string
+          data_pagamento?: string | null
+          descricao?: string
+          fornecedor?: string | null
+          id?: string
+          numero_nota_fiscal?: string | null
+          observacoes?: string | null
+          periodo_fim?: string
+          periodo_inicio?: string
+          projeto_relacionado?: string | null
+          status?: string | null
+          subcategoria?: string | null
+          updated_at?: string
+          user_id?: string | null
+          valor?: number
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -997,6 +1120,81 @@ export type Database = {
           name?: string
           role?: string | null
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      projetos_impacto_financeiro: {
+        Row: {
+          beneficiarios_estimados: number | null
+          categoria: string | null
+          created_at: string
+          custo_estimado: number
+          custo_real: number | null
+          data_fim_prevista: string | null
+          data_fim_real: string | null
+          data_inicio_prevista: string | null
+          data_inicio_real: string | null
+          descricao: string
+          documentos: Json | null
+          fonte_recurso: string | null
+          id: string
+          impacto_social: string | null
+          marcos: Json | null
+          nome_projeto: string
+          prioridade: string | null
+          retorno_estimado: string | null
+          riscos_identificados: string | null
+          status: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          beneficiarios_estimados?: number | null
+          categoria?: string | null
+          created_at?: string
+          custo_estimado: number
+          custo_real?: number | null
+          data_fim_prevista?: string | null
+          data_fim_real?: string | null
+          data_inicio_prevista?: string | null
+          data_inicio_real?: string | null
+          descricao: string
+          documentos?: Json | null
+          fonte_recurso?: string | null
+          id?: string
+          impacto_social?: string | null
+          marcos?: Json | null
+          nome_projeto: string
+          prioridade?: string | null
+          retorno_estimado?: string | null
+          riscos_identificados?: string | null
+          status?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          beneficiarios_estimados?: number | null
+          categoria?: string | null
+          created_at?: string
+          custo_estimado?: number
+          custo_real?: number | null
+          data_fim_prevista?: string | null
+          data_fim_real?: string | null
+          data_inicio_prevista?: string | null
+          data_inicio_real?: string | null
+          descricao?: string
+          documentos?: Json | null
+          fonte_recurso?: string | null
+          id?: string
+          impacto_social?: string | null
+          marcos?: Json | null
+          nome_projeto?: string
+          prioridade?: string | null
+          retorno_estimado?: string | null
+          riscos_identificados?: string | null
+          status?: string | null
+          updated_at?: string
+          user_id?: string | null
         }
         Relationships: []
       }
