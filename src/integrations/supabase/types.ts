@@ -143,6 +143,66 @@ export type Database = {
         }
         Relationships: []
       }
+      arquivo_digital: {
+        Row: {
+          arquivo_nome: string | null
+          arquivo_tamanho: number | null
+          arquivo_url: string | null
+          categoria: string | null
+          created_at: string
+          data_documento: string | null
+          descricao: string | null
+          destino: string | null
+          id: string
+          numero_protocolo: string | null
+          origem: string | null
+          status: string
+          tags: string[] | null
+          tipo_documento: string
+          titulo: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          arquivo_nome?: string | null
+          arquivo_tamanho?: number | null
+          arquivo_url?: string | null
+          categoria?: string | null
+          created_at?: string
+          data_documento?: string | null
+          descricao?: string | null
+          destino?: string | null
+          id?: string
+          numero_protocolo?: string | null
+          origem?: string | null
+          status?: string
+          tags?: string[] | null
+          tipo_documento: string
+          titulo: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          arquivo_nome?: string | null
+          arquivo_tamanho?: number | null
+          arquivo_url?: string | null
+          categoria?: string | null
+          created_at?: string
+          data_documento?: string | null
+          descricao?: string | null
+          destino?: string | null
+          id?: string
+          numero_protocolo?: string | null
+          origem?: string | null
+          status?: string
+          tags?: string[] | null
+          tipo_documento?: string
+          titulo?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       avaliacoes_desempenho: {
         Row: {
           avaliador_id: string | null
@@ -297,6 +357,69 @@ export type Database = {
           id?: string
           tipo_monitoramento?: string
           ultima_atualizacao?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      consultas_publicas: {
+        Row: {
+          created_at: string
+          data_fim: string
+          data_inicio: string
+          descricao: string
+          documentos: Json | null
+          id: string
+          link_participacao: string | null
+          local_realizacao: string | null
+          modalidade: string
+          publico_alvo: string | null
+          resultados: Json | null
+          status: string
+          tema: string | null
+          tipo_consulta: string
+          titulo: string
+          total_participantes: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          data_fim: string
+          data_inicio: string
+          descricao: string
+          documentos?: Json | null
+          id?: string
+          link_participacao?: string | null
+          local_realizacao?: string | null
+          modalidade?: string
+          publico_alvo?: string | null
+          resultados?: Json | null
+          status?: string
+          tema?: string | null
+          tipo_consulta: string
+          titulo: string
+          total_participantes?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          data_fim?: string
+          data_inicio?: string
+          descricao?: string
+          documentos?: Json | null
+          id?: string
+          link_participacao?: string | null
+          local_realizacao?: string | null
+          modalidade?: string
+          publico_alvo?: string | null
+          resultados?: Json | null
+          status?: string
+          tema?: string | null
+          tipo_consulta?: string
+          titulo?: string
+          total_participantes?: number | null
           updated_at?: string
           user_id?: string
         }
@@ -896,6 +1019,75 @@ export type Database = {
         }
         Relationships: []
       }
+      monitoramento_legislativo: {
+        Row: {
+          alertas_configurados: Json | null
+          autor: string | null
+          casa_legislativa: string
+          created_at: string
+          data_apresentacao: string | null
+          ementa: string | null
+          id: string
+          impacto_estimado: string | null
+          link_projeto: string | null
+          numero_projeto: string
+          observacoes: string | null
+          situacao_atual: string | null
+          status_monitoramento: string
+          tema_relacionado: string | null
+          tipo_projeto: string
+          titulo: string
+          tramitacao_atual: string | null
+          updated_at: string
+          urgencia: string | null
+          user_id: string
+        }
+        Insert: {
+          alertas_configurados?: Json | null
+          autor?: string | null
+          casa_legislativa: string
+          created_at?: string
+          data_apresentacao?: string | null
+          ementa?: string | null
+          id?: string
+          impacto_estimado?: string | null
+          link_projeto?: string | null
+          numero_projeto: string
+          observacoes?: string | null
+          situacao_atual?: string | null
+          status_monitoramento?: string
+          tema_relacionado?: string | null
+          tipo_projeto: string
+          titulo: string
+          tramitacao_atual?: string | null
+          updated_at?: string
+          urgencia?: string | null
+          user_id: string
+        }
+        Update: {
+          alertas_configurados?: Json | null
+          autor?: string | null
+          casa_legislativa?: string
+          created_at?: string
+          data_apresentacao?: string | null
+          ementa?: string | null
+          id?: string
+          impacto_estimado?: string | null
+          link_projeto?: string | null
+          numero_projeto?: string
+          observacoes?: string | null
+          situacao_atual?: string | null
+          status_monitoramento?: string
+          tema_relacionado?: string | null
+          tipo_projeto?: string
+          titulo?: string
+          tramitacao_atual?: string | null
+          updated_at?: string
+          urgencia?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           action_url: string | null
@@ -991,6 +1183,47 @@ export type Database = {
           valor_total?: number
         }
         Relationships: []
+      }
+      participacoes_consulta: {
+        Row: {
+          aprovado: boolean | null
+          consulta_id: string | null
+          contribuicao: string | null
+          data_participacao: string
+          email: string | null
+          id: string
+          nome_participante: string
+          telefone: string | null
+        }
+        Insert: {
+          aprovado?: boolean | null
+          consulta_id?: string | null
+          contribuicao?: string | null
+          data_participacao?: string
+          email?: string | null
+          id?: string
+          nome_participante: string
+          telefone?: string | null
+        }
+        Update: {
+          aprovado?: boolean | null
+          consulta_id?: string | null
+          contribuicao?: string | null
+          data_participacao?: string
+          email?: string | null
+          id?: string
+          nome_participante?: string
+          telefone?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "participacoes_consulta_consulta_id_fkey"
+            columns: ["consulta_id"]
+            isOneToOne: false
+            referencedRelation: "consultas_publicas"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       ponto_eletronico: {
         Row: {
@@ -1198,6 +1431,69 @@ export type Database = {
         }
         Relationships: []
       }
+      relacionamento_institucional: {
+        Row: {
+          area_atuacao: string | null
+          created_at: string
+          email: string | null
+          endereco: string | null
+          id: string
+          nivel_relacionamento: string
+          nome_instituicao: string
+          observacoes: string | null
+          proximo_contato: string | null
+          responsavel_cargo: string | null
+          responsavel_nome: string | null
+          status: string
+          telefone: string | null
+          tipo_instituicao: string
+          ultima_interacao: string | null
+          updated_at: string
+          user_id: string
+          website: string | null
+        }
+        Insert: {
+          area_atuacao?: string | null
+          created_at?: string
+          email?: string | null
+          endereco?: string | null
+          id?: string
+          nivel_relacionamento?: string
+          nome_instituicao: string
+          observacoes?: string | null
+          proximo_contato?: string | null
+          responsavel_cargo?: string | null
+          responsavel_nome?: string | null
+          status?: string
+          telefone?: string | null
+          tipo_instituicao: string
+          ultima_interacao?: string | null
+          updated_at?: string
+          user_id: string
+          website?: string | null
+        }
+        Update: {
+          area_atuacao?: string | null
+          created_at?: string
+          email?: string | null
+          endereco?: string | null
+          id?: string
+          nivel_relacionamento?: string
+          nome_instituicao?: string
+          observacoes?: string | null
+          proximo_contato?: string | null
+          responsavel_cargo?: string | null
+          responsavel_nome?: string | null
+          status?: string
+          telefone?: string | null
+          tipo_instituicao?: string
+          ultima_interacao?: string | null
+          updated_at?: string
+          user_id?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
       tarefas_equipe: {
         Row: {
           created_at: string
@@ -1250,6 +1546,47 @@ export type Database = {
             columns: ["funcionario_id"]
             isOneToOne: false
             referencedRelation: "funcionarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tramitacao_legislativa: {
+        Row: {
+          created_at: string
+          data_tramitacao: string
+          despacho: string | null
+          id: string
+          observacoes: string | null
+          orgao: string
+          projeto_id: string | null
+          situacao: string
+        }
+        Insert: {
+          created_at?: string
+          data_tramitacao: string
+          despacho?: string | null
+          id?: string
+          observacoes?: string | null
+          orgao: string
+          projeto_id?: string | null
+          situacao: string
+        }
+        Update: {
+          created_at?: string
+          data_tramitacao?: string
+          despacho?: string | null
+          id?: string
+          observacoes?: string | null
+          orgao?: string
+          projeto_id?: string | null
+          situacao?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tramitacao_legislativa_projeto_id_fkey"
+            columns: ["projeto_id"]
+            isOneToOne: false
+            referencedRelation: "monitoramento_legislativo"
             referencedColumns: ["id"]
           },
         ]

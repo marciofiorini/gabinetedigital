@@ -1,313 +1,506 @@
 
-import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  FileText, 
-  Calendar, 
-  Users, 
-  CheckCircle, 
-  Clock,
-  AlertTriangle,
-  Plus,
-  Search,
-  Vote,
-  Scale,
-  BookOpen
-} from "lucide-react";
+import React, { useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { FileText, Plus, Edit, Trash2, Search, Eye, ExternalLink, History } from 'lucide-react';
+import { useMonitoramentoLegislativo } from '@/hooks/useMonitoramentoLegislativo';
 
 const ProjetosLei = () => {
-  const [searchTerm, setSearchTerm] = useState("");
+  const { projetos, tramitacoes, loading, createProjeto, updateProjeto, deleteProjeto, addTramitacao, fetchTramitacoes } = useMonitoramentoLegislativo();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [casaFilter, setCasaFilter] = useState('');
+  const [urgenciaFilter, setUrgenciaFilter] = useState('');
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingProjeto, setEditingProjeto] = useState<any>(null);
+  const [viewingTramitacoes, setViewingTramitacoes] = useState<string | null>(null);
 
-  const projetos = [
-    {
-      id: 1,
-      numero: "PL-2024-015",
-      titulo: "Lei de Incentivo ao Esporte Juvenil",
-      tipo: "Projeto de Lei",
-      autor: "Vereador João Silva",
-      dataApresentacao: "2024-05-15",
-      status: "tramitacao",
-      comissao: "Educação e Esporte",
-      prazoVotacao: "2024-06-30",
-      situacao: "Aguardando parecer da comissão"
-    },
-    {
-      id: 2,
-      numero: "IND-2024-032",
-      titulo: "Indicação para melhoria da iluminação pública",
-      tipo: "Indicação",
-      autor: "Vereadora Maria Santos", 
-      dataApresentacao: "2024-05-20",
-      status: "aprovado",
-      comissao: "Obras e Serviços",
-      prazoVotacao: "2024-05-28",
-      situacao: "Aprovado e encaminhado ao executivo"
-    },
-    {
-      id: 3,
-      numero: "REQ-2024-089",
-      titulo: "Requerimento de informações sobre licitações",
-      tipo: "Requerimento",
-      autor: "Vereador Carlos Lima",
-      dataApresentacao: "2024-05-25",
-      status: "pendente",
-      comissao: "Fiscalização",
-      prazoVotacao: "2024-06-15",
-      situacao: "Aguardando resposta do executivo"
+  const [novoProjeto, setNovoProjeto] = useState({
+    numero_projeto: '',
+    tipo_projeto: '',
+    titulo: '',
+    ementa: '',
+    autor: '',
+    casa_legislativa: '',
+    data_apresentacao: '',
+    situacao_atual: '',
+    tramitacao_atual: '',
+    urgencia: 'normal',
+    tema_relacionado: '',
+    impacto_estimado: '',
+    observacoes: '',
+    link_projeto: '',
+    status_monitoramento: 'ativo',
+    alertas_configurados: []
+  });
+
+  const resetForm = () => {
+    setNovoProjeto({
+      numero_projeto: '',
+      tipo_projeto: '',
+      titulo: '',
+      ementa: '',
+      autor: '',
+      casa_legislativa: '',
+      data_apresentacao: '',
+      situacao_atual: '',
+      tramitacao_atual: '',
+      urgencia: 'normal',
+      tema_relacionado: '',
+      impacto_estimado: '',
+      observacoes: '',
+      link_projeto: '',
+      status_monitoramento: 'ativo',
+      alertas_configurados: []
+    });
+    setEditingProjeto(null);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      if (editingProjeto) {
+        await updateProjeto(editingProjeto.id, novoProjeto);
+      } else {
+        await createProjeto(novoProjeto);
+      }
+      setIsDialogOpen(false);
+      resetForm();
+    } catch (error) {
+      console.error('Erro ao salvar projeto:', error);
     }
-  ];
+  };
+
+  const handleEdit = (projeto: any) => {
+    setEditingProjeto(projeto);
+    setNovoProjeto(projeto);
+    setIsDialogOpen(true);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (window.confirm('Tem certeza que deseja excluir este projeto do monitoramento?')) {
+      await deleteProjeto(id);
+    }
+  };
+
+  const handleViewTramitacoes = (projetoId: string) => {
+    setViewingTramitacoes(projetoId);
+    fetchTramitacoes(projetoId);
+  };
+
+  const filteredProjetos = projetos.filter(projeto => {
+    const matchesSearch = projeto.titulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         projeto.numero_projeto.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCasa = !casaFilter || projeto.casa_legislativa === casaFilter;
+    const matchesUrgencia = !urgenciaFilter || projeto.urgencia === urgenciaFilter;
+    
+    return matchesSearch && matchesCasa && matchesUrgencia;
+  });
+
+  const getUrgenciaColor = (urgencia: string) => {
+    switch (urgencia) {
+      case 'alta': return 'bg-red-100 text-red-800';
+      case 'media': return 'bg-yellow-100 text-yellow-800';
+      case 'normal': return 'bg-green-100 text-green-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "pendente": return "bg-yellow-100 text-yellow-800";
-      case "tramitacao": return "bg-blue-100 text-blue-800";
-      case "aprovado": return "bg-green-100 text-green-800";
-      case "rejeitado": return "bg-red-100 text-red-800";
-      default: return "bg-gray-100 text-gray-800";
+      case 'ativo': return 'bg-green-100 text-green-800';
+      case 'pausado': return 'bg-yellow-100 text-yellow-800';
+      case 'finalizado': return 'bg-gray-100 text-gray-800';
+      default: return 'bg-gray-100 text-gray-800';
     }
   };
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "pendente": return <Clock className="w-4 h-4" />;
-      case "tramitacao": return <AlertTriangle className="w-4 h-4" />;
-      case "aprovado": return <CheckCircle className="w-4 h-4" />;
-      case "rejeitado": return <AlertTriangle className="w-4 h-4" />;
-      default: return <FileText className="w-4 h-4" />;
-    }
-  };
+  if (loading) {
+    return <div className="p-6">Carregando monitoramento legislativo...</div>;
+  }
 
   return (
-    <div className="space-y-6">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-2">
-          Projetos de Lei e Indicações
-        </h1>
-        <p className="text-gray-600">
-          Controle de tramitação legislativa, prazos e votações
-        </p>
+    <div className="container mx-auto p-6">
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-gray-900">Projetos de Lei</h1>
+        <p className="text-gray-600">Monitoramento de projetos em tramitação nas casas legislativas</p>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        {[
-          { label: "Projetos Ativos", valor: "23", icone: FileText, cor: "from-blue-500 to-blue-600" },
-          { label: "Em Tramitação", valor: "12", icone: Clock, cor: "from-yellow-500 to-yellow-600" },
-          { label: "Aprovados", valor: "8", icone: CheckCircle, cor: "from-green-500 to-green-600" },
-          { label: "Pendentes", valor: "3", icone: AlertTriangle, cor: "from-red-500 to-red-600" }
-        ].map((stat, index) => (
-          <Card key={index} className="border-0 shadow-lg hover:shadow-xl transition-all duration-200 bg-white/80 backdrop-blur-sm">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <div className={`w-12 h-12 rounded-lg bg-gradient-to-r ${stat.cor} flex items-center justify-center mr-4`}>
-                    <stat.icone className="text-white w-6 h-6" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">{stat.label}</p>
-                    <p className="text-2xl font-bold text-gray-900">{stat.valor}</p>
-                  </div>
-                </div>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <FileText className="h-5 w-5" />
+            Monitoramento Legislativo
+          </CardTitle>
+          <CardDescription>
+            Acompanhe projetos de lei e sua tramitação nas casas legislativas
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col sm:flex-row gap-4 mb-6">
+            <div className="flex-1">
+              <div className="relative">
+                <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                <Input
+                  placeholder="Buscar por título ou número..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
               </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      <Tabs defaultValue="projetos" className="space-y-6">
-        <TabsList>
-          <TabsTrigger value="projetos">Projetos Ativos</TabsTrigger>
-          <TabsTrigger value="novo">Novo Projeto</TabsTrigger>
-          <TabsTrigger value="votacoes">Agenda de Votações</TabsTrigger>
-          <TabsTrigger value="historico">Histórico</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="projetos" className="space-y-6">
-          <div className="flex gap-4 mb-6">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-              <Input
-                type="search"
-                placeholder="Buscar projetos..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
             </div>
-            <Button>
-              <Plus className="w-4 h-4 mr-2" />
-              Novo Projeto
-            </Button>
+            <Select value={casaFilter} onValueChange={setCasaFilter}>
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="Casa Legislativa" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">Todas</SelectItem>
+                <SelectItem value="camara_municipal">Câmara Municipal</SelectItem>
+                <SelectItem value="assembleia_legislativa">Assembleia Legislativa</SelectItem>
+                <SelectItem value="camara_deputados">Câmara dos Deputados</SelectItem>
+                <SelectItem value="senado_federal">Senado Federal</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={urgenciaFilter} onValueChange={setUrgenciaFilter}>
+              <SelectTrigger className="w-40">
+                <SelectValue placeholder="Urgência" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">Todas</SelectItem>
+                <SelectItem value="alta">Alta</SelectItem>
+                <SelectItem value="media">Média</SelectItem>
+                <SelectItem value="normal">Normal</SelectItem>
+              </SelectContent>
+            </Select>
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button onClick={() => { resetForm(); setIsDialogOpen(true); }}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Novo Projeto
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                  <DialogTitle>
+                    {editingProjeto ? 'Editar Projeto' : 'Novo Projeto Legislativo'}
+                  </DialogTitle>
+                  <DialogDescription>
+                    Adicione um projeto para monitoramento
+                  </DialogDescription>
+                </DialogHeader>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="numero_projeto">Número do Projeto *</Label>
+                      <Input
+                        id="numero_projeto"
+                        value={novoProjeto.numero_projeto}
+                        onChange={(e) => setNovoProjeto({ ...novoProjeto, numero_projeto: e.target.value })}
+                        required
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="tipo_projeto">Tipo de Projeto *</Label>
+                      <Select
+                        value={novoProjeto.tipo_projeto}
+                        onValueChange={(value) => setNovoProjeto({ ...novoProjeto, tipo_projeto: value })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione o tipo" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="projeto_lei">Projeto de Lei</SelectItem>
+                          <SelectItem value="projeto_lei_complementar">Projeto de Lei Complementar</SelectItem>
+                          <SelectItem value="medida_provisoria">Medida Provisória</SelectItem>
+                          <SelectItem value="proposta_emenda_constitucional">Proposta de Emenda Constitucional</SelectItem>
+                          <SelectItem value="decreto_legislativo">Decreto Legislativo</SelectItem>
+                          <SelectItem value="resolucao">Resolução</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="titulo">Título *</Label>
+                    <Input
+                      id="titulo"
+                      value={novoProjeto.titulo}
+                      onChange={(e) => setNovoProjeto({ ...novoProjeto, titulo: e.target.value })}
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="ementa">Ementa</Label>
+                    <Textarea
+                      id="ementa"
+                      value={novoProjeto.ementa}
+                      onChange={(e) => setNovoProjeto({ ...novoProjeto, ementa: e.target.value })}
+                      rows={3}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="autor">Autor</Label>
+                      <Input
+                        id="autor"
+                        value={novoProjeto.autor}
+                        onChange={(e) => setNovoProjeto({ ...novoProjeto, autor: e.target.value })}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="casa_legislativa">Casa Legislativa *</Label>
+                      <Select
+                        value={novoProjeto.casa_legislativa}
+                        onValueChange={(value) => setNovoProjeto({ ...novoProjeto, casa_legislativa: value })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione a casa" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="camara_municipal">Câmara Municipal</SelectItem>
+                          <SelectItem value="assembleia_legislativa">Assembleia Legislativa</SelectItem>
+                          <SelectItem value="camara_deputados">Câmara dos Deputados</SelectItem>
+                          <SelectItem value="senado_federal">Senado Federal</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="data_apresentacao">Data de Apresentação</Label>
+                      <Input
+                        id="data_apresentacao"
+                        type="date"
+                        value={novoProjeto.data_apresentacao}
+                        onChange={(e) => setNovoProjeto({ ...novoProjeto, data_apresentacao: e.target.value })}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="urgencia">Urgência</Label>
+                      <Select
+                        value={novoProjeto.urgencia}
+                        onValueChange={(value) => setNovoProjeto({ ...novoProjeto, urgencia: value })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="normal">Normal</SelectItem>
+                          <SelectItem value="media">Média</SelectItem>
+                          <SelectItem value="alta">Alta</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="situacao_atual">Situação Atual</Label>
+                      <Input
+                        id="situacao_atual"
+                        value={novoProjeto.situacao_atual}
+                        onChange={(e) => setNovoProjeto({ ...novoProjeto, situacao_atual: e.target.value })}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="tema_relacionado">Tema Relacionado</Label>
+                      <Input
+                        id="tema_relacionado"
+                        value={novoProjeto.tema_relacionado}
+                        onChange={(e) => setNovoProjeto({ ...novoProjeto, tema_relacionado: e.target.value })}
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="link_projeto">Link do Projeto</Label>
+                    <Input
+                      id="link_projeto"
+                      value={novoProjeto.link_projeto}
+                      onChange={(e) => setNovoProjeto({ ...novoProjeto, link_projeto: e.target.value })}
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="impacto_estimado">Impacto Estimado</Label>
+                    <Textarea
+                      id="impacto_estimado"
+                      value={novoProjeto.impacto_estimado}
+                      onChange={(e) => setNovoProjeto({ ...novoProjeto, impacto_estimado: e.target.value })}
+                      rows={2}
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="observacoes">Observações</Label>
+                    <Textarea
+                      id="observacoes"
+                      value={novoProjeto.observacoes}
+                      onChange={(e) => setNovoProjeto({ ...novoProjeto, observacoes: e.target.value })}
+                      rows={2}
+                    />
+                  </div>
+
+                  <div className="flex justify-end gap-3">
+                    <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
+                      Cancelar
+                    </Button>
+                    <Button type="submit">
+                      {editingProjeto ? 'Atualizar' : 'Adicionar'} Projeto
+                    </Button>
+                  </div>
+                </form>
+              </DialogContent>
+            </Dialog>
           </div>
 
-          <div className="space-y-4">
-            {projetos.map((projeto) => (
-              <Card key={projeto.id} className="border-0 shadow-md hover:shadow-lg transition-all duration-200 bg-white/80 backdrop-blur-sm">
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                      <Badge variant="outline">{projeto.numero}</Badge>
-                      <Badge className={getStatusColor(projeto.status)}>
-                        {getStatusIcon(projeto.status)}
-                        <span className="ml-1">{projeto.status}</span>
-                      </Badge>
-                      <Badge variant="secondary">{projeto.tipo}</Badge>
-                    </div>
-                    <span className="text-sm text-gray-500">{projeto.dataApresentacao}</span>
-                  </div>
-                  
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">{projeto.titulo}</h3>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600 mb-4">
-                    <div className="flex items-center gap-1">
-                      <Users className="w-4 h-4" />
-                      <span>Autor: {projeto.autor}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Scale className="w-4 h-4" />
-                      <span>Comissão: {projeto.comissao}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Calendar className="w-4 h-4" />
-                      <span>Prazo: {projeto.prazoVotacao}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <FileText className="w-4 h-4" />
-                      <span>{projeto.situacao}</span>
-                    </div>
-                  </div>
-                  
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm">Ver Tramitação</Button>
-                    <Button variant="outline" size="sm">Anexar Documentos</Button>
-                    <Button size="sm">Atualizar Status</Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="novo" className="space-y-6">
-          <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
-            <CardHeader>
-              <CardTitle>Novo Projeto Legislativo</CardTitle>
-              <CardDescription>
-                Registre um novo projeto de lei, indicação ou requerimento
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Tipo de Projeto</label>
-                  <Input placeholder="Projeto de Lei, Indicação, Requerimento..." />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">Número/Protocolo</label>
-                  <Input placeholder="Ex: PL-2024-016" />
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-2">Título do Projeto</label>
-                <Input placeholder="Título completo do projeto" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-2">Ementa/Descrição</label>
-                <Textarea placeholder="Descreva o objetivo e conteúdo do projeto..." rows={4} />
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Autor Principal</label>
-                  <Input placeholder="Nome do autor" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">Comissão Responsável</label>
-                  <Input placeholder="Ex: Educação, Saúde, Obras..." />
-                </div>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Data de Apresentação</label>
-                  <Input type="date" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">Prazo para Votação</label>
-                  <Input type="date" />
-                </div>
-              </div>
-              <Button className="w-full">
-                <Plus className="w-4 h-4 mr-2" />
-                Cadastrar Projeto
-              </Button>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="votacoes" className="space-y-6">
-          <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
-            <CardHeader>
-              <CardTitle>Agenda de Votações</CardTitle>
-              <CardDescription>
-                Cronograma de votações e sessões legislativas
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {[
-                  { data: "2024-06-05", sessao: "Sessão Ordinária", projetos: ["PL-2024-015", "IND-2024-032"] },
-                  { data: "2024-06-12", sessao: "Sessão Extraordinária", projetos: ["REQ-2024-089"] },
-                  { data: "2024-06-19", sessao: "Sessão Ordinária", projetos: ["PL-2024-018", "PL-2024-019"] }
-                ].map((agenda, index) => (
-                  <div key={index} className="border rounded-lg p-4 bg-blue-50">
-                    <div className="flex items-center justify-between mb-2">
-                      <h4 className="font-semibold text-blue-900">{agenda.sessao}</h4>
-                      <Badge className="bg-blue-100 text-blue-800">
-                        <Calendar className="w-3 h-3 mr-1" />
-                        {agenda.data}
-                      </Badge>
-                    </div>
-                    <div className="text-sm text-blue-800">
-                      <strong>Projetos em pauta:</strong>
-                      <div className="flex gap-2 mt-1">
-                        {agenda.projetos.map((projeto, idx) => (
-                          <Badge key={idx} variant="outline" className="text-xs">
-                            {projeto}
-                          </Badge>
-                        ))}
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Projeto</TableHead>
+                  <TableHead>Casa</TableHead>
+                  <TableHead>Situação</TableHead>
+                  <TableHead>Urgência</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredProjetos.map((projeto) => (
+                  <TableRow key={projeto.id}>
+                    <TableCell>
+                      <div>
+                        <div className="font-medium">{projeto.numero_projeto}</div>
+                        <div className="text-sm text-gray-600 truncate max-w-xs">
+                          {projeto.titulo}
+                        </div>
+                        <div className="text-xs text-gray-500">{projeto.autor}</div>
                       </div>
-                    </div>
-                  </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline">
+                        {projeto.casa_legislativa}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-sm">
+                        {projeto.situacao_atual}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge className={getUrgenciaColor(projeto.urgencia)}>
+                        {projeto.urgencia}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Badge className={getStatusColor(projeto.status_monitoramento)}>
+                        {projeto.status_monitoramento}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleViewTramitacoes(projeto.id)}
+                          title="Ver tramitações"
+                        >
+                          <History className="h-4 w-4" />
+                        </Button>
+                        {projeto.link_projeto && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => window.open(projeto.link_projeto, '_blank')}
+                            title="Abrir link do projeto"
+                          >
+                            <ExternalLink className="h-4 w-4" />
+                          </Button>
+                        )}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleEdit(projeto)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDelete(projeto.id)}
+                          className="text-red-600 hover:text-red-700"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
                 ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+              </TableBody>
+            </Table>
+          </div>
 
-        <TabsContent value="historico" className="space-y-6">
-          <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
-            <CardHeader>
-              <CardTitle>Histórico de Projetos</CardTitle>
-              <CardDescription>
-                Registro completo de projetos aprovados e rejeitados
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8">
-                <BookOpen className="w-12 h-12 mx-auto text-gray-400 mb-4" />
-                <p className="text-gray-500">Histórico de projetos será exibido aqui</p>
-                <p className="text-sm text-gray-400 mt-2">
-                  Inclui projetos aprovados, rejeitados e arquivados
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+          {filteredProjetos.length === 0 && (
+            <div className="text-center py-8 text-gray-500">
+              Nenhum projeto encontrado para monitoramento
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Dialog para visualizar tramitações */}
+      <Dialog open={!!viewingTramitacoes} onOpenChange={() => setViewingTramitacoes(null)}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>Histórico de Tramitação</DialogTitle>
+            <DialogDescription>
+              Acompanhe o histórico de tramitação do projeto
+            </DialogDescription>
+          </DialogHeader>
+          <div className="max-h-96 overflow-y-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Data</TableHead>
+                  <TableHead>Órgão</TableHead>
+                  <TableHead>Situação</TableHead>
+                  <TableHead>Despacho</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {tramitacoes.map((tramitacao) => (
+                  <TableRow key={tramitacao.id}>
+                    <TableCell>
+                      {new Date(tramitacao.data_tramitacao).toLocaleDateString('pt-BR')}
+                    </TableCell>
+                    <TableCell className="font-medium">
+                      {tramitacao.orgao}
+                    </TableCell>
+                    <TableCell>
+                      {tramitacao.situacao}
+                    </TableCell>
+                    <TableCell>
+                      <div className="max-w-xs truncate">
+                        {tramitacao.despacho}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
