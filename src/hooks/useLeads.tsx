@@ -33,7 +33,7 @@ export const useLeads = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setLeads(data || []);
+      setLeads(data as Lead[] || []);
     } catch (error: any) {
       console.error('Erro ao buscar leads:', error);
       toast({
@@ -48,15 +48,18 @@ export const useLeads = () => {
 
   const createLead = async (lead: Omit<Lead, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Usuário não autenticado');
+
       const { data, error } = await supabase
         .from('leads')
-        .insert([lead])
+        .insert([{ ...lead, user_id: user.id }])
         .select()
         .single();
 
       if (error) throw error;
-      setLeads(prev => [data, ...prev]);
-      return data;
+      setLeads(prev => [data as Lead, ...prev]);
+      return data as Lead;
     } catch (error: any) {
       console.error('Erro ao criar lead:', error);
       throw error;
@@ -73,8 +76,8 @@ export const useLeads = () => {
         .single();
 
       if (error) throw error;
-      setLeads(prev => prev.map(l => l.id === id ? data : l));
-      return data;
+      setLeads(prev => prev.map(l => l.id === id ? data as Lead : l));
+      return data as Lead;
     } catch (error: any) {
       console.error('Erro ao atualizar lead:', error);
       throw error;

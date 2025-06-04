@@ -34,7 +34,7 @@ export const useDemandas = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setDemandas(data || []);
+      setDemandas(data as Demanda[] || []);
     } catch (error: any) {
       console.error('Erro ao buscar demandas:', error);
       toast({
@@ -49,15 +49,18 @@ export const useDemandas = () => {
 
   const createDemanda = async (demanda: Omit<Demanda, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Usuário não autenticado');
+
       const { data, error } = await supabase
         .from('demandas')
-        .insert([demanda])
+        .insert([{ ...demanda, user_id: user.id }])
         .select()
         .single();
 
       if (error) throw error;
-      setDemandas(prev => [data, ...prev]);
-      return data;
+      setDemandas(prev => [data as Demanda, ...prev]);
+      return data as Demanda;
     } catch (error: any) {
       console.error('Erro ao criar demanda:', error);
       throw error;
@@ -74,8 +77,8 @@ export const useDemandas = () => {
         .single();
 
       if (error) throw error;
-      setDemandas(prev => prev.map(d => d.id === id ? data : d));
-      return data;
+      setDemandas(prev => prev.map(d => d.id === id ? data as Demanda : d));
+      return data as Demanda;
     } catch (error: any) {
       console.error('Erro ao atualizar demanda:', error);
       throw error;
