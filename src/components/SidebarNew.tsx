@@ -365,6 +365,17 @@ export const SidebarNew = ({ isOpen }: SidebarProps) => {
             <p>{profile?.name || 'Usuário'} • {userPlan}</p>
           </div>
         </div>
+
+        {/* Ícone de Ajuda no Rodapé */}
+        <div className="mt-3 flex justify-center">
+          <Link
+            to="/ajuda"
+            className="flex items-center gap-2 px-3 py-2 text-xs text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md transition-colors"
+          >
+            <HelpCircle className="w-4 h-4" />
+            <span>Precisa de ajuda?</span>
+          </Link>
+        </div>
       </div>
     </div>
   );

@@ -4,6 +4,7 @@ import { useTagSync } from "@/hooks/useTagSync";
 import { CrmHeader } from "@/components/crm/CrmHeader";
 import { CrmFilters } from "@/components/crm/CrmFilters";
 import { KanbanColumn } from "@/components/crm/KanbanColumn";
+import { HelpFloatingButton } from "@/components/HelpFloatingButton";
 
 const CrmKanban = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -109,6 +110,9 @@ const CrmKanban = () => {
           />
         ))}
       </div>
+
+      {/* Botão Flutuante de Ajuda */}
+      <HelpFloatingButton helpSection="crm" />
     </div>
   );
 };
