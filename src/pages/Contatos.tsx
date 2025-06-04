@@ -1,19 +1,21 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Search, Filter, Users, MapPin, Phone, Mail, Calendar, Edit, Trash2, Eye } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Plus, Search, Users, MapPin, Phone, Mail, Calendar } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useContatosFicticios } from '@/hooks/useContatosFicticios';
+import { useContatos } from '@/hooks/useContatos';
+import { ContatoCard } from '@/components/contatos/ContatoCard';
+import { ContatoDetailsModal } from '@/components/contatos/ContatoDetailsModal';
+import { EditContatoModal } from '@/components/contatos/EditContatoModal';
 
 interface Contato {
   id: string;
@@ -33,12 +35,15 @@ const Contatos = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const { adicionandoDados } = useContatosFicticios();
+  const { contatos, loading, createContato, updateContato, deleteContato } = useContatos();
   
-  const [contatos, setContatos] = useState<Contato[]>([]);
-  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filtroZona, setFiltroZona] = useState('todos');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedContato, setSelectedContato] = useState<Contato | null>(null);
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [contatoToDelete, setContatoToDelete] = useState<string | null>(null);
   
   // Form states
   const [nome, setNome] = useState('');
@@ -49,34 +54,6 @@ const Contatos = () => {
   const [observacoes, setObservacoes] = useState('');
   const [dataNascimento, setDataNascimento] = useState('');
   const [tags, setTags] = useState('');
-
-  useEffect(() => {
-    if (user) {
-      fetchContatos();
-    }
-  }, [user]);
-
-  const fetchContatos = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('contatos')
-        .select('*')
-        .eq('user_id', user?.id)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setContatos(data || []);
-    } catch (error) {
-      console.error('Erro ao buscar contatos:', error);
-      toast({
-        title: "Erro",
-        description: "Erro ao carregar contatos",
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -93,25 +70,16 @@ const Contatos = () => {
     try {
       const tagsArray = tags.split(',').map(tag => tag.trim()).filter(Boolean);
       
-      const { data, error } = await supabase
-        .from('contatos')
-        .insert([{
-          nome,
-          email: email || null,
-          telefone: telefone || null,
-          endereco: endereco || null,
-          zona: zona || null,
-          observacoes: observacoes || null,
-          data_nascimento: dataNascimento || null,
-          tags: tagsArray,
-          user_id: user?.id
-        }])
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      setContatos(prev => [data, ...prev]);
+      await createContato({
+        nome,
+        email: email || undefined,
+        telefone: telefone || undefined,
+        endereco: endereco || undefined,
+        zona: zona || undefined,
+        observacoes: observacoes || undefined,
+        data_nascimento: dataNascimento || undefined,
+        tags: tagsArray
+      });
       
       // Reset form
       setNome('');
@@ -135,6 +103,43 @@ const Contatos = () => {
         description: "Erro ao adicionar contato",
         variant: "destructive"
       });
+    }
+  };
+
+  const handleView = (contato: Contato) => {
+    setSelectedContato(contato);
+    setIsDetailsModalOpen(true);
+  };
+
+  const handleEdit = (contato: Contato) => {
+    setSelectedContato(contato);
+    setIsEditModalOpen(true);
+  };
+
+  const handleSaveEdit = async (id: string, updates: Partial<Contato>) => {
+    await updateContato(id, updates);
+  };
+
+  const handleDeleteClick = (id: string) => {
+    setContatoToDelete(id);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (contatoToDelete) {
+      const success = await deleteContato(contatoToDelete);
+      if (success) {
+        toast({
+          title: "Sucesso",
+          description: "Contato removido com sucesso!"
+        });
+      } else {
+        toast({
+          title: "Erro",
+          description: "Erro ao remover contato",
+          variant: "destructive"
+        });
+      }
+      setContatoToDelete(null);
     }
   };
 
@@ -395,63 +400,13 @@ const Contatos = () => {
         <CardContent>
           <div className="space-y-4">
             {contatosFiltrados.map((contato) => (
-              <div key={contato.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                    <Users className="w-6 h-6 text-blue-600" />
-                  </div>
-                  
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-gray-900">{contato.nome}</h3>
-                    <div className="flex items-center gap-4 text-sm text-gray-600">
-                      {contato.email && (
-                        <span className="flex items-center gap-1">
-                          <Mail className="w-3 h-3" />
-                          {contato.email}
-                        </span>
-                      )}
-                      {contato.telefone && (
-                        <span className="flex items-center gap-1">
-                          <Phone className="w-3 h-3" />
-                          {contato.telefone}
-                        </span>
-                      )}
-                      {contato.zona && (
-                        <span className="flex items-center gap-1">
-                          <MapPin className="w-3 h-3" />
-                          {contato.zona}
-                        </span>
-                      )}
-                    </div>
-                    {contato.tags && contato.tags.length > 0 && (
-                      <div className="flex gap-1 mt-2">
-                        {contato.tags.slice(0, 3).map((tag, index) => (
-                          <Badge key={index} variant="secondary" className="text-xs">
-                            {tag}
-                          </Badge>
-                        ))}
-                        {contato.tags.length > 3 && (
-                          <Badge variant="secondary" className="text-xs">
-                            +{contato.tags.length - 3}
-                          </Badge>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </div>
-                
-                <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm">
-                    <Eye className="w-3 h-3" />
-                  </Button>
-                  <Button variant="outline" size="sm">
-                    <Edit className="w-3 h-3" />
-                  </Button>
-                  <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700">
-                    <Trash2 className="w-3 h-3" />
-                  </Button>
-                </div>
-              </div>
+              <ContatoCard
+                key={contato.id}
+                contato={contato}
+                onView={handleView}
+                onEdit={handleEdit}
+                onDelete={handleDeleteClick}
+              />
             ))}
             
             {contatosFiltrados.length === 0 && (
@@ -469,6 +424,44 @@ const Contatos = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Modais */}
+      <ContatoDetailsModal
+        contato={selectedContato}
+        isOpen={isDetailsModalOpen}
+        onClose={() => {
+          setIsDetailsModalOpen(false);
+          setSelectedContato(null);
+        }}
+      />
+
+      <EditContatoModal
+        contato={selectedContato}
+        isOpen={isEditModalOpen}
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setSelectedContato(null);
+        }}
+        onSave={handleSaveEdit}
+      />
+
+      {/* Dialog de confirmação de exclusão */}
+      <AlertDialog open={!!contatoToDelete} onOpenChange={() => setContatoToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja remover este contato? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteConfirm} className="bg-red-600 hover:bg-red-700">
+              Remover
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
