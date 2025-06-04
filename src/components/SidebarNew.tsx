@@ -41,7 +41,8 @@ import {
   CreditCard,
   DollarSign,
   Receipt,
-  PieChart
+  PieChart,
+  HelpCircle
 } from "lucide-react";
 import { useAuth } from '@/contexts/AuthContext';
 import { useDashboardStats } from '@/hooks/useDashboardStats';
