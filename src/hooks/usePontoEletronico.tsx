@@ -45,7 +45,7 @@ export const usePontoEletronico = () => {
       const { data, error } = await query;
 
       if (error) throw error;
-      setRegistros(data as RegistroPonto[] || []);
+      setRegistros(data || []);
     } catch (error: any) {
       console.error('Erro ao buscar registros de ponto:', error);
       toast({
@@ -76,8 +76,8 @@ export const usePontoEletronico = () => {
         .single();
 
       if (error) throw error;
-      setRegistros(prev => [data as RegistroPonto, ...prev]);
-      return data as RegistroPonto;
+      setRegistros(prev => [data, ...prev]);
+      return data;
     } catch (error: any) {
       console.error('Erro ao registrar ponto:', error);
       throw error;

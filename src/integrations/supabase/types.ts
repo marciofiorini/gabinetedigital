@@ -485,6 +485,57 @@ export type Database = {
           },
         ]
       }
+      funcionarios: {
+        Row: {
+          carga_horaria: number
+          cargo: string
+          created_at: string
+          data_admissao: string
+          data_demissao: string | null
+          email: string | null
+          id: string
+          nome: string
+          observacoes: string | null
+          salario: number | null
+          status: string
+          telefone: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          carga_horaria?: number
+          cargo: string
+          created_at?: string
+          data_admissao: string
+          data_demissao?: string | null
+          email?: string | null
+          id?: string
+          nome: string
+          observacoes?: string | null
+          salario?: number | null
+          status?: string
+          telefone?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          carga_horaria?: number
+          cargo?: string
+          created_at?: string
+          data_admissao?: string
+          data_demissao?: string | null
+          email?: string | null
+          id?: string
+          nome?: string
+          observacoes?: string | null
+          salario?: number | null
+          status?: string
+          telefone?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       keyboard_shortcuts: {
         Row: {
           action: string
@@ -632,6 +683,44 @@ export type Database = {
         }
         Relationships: []
       }
+      ponto_eletronico: {
+        Row: {
+          created_at: string
+          data_hora: string
+          funcionario_id: string
+          id: string
+          observacoes: string | null
+          tipo: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          data_hora: string
+          funcionario_id: string
+          id?: string
+          observacoes?: string | null
+          tipo: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          data_hora?: string
+          funcionario_id?: string
+          id?: string
+          observacoes?: string | null
+          tipo?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ponto_eletronico_funcionario_id_fkey"
+            columns: ["funcionario_id"]
+            isOneToOne: false
+            referencedRelation: "funcionarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -661,6 +750,62 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      tarefas_equipe: {
+        Row: {
+          created_at: string
+          data_conclusao: string | null
+          data_inicio: string
+          data_limite: string | null
+          descricao: string | null
+          funcionario_id: string
+          id: string
+          observacoes: string | null
+          prioridade: string
+          status: string
+          titulo: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          data_conclusao?: string | null
+          data_inicio: string
+          data_limite?: string | null
+          descricao?: string | null
+          funcionario_id: string
+          id?: string
+          observacoes?: string | null
+          prioridade?: string
+          status?: string
+          titulo: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          data_conclusao?: string | null
+          data_inicio?: string
+          data_limite?: string | null
+          descricao?: string | null
+          funcionario_id?: string
+          id?: string
+          observacoes?: string | null
+          prioridade?: string
+          status?: string
+          titulo?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tarefas_equipe_funcionario_id_fkey"
+            columns: ["funcionario_id"]
+            isOneToOne: false
+            referencedRelation: "funcionarios"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
