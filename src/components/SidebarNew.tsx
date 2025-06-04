@@ -71,7 +71,7 @@ export const SidebarNew = ({ isOpen }: SidebarProps) => {
 
   const userPlan: UserPlan = 'premium';
 
-  // Links principais soltos (removido Comunicação)
+  // Links principais soltos
   const mainLinks = [
     { name: 'Dashboard', icon: LayoutDashboard, path: '/', minPlan: 'basic' as UserPlan },
     { name: 'Contatos', icon: Users, path: '/contatos', minPlan: 'basic' as UserPlan },
@@ -79,6 +79,7 @@ export const SidebarNew = ({ isOpen }: SidebarProps) => {
     { name: 'CRM', icon: Target, path: '/crm', minPlan: 'premium' as UserPlan },
     { name: 'Demandas', icon: FileText, path: '/demandas', minPlan: 'basic' as UserPlan },
     { name: 'Projetos de Lei', icon: Scale, path: '/projetos-lei', minPlan: 'basic' as UserPlan },
+    { name: 'Equipe', icon: Users, path: '/equipe', minPlan: 'premium' as UserPlan },
   ];
 
   // Grupo de comunicação (adicionado Comunicação)
