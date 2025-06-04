@@ -1,288 +1,378 @@
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { FileText, Download, Calendar as CalendarIcon } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
-import { format } from "date-fns";
-import { cn } from "@/lib/utils";
+import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { 
+  Plus, 
+  Download, 
+  Calendar, 
+  Clock, 
+  FileText, 
+  Mail, 
+  Settings,
+  Eye,
+  Trash2,
+  Play,
+  Pause
+} from "lucide-react";
+import { useRelatoriosAutomatizados } from '@/hooks/useRelatoriosAutomatizados';
 
 export const RelatoriosPDF = () => {
-  const [loading, setLoading] = useState(false);
-  const [tipoRelatorio, setTipoRelatorio] = useState('');
-  const [dataInicio, setDataInicio] = useState<Date>();
-  const [dataFim, setDataFim] = useState<Date>();
-  const { user } = useAuth();
-  const { toast } = useToast();
+  const { relatorios, loading, createRelatorio, executarRelatorio } = useRelatoriosAutomatizados();
+  const [novoRelatorio, setNovoRelatorio] = useState({
+    nome: '',
+    tipo_relatorio: '',
+    formato: 'pdf',
+    frequencia: '',
+    destinatarios: [''],
+    configuracao: {}
+  });
 
-  const gerarRelatorio = async () => {
-    if (!user || !tipoRelatorio || !dataInicio || !dataFim) {
-      toast({
-        title: "Dados incompletos",
-        description: "Preencha todos os campos obrigatórios.",
-        variant: "destructive"
-      });
-      return;
-    }
+  const tiposRelatorio = [
+    { value: 'dashboard', label: 'Dashboard Geral' },
+    { value: 'eleitoral', label: 'Relatório Eleitoral' },
+    { value: 'financeiro', label: 'Relatório Financeiro' },
+    { value: 'engajamento', label: 'Relatório de Engajamento' },
+    { value: 'contatos', label: 'Relatório de Contatos' },
+    { value: 'eventos', label: 'Relatório de Eventos' }
+  ];
 
-    setLoading(true);
-    try {
-      let dados: any[] = [];
-      let titulo = '';
+  const frequencias = [
+    { value: 'diario', label: 'Diário' },
+    { value: 'semanal', label: 'Semanal' },
+    { value: 'mensal', label: 'Mensal' },
+    { value: 'trimestral', label: 'Trimestral' }
+  ];
 
-      if (tipoRelatorio === 'eleitoral') {
-        const { data, error } = await supabase
-          .from('dados_eleitorais')
-          .select('*')
-          .eq('user_id', user.id)
-          .gte('created_at', format(dataInicio, 'yyyy-MM-dd'))
-          .lte('created_at', format(dataFim, 'yyyy-MM-dd'))
-          .order('total_votos', { ascending: false });
+  const formatos = [
+    { value: 'pdf', label: 'PDF' },
+    { value: 'excel', label: 'Excel' },
+    { value: 'csv', label: 'CSV' }
+  ];
 
-        if (error) throw error;
-        dados = data || [];
-        titulo = 'Relatório de Dados Eleitorais';
-      } else if (tipoRelatorio === 'redes_sociais') {
-        const { data, error } = await supabase
-          .from('dados_redes_sociais')
-          .select('*')
-          .eq('user_id', user.id)
-          .gte('data_coleta', format(dataInicio, 'yyyy-MM-dd'))
-          .lte('data_coleta', format(dataFim, 'yyyy-MM-dd'))
-          .order('seguidores', { ascending: false });
-
-        if (error) throw error;
-        dados = data || [];
-        titulo = 'Relatório de Redes Sociais';
-      }
-
-      // Gerar HTML para PDF
-      const htmlContent = `
-        <!DOCTYPE html>
-        <html>
-          <head>
-            <meta charset="utf-8">
-            <title>${titulo}</title>
-            <style>
-              body { font-family: Arial, sans-serif; margin: 20px; }
-              h1 { color: #2563eb; text-align: center; margin-bottom: 30px; }
-              .header { text-align: center; margin-bottom: 20px; color: #666; }
-              table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-              th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-              th { background-color: #f2f2f2; font-weight: bold; }
-              .stats { display: flex; justify-content: space-around; margin: 20px 0; }
-              .stat-item { text-align: center; padding: 15px; background: #f8f9fa; border-radius: 8px; }
-              .stat-value { font-size: 24px; font-weight: bold; color: #2563eb; }
-              .stat-label { color: #666; font-size: 14px; }
-            </style>
-          </head>
-          <body>
-            <h1>${titulo}</h1>
-            <div class="header">
-              <p>Período: ${format(dataInicio, 'dd/MM/yyyy')} - ${format(dataFim, 'dd/MM/yyyy')}</p>
-              <p>Gerado em: ${format(new Date(), 'dd/MM/yyyy HH:mm')}</p>
-            </div>
-            
-            ${tipoRelatorio === 'eleitoral' ? `
-              <div class="stats">
-                <div class="stat-item">
-                  <div class="stat-value">${dados.reduce((sum, item) => sum + (item.total_votos || 0), 0).toLocaleString()}</div>
-                  <div class="stat-label">Total de Votos</div>
-                </div>
-                <div class="stat-item">
-                  <div class="stat-value">${new Set(dados.map(item => item.municipio)).size}</div>
-                  <div class="stat-label">Municípios</div>
-                </div>
-                <div class="stat-item">
-                  <div class="stat-value">${new Set(dados.map(item => item.candidato_nome)).size}</div>
-                  <div class="stat-label">Candidatos</div>
-                </div>
-              </div>
-              
-              <table>
-                <thead>
-                  <tr>
-                    <th>Candidato</th>
-                    <th>Cargo</th>
-                    <th>Município</th>
-                    <th>Total de Votos</th>
-                    <th>Posição</th>
-                    <th>Situação</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  ${dados.map(item => `
-                    <tr>
-                      <td>${item.candidato_nome}${item.is_candidato_proprio ? ' (Próprio)' : ''}</td>
-                      <td>${item.cargo}</td>
-                      <td>${item.municipio}</td>
-                      <td>${(item.total_votos || 0).toLocaleString()}</td>
-                      <td>${item.posicao_ranking || 'N/A'}</td>
-                      <td>${item.situacao || 'N/A'}</td>
-                    </tr>
-                  `).join('')}
-                </tbody>
-              </table>
-            ` : `
-              <div class="stats">
-                <div class="stat-item">
-                  <div class="stat-value">${dados.reduce((sum, item) => sum + (item.seguidores || 0), 0).toLocaleString()}</div>
-                  <div class="stat-label">Total de Seguidores</div>
-                </div>
-                <div class="stat-item">
-                  <div class="stat-value">${new Set(dados.map(item => item.rede_social)).size}</div>
-                  <div class="stat-label">Redes Sociais</div>
-                </div>
-                <div class="stat-item">
-                  <div class="stat-value">${dados.reduce((sum, item) => sum + (item.publicacoes || 0), 0).toLocaleString()}</div>
-                  <div class="stat-label">Total de Publicações</div>
-                </div>
-              </div>
-              
-              <table>
-                <thead>
-                  <tr>
-                    <th>Candidato</th>
-                    <th>Rede Social</th>
-                    <th>Handle</th>
-                    <th>Seguidores</th>
-                    <th>Engajamento (%)</th>
-                    <th>Data Coleta</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  ${dados.map(item => `
-                    <tr>
-                      <td>${item.candidato_nome}${item.is_candidato_proprio ? ' (Próprio)' : ''}</td>
-                      <td>${item.rede_social}</td>
-                      <td>${item.handle_usuario || 'N/A'}</td>
-                      <td>${(item.seguidores || 0).toLocaleString()}</td>
-                      <td>${(item.engajamento_medio || 0).toFixed(2)}%</td>
-                      <td>${new Date(item.data_coleta).toLocaleDateString()}</td>
-                    </tr>
-                  `).join('')}
-                </tbody>
-              </table>
-            `}
-          </body>
-        </html>
-      `;
-
-      // Criar e baixar PDF
-      const blob = new Blob([htmlContent], { type: 'text/html' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${titulo.toLowerCase().replace(/\s+/g, '_')}_${format(new Date(), 'yyyy_MM_dd')}.html`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-
-      toast({
-        title: "Relatório gerado!",
-        description: "O arquivo HTML foi baixado. Você pode convertê-lo para PDF em seu navegador.",
-      });
-    } catch (error: any) {
-      toast({
-        title: "Erro ao gerar relatório",
-        description: error.message,
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
+  const getFrequenciaColor = (freq: string) => {
+    switch (freq) {
+      case 'diario': return 'bg-green-100 text-green-800';
+      case 'semanal': return 'bg-blue-100 text-blue-800';
+      case 'mensal': return 'bg-purple-100 text-purple-800';
+      case 'trimestral': return 'bg-orange-100 text-orange-800';
+      default: return 'bg-gray-100 text-gray-800';
     }
   };
 
+  const getFormatoIcon = (formato: string) => {
+    switch (formato) {
+      case 'pdf': return <FileText className="w-4 h-4" />;
+      case 'excel': return <FileText className="w-4 h-4 text-green-600" />;
+      case 'csv': return <FileText className="w-4 h-4 text-blue-600" />;
+      default: return <FileText className="w-4 h-4" />;
+    }
+  };
+
+  const handleCreateRelatorio = async () => {
+    try {
+      await createRelatorio(novoRelatorio);
+      setNovoRelatorio({
+        nome: '',
+        tipo_relatorio: '',
+        formato: 'pdf',
+        frequencia: '',
+        destinatarios: [''],
+        configuracao: {}
+      });
+    } catch (error) {
+      console.error('Erro ao criar relatório:', error);
+    }
+  };
+
+  const adicionarDestinatario = () => {
+    setNovoRelatorio(prev => ({
+      ...prev,
+      destinatarios: [...prev.destinatarios, '']
+    }));
+  };
+
+  const removerDestinatario = (index: number) => {
+    setNovoRelatorio(prev => ({
+      ...prev,
+      destinatarios: prev.destinatarios.filter((_, i) => i !== index)
+    }));
+  };
+
+  const atualizarDestinatario = (index: number, email: string) => {
+    setNovoRelatorio(prev => ({
+      ...prev,
+      destinatarios: prev.destinatarios.map((dest, i) => i === index ? email : dest)
+    }));
+  };
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <FileText className="w-5 h-5" />
-          Geração de Relatórios
-        </CardTitle>
-        <CardDescription>
-          Gere relatórios em PDF dos seus dados políticos
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
         <div>
-          <label className="text-sm font-medium">Tipo de Relatório</label>
-          <Select value={tipoRelatorio} onValueChange={setTipoRelatorio}>
-            <SelectTrigger>
-              <SelectValue placeholder="Selecione o tipo de relatório" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="eleitoral">Dados Eleitorais</SelectItem>
-              <SelectItem value="redes_sociais">Redes Sociais</SelectItem>
-            </SelectContent>
-          </Select>
+          <h2 className="text-2xl font-bold text-gray-900">Relatórios Automatizados</h2>
+          <p className="text-gray-600">Configure e agende relatórios em PDF/Excel</p>
         </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="text-sm font-medium">Data Início</label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "w-full justify-start text-left font-normal",
-                    !dataInicio && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {dataInicio ? format(dataInicio, "dd/MM/yyyy") : <span>Selecione</span>}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
-                <Calendar
-                  mode="single"
-                  selected={dataInicio}
-                  onSelect={setDataInicio}
-                  initialFocus
+        
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700">
+              <Plus className="w-4 h-4 mr-2" />
+              Novo Relatório
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-lg">
+            <DialogHeader>
+              <DialogTitle>Criar Relatório Automatizado</DialogTitle>
+              <DialogDescription>
+                Configure um relatório para ser gerado automaticamente
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="space-y-4 pt-4">
+              <div>
+                <Label htmlFor="nome-rel">Nome do Relatório</Label>
+                <Input
+                  id="nome-rel"
+                  value={novoRelatorio.nome}
+                  onChange={(e) => setNovoRelatorio(prev => ({ ...prev, nome: e.target.value }))}
+                  placeholder="Ex: Relatório Mensal de Performance"
                 />
-              </PopoverContent>
-            </Popover>
-          </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="tipo-rel">Tipo</Label>
+                  <Select value={novoRelatorio.tipo_relatorio} onValueChange={(value) => setNovoRelatorio(prev => ({ ...prev, tipo_relatorio: value }))}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o tipo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {tiposRelatorio.map(tipo => (
+                        <SelectItem key={tipo.value} value={tipo.value}>
+                          {tipo.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div>
+                  <Label htmlFor="formato-rel">Formato</Label>
+                  <Select value={novoRelatorio.formato} onValueChange={(value) => setNovoRelatorio(prev => ({ ...prev, formato: value }))}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {formatos.map(formato => (
+                        <SelectItem key={formato.value} value={formato.value}>
+                          {formato.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              
+              <div>
+                <Label htmlFor="freq-rel">Frequência</Label>
+                <Select value={novoRelatorio.frequencia} onValueChange={(value) => setNovoRelatorio(prev => ({ ...prev, frequencia: value }))}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione a frequência" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {frequencias.map(freq => (
+                      <SelectItem key={freq.value} value={freq.value}>
+                        {freq.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div>
+                <Label>Destinatários</Label>
+                <div className="space-y-2 mt-2">
+                  {novoRelatorio.destinatarios.map((email, index) => (
+                    <div key={index} className="flex gap-2">
+                      <Input
+                        value={email}
+                        onChange={(e) => atualizarDestinatario(index, e.target.value)}
+                        placeholder="email@exemplo.com"
+                        type="email"
+                      />
+                      {novoRelatorio.destinatarios.length > 1 && (
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => removerDestinatario(index)}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      )}
+                    </div>
+                  ))}
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={adicionarDestinatario}
+                    className="w-full"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Adicionar Destinatário
+                  </Button>
+                </div>
+              </div>
+              
+              <Button onClick={handleCreateRelatorio} className="w-full">
+                Criar Relatório
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
 
-          <div>
-            <label className="text-sm font-medium">Data Fim</label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "w-full justify-start text-left font-normal",
-                    !dataFim && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {dataFim ? format(dataFim, "dd/MM/yyyy") : <span>Selecione</span>}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
-                <Calendar
-                  mode="single"
-                  selected={dataFim}
-                  onSelect={setDataFim}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
-        </div>
+      <Tabs defaultValue="ativos" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="ativos">Relatórios Ativos</TabsTrigger>
+          <TabsTrigger value="historico">Histórico</TabsTrigger>
+          <TabsTrigger value="templates">Templates</TabsTrigger>
+        </TabsList>
 
-        <Button onClick={gerarRelatorio} disabled={loading} className="w-full">
-          <Download className="w-4 h-4 mr-2" />
-          {loading ? "Gerando..." : "Gerar Relatório"}
-        </Button>
-      </CardContent>
-    </Card>
+        <TabsContent value="ativos" className="space-y-4">
+          {loading ? (
+            <div className="text-center py-8">Carregando relatórios...</div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {relatorios.map((relatorio) => (
+                <Card key={relatorio.id} className="border-0 shadow-lg hover:shadow-xl transition-all duration-200">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-lg">{relatorio.nome}</CardTitle>
+                      <div className="flex items-center gap-2">
+                        {getFormatoIcon(relatorio.formato)}
+                        <Badge className={getFrequenciaColor(relatorio.frequencia)}>
+                          {relatorio.frequencia}
+                        </Badge>
+                      </div>
+                    </div>
+                    <CardDescription>
+                      {tiposRelatorio.find(t => t.value === relatorio.tipo_relatorio)?.label}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <Mail className="w-4 h-4" />
+                        <span>{relatorio.destinatarios?.length || 0} destinatário(s)</span>
+                      </div>
+                      
+                      {relatorio.ultima_execucao && (
+                        <div className="flex items-center gap-2 text-sm text-gray-600">
+                          <Clock className="w-4 h-4" />
+                          <span>Último: {new Date(relatorio.ultima_execucao).toLocaleDateString()}</span>
+                        </div>
+                      )}
+                      
+                      {relatorio.proxima_execucao && (
+                        <div className="flex items-center gap-2 text-sm text-gray-600">
+                          <Calendar className="w-4 h-4" />
+                          <span>Próximo: {new Date(relatorio.proxima_execucao).toLocaleDateString()}</span>
+                        </div>
+                      )}
+                      
+                      <div className="flex gap-2 pt-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="flex-1"
+                          onClick={() => executarRelatorio(relatorio.id)}
+                        >
+                          <Play className="w-3 h-3 mr-1" />
+                          Executar
+                        </Button>
+                        <Button variant="outline" size="sm">
+                          <Settings className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+              
+              {relatorios.length === 0 && (
+                <div className="col-span-full text-center py-8 text-gray-500">
+                  Nenhum relatório configurado ainda.
+                </div>
+              )}
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="historico" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Histórico de Execuções</CardTitle>
+              <CardDescription>
+                Visualize todos os relatórios gerados nos últimos 30 dias
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <div key={i} className="flex items-center justify-between p-3 border rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <FileText className="w-5 h-5 text-blue-600" />
+                      <div>
+                        <p className="font-medium">Relatório Mensal de Performance</p>
+                        <p className="text-sm text-gray-600">15 Jan 2024, 09:00</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge className="bg-green-100 text-green-800">Enviado</Badge>
+                      <Button variant="outline" size="sm">
+                        <Download className="w-3 h-3 mr-1" />
+                        Download
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="templates" className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {tiposRelatorio.map((tipo) => (
+              <Card key={tipo.value} className="border-0 shadow-lg hover:shadow-xl transition-all duration-200 cursor-pointer">
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <FileText className="w-5 h-5" />
+                    {tipo.label}
+                  </CardTitle>
+                  <CardDescription>
+                    Template pré-configurado para {tipo.label.toLowerCase()}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Button variant="outline" className="w-full">
+                    <Eye className="w-4 h-4 mr-2" />
+                    Visualizar Template
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 };

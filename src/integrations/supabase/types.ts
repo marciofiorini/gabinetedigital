@@ -143,6 +143,54 @@ export type Database = {
         }
         Relationships: []
       }
+      analise_sentimento: {
+        Row: {
+          confianca: number
+          created_at: string
+          data_publicacao: string | null
+          fonte: string
+          id: string
+          mencoes_encontradas: string[] | null
+          palavras_chave: string[] | null
+          processed_at: string
+          score_sentimento: number
+          sentimento: string
+          texto_analisado: string
+          url_origem: string | null
+          user_id: string
+        }
+        Insert: {
+          confianca: number
+          created_at?: string
+          data_publicacao?: string | null
+          fonte: string
+          id?: string
+          mencoes_encontradas?: string[] | null
+          palavras_chave?: string[] | null
+          processed_at?: string
+          score_sentimento: number
+          sentimento: string
+          texto_analisado: string
+          url_origem?: string | null
+          user_id: string
+        }
+        Update: {
+          confianca?: number
+          created_at?: string
+          data_publicacao?: string | null
+          fonte?: string
+          id?: string
+          mencoes_encontradas?: string[] | null
+          palavras_chave?: string[] | null
+          processed_at?: string
+          score_sentimento?: number
+          sentimento?: string
+          texto_analisado?: string
+          url_origem?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       arquivo_digital: {
         Row: {
           arquivo_nome: string | null
@@ -908,6 +956,47 @@ export type Database = {
         }
         Relationships: []
       }
+      historico_kpis: {
+        Row: {
+          created_at: string
+          data_coleta: string
+          id: string
+          kpi_id: string
+          valor: number
+          valor_anterior: number | null
+          variacao_absoluta: number | null
+          variacao_percentual: number | null
+        }
+        Insert: {
+          created_at?: string
+          data_coleta: string
+          id?: string
+          kpi_id: string
+          valor: number
+          valor_anterior?: number | null
+          variacao_absoluta?: number | null
+          variacao_percentual?: number | null
+        }
+        Update: {
+          created_at?: string
+          data_coleta?: string
+          id?: string
+          kpi_id?: string
+          valor?: number
+          valor_anterior?: number | null
+          variacao_absoluta?: number | null
+          variacao_percentual?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "historico_kpis_kpi_id_fkey"
+            columns: ["kpi_id"]
+            isOneToOne: false
+            referencedRelation: "kpis_personalizados"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       keyboard_shortcuts: {
         Row: {
           action: string
@@ -930,6 +1019,54 @@ export type Database = {
           created_at?: string
           id?: string
           shortcut?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      kpis_personalizados: {
+        Row: {
+          ativo: boolean | null
+          configuracao: Json
+          cor_display: string | null
+          created_at: string
+          descricao: string | null
+          fonte_dados: string
+          id: string
+          meta_valor: number | null
+          nome: string
+          ordem_exibicao: number | null
+          tipo_metrica: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          ativo?: boolean | null
+          configuracao?: Json
+          cor_display?: string | null
+          created_at?: string
+          descricao?: string | null
+          fonte_dados: string
+          id?: string
+          meta_valor?: number | null
+          nome: string
+          ordem_exibicao?: number | null
+          tipo_metrica: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          ativo?: boolean | null
+          configuracao?: Json
+          cor_display?: string | null
+          created_at?: string
+          descricao?: string | null
+          fonte_dados?: string
+          id?: string
+          meta_valor?: number | null
+          nome?: string
+          ordem_exibicao?: number | null
+          tipo_metrica?: string
           updated_at?: string
           user_id?: string
         }
@@ -1326,6 +1463,54 @@ export type Database = {
         }
         Relationships: []
       }
+      previsoes_ia: {
+        Row: {
+          confianca_previsao: number
+          created_at: string
+          dados_entrada: Json
+          erro_detalhes: string | null
+          id: string
+          metodologia: string
+          periodo_analise: string
+          previsao_resultado: Json
+          status: string
+          tipo_previsao: string
+          updated_at: string
+          user_id: string
+          valida_ate: string | null
+        }
+        Insert: {
+          confianca_previsao: number
+          created_at?: string
+          dados_entrada: Json
+          erro_detalhes?: string | null
+          id?: string
+          metodologia: string
+          periodo_analise: string
+          previsao_resultado: Json
+          status?: string
+          tipo_previsao: string
+          updated_at?: string
+          user_id: string
+          valida_ate?: string | null
+        }
+        Update: {
+          confianca_previsao?: number
+          created_at?: string
+          dados_entrada?: Json
+          erro_detalhes?: string | null
+          id?: string
+          metodologia?: string
+          periodo_analise?: string
+          previsao_resultado?: Json
+          status?: string
+          tipo_previsao?: string
+          updated_at?: string
+          user_id?: string
+          valida_ate?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -1491,6 +1676,54 @@ export type Database = {
           updated_at?: string
           user_id?: string
           website?: string | null
+        }
+        Relationships: []
+      }
+      relatorios_automatizados: {
+        Row: {
+          ativo: boolean | null
+          configuracao: Json
+          created_at: string
+          destinatarios: string[] | null
+          formato: string
+          frequencia: string
+          id: string
+          nome: string
+          proxima_execucao: string | null
+          tipo_relatorio: string
+          ultima_execucao: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          ativo?: boolean | null
+          configuracao?: Json
+          created_at?: string
+          destinatarios?: string[] | null
+          formato?: string
+          frequencia: string
+          id?: string
+          nome: string
+          proxima_execucao?: string | null
+          tipo_relatorio: string
+          ultima_execucao?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          ativo?: boolean | null
+          configuracao?: Json
+          created_at?: string
+          destinatarios?: string[] | null
+          formato?: string
+          frequencia?: string
+          id?: string
+          nome?: string
+          proxima_execucao?: string | null
+          tipo_relatorio?: string
+          ultima_execucao?: string | null
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
