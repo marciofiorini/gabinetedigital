@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -15,7 +14,9 @@ import {
   TrendingUp,
   CheckCircle,
   AlertCircle,
-  UserCheck
+  UserCheck,
+  Target,
+  Award
 } from 'lucide-react';
 import { useDashboardEquipe } from '@/hooks/useDashboardEquipe';
 import { useAvaliacoes } from '@/hooks/useAvaliacoes';
@@ -24,6 +25,9 @@ import { useAgendaFuncionario } from '@/hooks/useAgendaFuncionario';
 import { useEquipe } from '@/hooks/useEquipe';
 import { useTarefasEquipe } from '@/hooks/useTarefasEquipe';
 import { usePontoEletronico } from '@/hooks/usePontoEletronico';
+import { GestaoTarefasAvancada } from '@/components/equipe/GestaoTarefasAvancada';
+import { AvaliacaoDesempenho } from '@/components/equipe/AvaliacaoDesempenho';
+import { ControlePonto } from '@/components/equipe/ControlePonto';
 
 export default function EquipeCompleta() {
   const { metricas, produtividade, loading: loadingDashboard } = useDashboardEquipe();
@@ -51,7 +55,7 @@ export default function EquipeCompleta() {
       </div>
 
       <Tabs defaultValue="dashboard" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-8">
           <TabsTrigger value="dashboard" className="flex items-center gap-2">
             <BarChart3 className="w-4 h-4" />
             Dashboard
@@ -59,6 +63,14 @@ export default function EquipeCompleta() {
           <TabsTrigger value="funcionarios" className="flex items-center gap-2">
             <Users className="w-4 h-4" />
             Funcionários
+          </TabsTrigger>
+          <TabsTrigger value="tarefas" className="flex items-center gap-2">
+            <Target className="w-4 h-4" />
+            Tarefas
+          </TabsTrigger>
+          <TabsTrigger value="ponto" className="flex items-center gap-2">
+            <Clock className="w-4 h-4" />
+            Ponto
           </TabsTrigger>
           <TabsTrigger value="avaliacoes" className="flex items-center gap-2">
             <Star className="w-4 h-4" />
@@ -194,36 +206,19 @@ export default function EquipeCompleta() {
           </Card>
         </TabsContent>
 
-        {/* Avaliações */}
+        {/* Nova aba de Tarefas Avançadas */}
+        <TabsContent value="tarefas" className="space-y-4">
+          <GestaoTarefasAvancada />
+        </TabsContent>
+
+        {/* Nova aba de Controle de Ponto */}
+        <TabsContent value="ponto" className="space-y-4">
+          <ControlePonto />
+        </TabsContent>
+
+        {/* Nova aba de Avaliações */}
         <TabsContent value="avaliacoes" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Avaliações de Desempenho</CardTitle>
-              <CardDescription>Sistema de avaliação da equipe</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {avaliacoes.map((avaliacao) => (
-                  <div key={avaliacao.id} className="border rounded-lg p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <h3 className="font-semibold">{avaliacao.funcionario?.nome}</h3>
-                      <Badge variant={avaliacao.status === 'concluida' ? 'default' : 'secondary'}>
-                        {avaliacao.status}
-                      </Badge>
-                    </div>
-                    <p className="text-sm text-gray-600">
-                      Período: {new Date(avaliacao.periodo_inicio).toLocaleDateString('pt-BR')} - {new Date(avaliacao.periodo_fim).toLocaleDateString('pt-BR')}
-                    </p>
-                    {avaliacao.nota_geral && (
-                      <p className="text-sm">
-                        <strong>Nota Geral:</strong> {avaliacao.nota_geral}/10
-                      </p>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+          <AvaliacaoDesempenho />
         </TabsContent>
 
         {/* Folha de Pagamento */}
