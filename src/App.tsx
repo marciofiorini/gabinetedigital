@@ -6,7 +6,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedLayout } from "@/components/ProtectedLayout";
-import { LayoutMain } from "@/components/LayoutMain";
 import Index from "./pages/Index";
 import Contatos from "./pages/Contatos";
 import Lideres from "./pages/Lideres";
@@ -52,48 +51,42 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
-            <Route path="/*" element={
-              <ProtectedLayout>
-                <LayoutMain>
-                  <Routes>
-                    <Route index element={<Index />} />
-                    <Route path="contatos" element={<Contatos />} />
-                    <Route path="lideres" element={<Lideres />} />
-                    <Route path="crm" element={<CrmKanban />} />
-                    <Route path="crm-completo" element={<CrmCompleto />} />
-                    <Route path="demandas" element={<Demandas />} />
-                    <Route path="demandas-completa" element={<DemandasCompleta />} />
-                    <Route path="projetos-lei" element={<ProjetosLei />} />
-                    <Route path="comunicacao" element={<Comunicacao />} />
-                    <Route path="comunicacao-integrada" element={<ComunicacaoIntegrada />} />
-                    <Route path="whatsapp" element={<WhatsApp />} />
-                    <Route path="instagram" element={<Instagram />} />
-                    <Route path="email" element={<Email />} />
-                    <Route path="analytics" element={<Analytics />} />
-                    <Route path="monitor-redes" element={<MonitorRedes />} />
-                    <Route path="pesquisas" element={<Pesquisas />} />
-                    <Route path="portal-cidadao" element={<PortalCidadao />} />
-                    <Route path="mapa-influencia" element={<MapaInfluencia />} />
-                    <Route path="sistema-votacoes" element={<SistemaVotacoes />} />
-                    <Route path="equipe" element={<Equipe />} />
-                    <Route path="equipe-completa" element={<EquipeCompleta />} />
-                    <Route path="orcamento-publico" element={<OrcamentoPublico />} />
-                    <Route path="prestacao-contas" element={<PrestacaoContas />} />
-                    <Route path="projetos-financeiro" element={<ProjetosFinanceiro />} />
-                    <Route path="configuracoes" element={<Configuracoes />} />
-                    <Route path="planos" element={<Planos />} />
-                    <Route path="ajuda" element={<Ajuda />} />
-                    <Route path="administracao" element={<Administracao />} />
-                    <Route path="agenda" element={<Agenda />} />
-                    <Route path="agenda-completa" element={<AgendaCompleta />} />
-                    <Route path="dashboard-comparativo" element={<DashboardComparativo />} />
-                    <Route path="banco-midia" element={<BancoMidia />} />
-                    <Route path="integracoes" element={<Integracoes />} />
-                    <Route path="*" element={<NotFound />} />
-                  </Routes>
-                </LayoutMain>
-              </ProtectedLayout>
-            } />
+            <Route path="/" element={<ProtectedLayout />}>
+              <Route index element={<Index />} />
+              <Route path="contatos" element={<Contatos />} />
+              <Route path="lideres" element={<Lideres />} />
+              <Route path="crm" element={<CrmKanban />} />
+              <Route path="crm-completo" element={<CrmCompleto />} />
+              <Route path="demandas" element={<Demandas />} />
+              <Route path="demandas-completa" element={<DemandasCompleta />} />
+              <Route path="projetos-lei" element={<ProjetosLei />} />
+              <Route path="comunicacao" element={<Comunicacao />} />
+              <Route path="comunicacao-integrada" element={<ComunicacaoIntegrada />} />
+              <Route path="whatsapp" element={<WhatsApp />} />
+              <Route path="instagram" element={<Instagram />} />
+              <Route path="email" element={<Email />} />
+              <Route path="analytics" element={<Analytics />} />
+              <Route path="monitor-redes" element={<MonitorRedes />} />
+              <Route path="pesquisas" element={<Pesquisas />} />
+              <Route path="portal-cidadao" element={<PortalCidadao />} />
+              <Route path="mapa-influencia" element={<MapaInfluencia />} />
+              <Route path="sistema-votacoes" element={<SistemaVotacoes />} />
+              <Route path="equipe" element={<Equipe />} />
+              <Route path="equipe-completa" element={<EquipeCompleta />} />
+              <Route path="orcamento-publico" element={<OrcamentoPublico />} />
+              <Route path="prestacao-contas" element={<PrestacaoContas />} />
+              <Route path="projetos-financeiro" element={<ProjetosFinanceiro />} />
+              <Route path="configuracoes" element={<Configuracoes />} />
+              <Route path="planos" element={<Planos />} />
+              <Route path="ajuda" element={<Ajuda />} />
+              <Route path="administracao" element={<Administracao />} />
+              <Route path="agenda" element={<Agenda />} />
+              <Route path="agenda-completa" element={<AgendaCompleta />} />
+              <Route path="dashboard-comparativo" element={<DashboardComparativo />} />
+              <Route path="banco-midia" element={<BancoMidia />} />
+              <Route path="integracoes" element={<Integracoes />} />
+              <Route path="*" element={<NotFound />} />
+            </Route>
           </Routes>
         </BrowserRouter>
       </AuthProvider>
