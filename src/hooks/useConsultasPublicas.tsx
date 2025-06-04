@@ -48,7 +48,13 @@ export const useConsultasPublicas = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setConsultas(data || []);
+      
+      const consultasFormatted = (data || []).map(item => ({
+        ...item,
+        documentos: Array.isArray(item.documentos) ? item.documentos : []
+      }));
+      
+      setConsultas(consultasFormatted);
     } catch (error) {
       console.error('Erro ao buscar consultas:', error);
       toast({
@@ -94,12 +100,17 @@ export const useConsultasPublicas = () => {
 
       if (error) throw error;
 
-      setConsultas(prev => [data, ...prev]);
+      const consultaFormatted = {
+        ...data,
+        documentos: Array.isArray(data.documentos) ? data.documentos : []
+      };
+
+      setConsultas(prev => [consultaFormatted, ...prev]);
       toast({
         title: "Sucesso",
         description: "Consulta pública criada com sucesso",
       });
-      return data;
+      return consultaFormatted;
     } catch (error) {
       console.error('Erro ao criar consulta:', error);
       toast({
@@ -122,14 +133,19 @@ export const useConsultasPublicas = () => {
 
       if (error) throw error;
 
+      const consultaFormatted = {
+        ...data,
+        documentos: Array.isArray(data.documentos) ? data.documentos : []
+      };
+
       setConsultas(prev => prev.map(consulta => 
-        consulta.id === id ? data : consulta
+        consulta.id === id ? consultaFormatted : consulta
       ));
       toast({
         title: "Sucesso",
         description: "Consulta pública atualizada com sucesso",
       });
-      return data;
+      return consultaFormatted;
     } catch (error) {
       console.error('Erro ao atualizar consulta:', error);
       toast({

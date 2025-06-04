@@ -50,7 +50,13 @@ export const useMonitoramentoLegislativo = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setProjetos(data || []);
+      
+      const projetosFormatted = (data || []).map(item => ({
+        ...item,
+        alertas_configurados: Array.isArray(item.alertas_configurados) ? item.alertas_configurados : []
+      }));
+      
+      setProjetos(projetosFormatted);
     } catch (error) {
       console.error('Erro ao buscar projetos:', error);
       toast({
@@ -96,12 +102,17 @@ export const useMonitoramentoLegislativo = () => {
 
       if (error) throw error;
 
-      setProjetos(prev => [data, ...prev]);
+      const projetoFormatted = {
+        ...data,
+        alertas_configurados: Array.isArray(data.alertas_configurados) ? data.alertas_configurados : []
+      };
+
+      setProjetos(prev => [projetoFormatted, ...prev]);
       toast({
         title: "Sucesso",
         description: "Projeto legislativo adicionado ao monitoramento",
       });
-      return data;
+      return projetoFormatted;
     } catch (error) {
       console.error('Erro ao criar projeto:', error);
       toast({
@@ -124,14 +135,19 @@ export const useMonitoramentoLegislativo = () => {
 
       if (error) throw error;
 
+      const projetoFormatted = {
+        ...data,
+        alertas_configurados: Array.isArray(data.alertas_configurados) ? data.alertas_configurados : []
+      };
+
       setProjetos(prev => prev.map(projeto => 
-        projeto.id === id ? data : projeto
+        projeto.id === id ? projetoFormatted : projeto
       ));
       toast({
         title: "Sucesso",
         description: "Projeto legislativo atualizado com sucesso",
       });
-      return data;
+      return projetoFormatted;
     } catch (error) {
       console.error('Erro ao atualizar projeto:', error);
       toast({

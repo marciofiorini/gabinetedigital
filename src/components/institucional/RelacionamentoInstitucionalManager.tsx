@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Building, Plus, Edit, Trash2, Search, Calendar, Globe } from 'lucide-react';
+import { Building, Plus, Edit, Trash2, Search, Phone, Mail, Globe } from 'lucide-react';
 import { useRelacionamentoInstitucional } from '@/hooks/useRelacionamentoInstitucional';
 
 export const RelacionamentoInstitucionalManager = () => {
@@ -97,7 +97,7 @@ export const RelacionamentoInstitucionalManager = () => {
     switch (nivel) {
       case 'estrategico': return 'bg-green-100 text-green-800';
       case 'colaborativo': return 'bg-blue-100 text-blue-800';
-      case 'operacional': return 'bg-yellow-100 text-yellow-800';
+      case 'contato': return 'bg-yellow-100 text-yellow-800';
       case 'inicial': return 'bg-gray-100 text-gray-800';
       default: return 'bg-gray-100 text-gray-800';
     }
@@ -113,10 +113,10 @@ export const RelacionamentoInstitucionalManager = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Building className="h-5 w-5" />
-            Relacionamento Institucional
+            Relacionamentos Institucionais
           </CardTitle>
           <CardDescription>
-            Mapeamento e gestão de contatos institucionais para fortalecimento de parcerias
+            Mapeamento e gestão de contatos com instituições parceiras
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -138,15 +138,12 @@ export const RelacionamentoInstitucionalManager = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="">Todos</SelectItem>
-                <SelectItem value="prefeitura">Prefeitura</SelectItem>
-                <SelectItem value="camara">Câmara Municipal</SelectItem>
-                <SelectItem value="assembleia">Assembleia Legislativa</SelectItem>
-                <SelectItem value="governo_estadual">Governo Estadual</SelectItem>
-                <SelectItem value="governo_federal">Governo Federal</SelectItem>
+                <SelectItem value="governo">Governo</SelectItem>
                 <SelectItem value="ong">ONG</SelectItem>
-                <SelectItem value="empresa_privada">Empresa Privada</SelectItem>
-                <SelectItem value="sindicato">Sindicato</SelectItem>
+                <SelectItem value="empresa">Empresa</SelectItem>
                 <SelectItem value="universidade">Universidade</SelectItem>
+                <SelectItem value="sindicato">Sindicato</SelectItem>
+                <SelectItem value="associacao">Associação</SelectItem>
               </SelectContent>
             </Select>
             <Select value={nivelFilter} onValueChange={setNivelFilter}>
@@ -155,26 +152,26 @@ export const RelacionamentoInstitucionalManager = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="">Todos</SelectItem>
-                <SelectItem value="estrategico">Estratégico</SelectItem>
-                <SelectItem value="colaborativo">Colaborativo</SelectItem>
-                <SelectItem value="operacional">Operacional</SelectItem>
                 <SelectItem value="inicial">Inicial</SelectItem>
+                <SelectItem value="contato">Contato</SelectItem>
+                <SelectItem value="colaborativo">Colaborativo</SelectItem>
+                <SelectItem value="estrategico">Estratégico</SelectItem>
               </SelectContent>
             </Select>
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogTrigger asChild>
                 <Button onClick={() => { resetForm(); setIsDialogOpen(true); }}>
                   <Plus className="h-4 w-4 mr-2" />
-                  Nova Instituição
+                  Novo Relacionamento
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-2xl">
                 <DialogHeader>
                   <DialogTitle>
-                    {editingRelacionamento ? 'Editar Relacionamento' : 'Nova Instituição'}
+                    {editingRelacionamento ? 'Editar Relacionamento' : 'Novo Relacionamento Institucional'}
                   </DialogTitle>
                   <DialogDescription>
-                    Cadastre ou edite informações do relacionamento institucional
+                    Cadastre uma nova instituição para mapeamento de relacionamentos
                   </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleSubmit} className="space-y-4">
@@ -198,15 +195,12 @@ export const RelacionamentoInstitucionalManager = () => {
                           <SelectValue placeholder="Selecione o tipo" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="prefeitura">Prefeitura</SelectItem>
-                          <SelectItem value="camara">Câmara Municipal</SelectItem>
-                          <SelectItem value="assembleia">Assembleia Legislativa</SelectItem>
-                          <SelectItem value="governo_estadual">Governo Estadual</SelectItem>
-                          <SelectItem value="governo_federal">Governo Federal</SelectItem>
+                          <SelectItem value="governo">Governo</SelectItem>
                           <SelectItem value="ong">ONG</SelectItem>
-                          <SelectItem value="empresa_privada">Empresa Privada</SelectItem>
-                          <SelectItem value="sindicato">Sindicato</SelectItem>
+                          <SelectItem value="empresa">Empresa</SelectItem>
                           <SelectItem value="universidade">Universidade</SelectItem>
+                          <SelectItem value="sindicato">Sindicato</SelectItem>
+                          <SelectItem value="associacao">Associação</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -231,7 +225,7 @@ export const RelacionamentoInstitucionalManager = () => {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-3 gap-4">
                     <div>
                       <Label htmlFor="email">Email</Label>
                       <Input
@@ -249,6 +243,14 @@ export const RelacionamentoInstitucionalManager = () => {
                         onChange={(e) => setNovoRelacionamento({ ...novoRelacionamento, telefone: e.target.value })}
                       />
                     </div>
+                    <div>
+                      <Label htmlFor="website">Website</Label>
+                      <Input
+                        id="website"
+                        value={novoRelacionamento.website}
+                        onChange={(e) => setNovoRelacionamento({ ...novoRelacionamento, website: e.target.value })}
+                      />
+                    </div>
                   </div>
 
                   <div>
@@ -262,14 +264,6 @@ export const RelacionamentoInstitucionalManager = () => {
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="website">Website</Label>
-                      <Input
-                        id="website"
-                        value={novoRelacionamento.website}
-                        onChange={(e) => setNovoRelacionamento({ ...novoRelacionamento, website: e.target.value })}
-                      />
-                    </div>
-                    <div>
                       <Label htmlFor="nivel_relacionamento">Nível de Relacionamento</Label>
                       <Select
                         value={novoRelacionamento.nivel_relacionamento}
@@ -280,21 +274,20 @@ export const RelacionamentoInstitucionalManager = () => {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="inicial">Inicial</SelectItem>
-                          <SelectItem value="operacional">Operacional</SelectItem>
+                          <SelectItem value="contato">Contato</SelectItem>
                           <SelectItem value="colaborativo">Colaborativo</SelectItem>
                           <SelectItem value="estrategico">Estratégico</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="area_atuacao">Área de Atuação</Label>
-                    <Input
-                      id="area_atuacao"
-                      value={novoRelacionamento.area_atuacao}
-                      onChange={(e) => setNovoRelacionamento({ ...novoRelacionamento, area_atuacao: e.target.value })}
-                    />
+                    <div>
+                      <Label htmlFor="area_atuacao">Área de Atuação</Label>
+                      <Input
+                        id="area_atuacao"
+                        value={novoRelacionamento.area_atuacao}
+                        onChange={(e) => setNovoRelacionamento({ ...novoRelacionamento, area_atuacao: e.target.value })}
+                      />
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
@@ -360,18 +353,43 @@ export const RelacionamentoInstitucionalManager = () => {
                       <div>
                         <div className="font-medium">{rel.nome_instituicao}</div>
                         <div className="text-sm text-gray-500">{rel.tipo_instituicao}</div>
+                        {rel.area_atuacao && (
+                          <div className="text-xs text-gray-400">{rel.area_atuacao}</div>
+                        )}
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div>
-                        <div className="font-medium">{rel.responsavel_nome}</div>
-                        <div className="text-sm text-gray-500">{rel.responsavel_cargo}</div>
-                      </div>
+                      {rel.responsavel_nome && (
+                        <div>
+                          <div className="font-medium">{rel.responsavel_nome}</div>
+                          {rel.responsavel_cargo && (
+                            <div className="text-sm text-gray-500">{rel.responsavel_cargo}</div>
+                          )}
+                        </div>
+                      )}
                     </TableCell>
                     <TableCell>
-                      <div className="text-sm">
-                        {rel.email && <div>{rel.email}</div>}
-                        {rel.telefone && <div>{rel.telefone}</div>}
+                      <div className="space-y-1">
+                        {rel.email && (
+                          <div className="flex items-center gap-1 text-sm">
+                            <Mail className="h-3 w-3" />
+                            {rel.email}
+                          </div>
+                        )}
+                        {rel.telefone && (
+                          <div className="flex items-center gap-1 text-sm">
+                            <Phone className="h-3 w-3" />
+                            {rel.telefone}
+                          </div>
+                        )}
+                        {rel.website && (
+                          <div className="flex items-center gap-1 text-sm">
+                            <Globe className="h-3 w-3" />
+                            <a href={rel.website} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                              Site
+                            </a>
+                          </div>
+                        )}
                       </div>
                     </TableCell>
                     <TableCell>
@@ -380,12 +398,7 @@ export const RelacionamentoInstitucionalManager = () => {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      {rel.proximo_contato && (
-                        <div className="flex items-center gap-1 text-sm">
-                          <Calendar className="h-3 w-3" />
-                          {new Date(rel.proximo_contato).toLocaleDateString('pt-BR')}
-                        </div>
-                      )}
+                      {rel.proximo_contato && new Date(rel.proximo_contato).toLocaleDateString('pt-BR')}
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
