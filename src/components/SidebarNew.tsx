@@ -172,22 +172,22 @@ export const SidebarNew = ({ isOpen }: SidebarProps) => {
           );
         })}
 
-        {/* Grupo de Canais */}
-        <Collapsible open={openGroups.includes('comunicacao')} onOpenChange={() => toggleGroup('comunicacao')}>
+        {/* Grupo Painel */}
+        <Collapsible open={openGroups.includes('painel')} onOpenChange={() => toggleGroup('painel')}>
           <CollapsibleTrigger asChild>
             <Button
               variant="ghost"
               className="w-full justify-between p-3 h-auto font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
             >
               <div className="flex items-center gap-2">
-                <comunicacaoGroup.icon className="w-4 h-4" />
-                <span className="text-sm">{comunicacaoGroup.label}</span>
+                <painelGroup.icon className="w-4 h-4" />
+                <span className="text-sm">{painelGroup.label}</span>
               </div>
-              {openGroups.includes('comunicacao') ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+              {openGroups.includes('painel') ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
             </Button>
           </CollapsibleTrigger>
           <CollapsibleContent className="space-y-1 ml-4 mt-1">
-            {comunicacaoGroup.items.map((item) => {
+            {painelGroup.items.map((item) => {
               const hasAccess = hasAccessToPlan(item.minPlan) || isAdmin();
               if (!hasAccess) return null;
 
@@ -213,22 +213,22 @@ export const SidebarNew = ({ isOpen }: SidebarProps) => {
           </CollapsibleContent>
         </Collapsible>
 
-        {/* Grupo Painel */}
-        <Collapsible open={openGroups.includes('painel')} onOpenChange={() => toggleGroup('painel')}>
+        {/* Grupo de Canais */}
+        <Collapsible open={openGroups.includes('comunicacao')} onOpenChange={() => toggleGroup('comunicacao')}>
           <CollapsibleTrigger asChild>
             <Button
               variant="ghost"
               className="w-full justify-between p-3 h-auto font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
             >
               <div className="flex items-center gap-2">
-                <painelGroup.icon className="w-4 h-4" />
-                <span className="text-sm">{painelGroup.label}</span>
+                <comunicacaoGroup.icon className="w-4 h-4" />
+                <span className="text-sm">{comunicacaoGroup.label}</span>
               </div>
-              {openGroups.includes('painel') ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+              {openGroups.includes('comunicacao') ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
             </Button>
           </CollapsibleTrigger>
           <CollapsibleContent className="space-y-1 ml-4 mt-1">
-            {painelGroup.items.map((item) => {
+            {comunicacaoGroup.items.map((item) => {
               const hasAccess = hasAccessToPlan(item.minPlan) || isAdmin();
               if (!hasAccess) return null;
 
