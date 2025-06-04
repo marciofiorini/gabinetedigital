@@ -21,18 +21,11 @@ const Index = () => {
         <NotificationBell />
       </div>
 
-      {/* Grid Principal */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Coluna Principal - 2/3 */}
-        <div className="lg:col-span-2 space-y-6">
-          <DashboardCharts />
-          <FollowUpNotifications />
-        </div>
-
-        {/* Sidebar Direita - 1/3 */}
-        <div className="space-y-6">
-          <AniversariantesSection />
-        </div>
+      {/* Coluna Única Principal */}
+      <div className="space-y-6">
+        <DashboardCharts />
+        <FollowUpNotifications />
+        <AniversariantesSection />
       </div>
 
       <NotificationToasts />
