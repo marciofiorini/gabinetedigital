@@ -1,11 +1,10 @@
-
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { AlertasAutomaticos } from '@/components/analytics/AlertasAutomaticos';
-import { DashboardEleitoral } from '@/components/analytics/DashboardEleitoral';
+import { GestaoEleitoralAvancada } from '@/components/analytics/GestaoEleitoralAvancada';
 import { RelatoriosPDF } from '@/components/analytics/RelatoriosPDF';
 import { DashboardRedesSociais } from '@/components/analytics/DashboardRedesSociais';
 import { MonitoramentoConfig } from '@/components/analytics/MonitoramentoConfig';
@@ -328,9 +327,9 @@ const AnalyticsAvancado = () => {
           </Card>
         </TabsContent>
 
-        {/* Dashboard Eleitoral */}
+        {/* Gestão Eleitoral Avançada - ATUALIZADA */}
         <TabsContent value="eleitoral" className="space-y-6">
-          <DashboardEleitoral />
+          <GestaoEleitoralAvancada />
         </TabsContent>
 
         {/* Relatórios PDF */}
