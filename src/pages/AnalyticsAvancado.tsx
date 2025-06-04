@@ -12,7 +12,6 @@ import { HeatmapGeografico } from '@/components/analytics/HeatmapGeografico';
 import { ComparativosPage } from '@/components/analytics/ComparativosPage';
 import { DadosEleitoraisUpload } from '@/components/analytics/DadosEleitoraisUpload';
 import { DadosRedesSociaisUpload } from '@/components/analytics/DadosRedesSociaisUpload';
-import { GestaoFinanceiraCompleta } from '@/components/analytics/GestaoFinanceiraCompleta';
 import { SecureUploadCSVLideres } from '@/components/SecureUploadCSVLideres';
 import { SecureUploadCSVContatos } from '@/components/SecureUploadCSVContatos';
 import { 
@@ -36,8 +35,7 @@ import {
   Share2,
   Settings,
   Map,
-  GitCompare,
-  DollarSign
+  GitCompare
 } from "lucide-react";
 
 const AnalyticsAvancado = () => {
@@ -151,7 +149,7 @@ const AnalyticsAvancado = () => {
 
       {/* Tabs de Navegação */}
       <Tabs defaultValue="visao-geral" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5 lg:grid-cols-11">
+        <TabsList className="grid w-full grid-cols-4 lg:grid-cols-10">
           <TabsTrigger value="visao-geral" className="flex items-center gap-1">
             <BarChart3 className="w-4 h-4" />
             <span className="hidden sm:inline">Geral</span>
@@ -167,10 +165,6 @@ const AnalyticsAvancado = () => {
           <TabsTrigger value="eleitoral" className="flex items-center gap-1">
             <Vote className="w-4 h-4" />
             <span className="hidden sm:inline">Eleitoral</span>
-          </TabsTrigger>
-          <TabsTrigger value="financeiro" className="flex items-center gap-1">
-            <DollarSign className="w-4 h-4" />
-            <span className="hidden sm:inline">Financeiro</span>
           </TabsTrigger>
           <TabsTrigger value="relatorios" className="flex items-center gap-1">
             <FileText className="w-4 h-4" />
@@ -340,11 +334,6 @@ const AnalyticsAvancado = () => {
           <GestaoEleitoralAvancada />
         </TabsContent>
 
-        {/* Gestão Financeira Completa - NOVA ABA */}
-        <TabsContent value="financeiro" className="space-y-6">
-          <GestaoFinanceiraCompleta />
-        </TabsContent>
-
         {/* Relatórios PDF */}
         <TabsContent value="relatorios" className="space-y-6">
           <RelatoriosPDF />
@@ -365,7 +354,7 @@ const AnalyticsAvancado = () => {
           <ComparativosPage />
         </TabsContent>
 
-        {/* Upload de Dados - UPDATED TO USE SECURE COMPONENTS */}
+        {/* Upload de Dados */}
         <TabsContent value="upload" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <SecureUploadCSVLideres />

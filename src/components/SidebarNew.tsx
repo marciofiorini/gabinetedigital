@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useLocation, Link } from 'react-router-dom';
 import { cn } from "@/lib/utils";
@@ -101,7 +100,7 @@ export const SidebarNew = ({ isOpen }: SidebarProps) => {
     ]
   };
 
-  // Grupo Painel - ATUALIZADO para usar apenas Analytics Avançado
+  // Grupo Painel
   const painelGroup = {
     id: 'painel',
     label: 'Painel',
@@ -116,7 +115,7 @@ export const SidebarNew = ({ isOpen }: SidebarProps) => {
     ]
   };
 
-  // Grupo Gestão (sem Planos e Configurações)
+  // Grupo Gestão - ADICIONADO Gestão Financeira
   const gestaoGroup = {
     id: 'gestao',
     label: 'Gestão',
@@ -125,6 +124,7 @@ export const SidebarNew = ({ isOpen }: SidebarProps) => {
       { name: 'Equipe', icon: Users, path: '/equipe', minPlan: 'premium' as UserPlan },
       { name: 'Orçamento Público', icon: DollarSign, path: '/orcamento-publico', minPlan: 'premium' as UserPlan },
       { name: 'Prestação de Contas', icon: Receipt, path: '/prestacao-contas', minPlan: 'premium' as UserPlan },
+      { name: 'Gestão Financeira', icon: CreditCard, path: '/gestao-financeira', minPlan: 'premium' as UserPlan },
       { name: 'Projetos c/ Impacto Financeiro', icon: PieChart, path: '/projetos-financeiro', minPlan: 'premium' as UserPlan },
       { name: 'Configurações', icon: Settings, path: '/configuracoes', minPlan: 'basic' as UserPlan },
     ]

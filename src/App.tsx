@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -29,6 +30,7 @@ import Equipe from "./pages/Equipe";
 import EquipeCompleta from "./pages/EquipeCompleta";
 import OrcamentoPublico from "./pages/OrcamentoPublico";
 import PrestacaoContas from "./pages/PrestacaoContas";
+import GestaoFinanceira from "./pages/GestaoFinanceira";
 import ProjetosFinanceiro from "./pages/ProjetosFinanceiro";
 import Configuracoes from "./pages/Configuracoes";
 import Planos from "./pages/Planos";
@@ -75,6 +77,7 @@ const App = () => (
               <Route path="equipe-completa" element={<EquipeCompleta />} />
               <Route path="orcamento-publico" element={<OrcamentoPublico />} />
               <Route path="prestacao-contas" element={<PrestacaoContas />} />
+              <Route path="gestao-financeira" element={<GestaoFinanceira />} />
               <Route path="projetos-financeiro" element={<ProjetosFinanceiro />} />
               <Route path="configuracoes" element={<Configuracoes />} />
               <Route path="planos" element={<Planos />} />

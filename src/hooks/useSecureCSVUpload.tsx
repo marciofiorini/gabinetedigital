@@ -126,7 +126,13 @@ export const useSecureCSVUpload = () => {
           });
           
           return {
-            ...validated,
+            nome: validated.nome,
+            email: validated.email || '',
+            telefone: validated.telefone || '',
+            zona: validated.zona || '',
+            influencia: validated.influencia || 1,
+            status: validated.status || 'ativo',
+            observacoes: validated.observacoes || '',
             user_id: user.id
           };
         } catch (error) {
@@ -185,9 +191,14 @@ export const useSecureCSVUpload = () => {
           });
           
           return {
-            ...validated,
-            user_id: user.id,
-            tags: validated.tags ? validated.tags.split(';').filter(Boolean) : []
+            nome: validated.nome,
+            email: validated.email || '',
+            telefone: validated.telefone || '',
+            endereco: validated.endereco || '',
+            zona: validated.zona || '',
+            observacoes: validated.observacoes || '',
+            tags: validated.tags ? validated.tags.split(';').filter(Boolean) : [],
+            user_id: user.id
           };
         } catch (error) {
           console.warn('Linha inválida ignorada:', row, error);
