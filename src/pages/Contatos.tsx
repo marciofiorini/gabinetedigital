@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from "@/components/ui/button";
@@ -26,12 +27,13 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import { Plus, Search, Users, MapPin, Phone, Mail, Calendar, Eye, Edit, MessageCircle, Star, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
+import { Plus, Search, Users, MapPin, Phone, Mail, Calendar, Eye, Edit, MessageCircle, Star, ArrowUpDown, ArrowUp, ArrowDown, Upload, Filter } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useContatosFicticios } from '@/hooks/useContatosFicticios';
 import { useContatos } from '@/hooks/useContatos';
 import { ContatoDetailsModalOriginal } from '@/components/contatos/ContatoDetailsModalOriginal';
 import { EditContatoModal } from '@/components/contatos/EditContatoModal';
+import { UploadCSVContatos } from '@/components/UploadCSVContatos';
 
 interface Contato {
   id: string;
@@ -59,7 +61,9 @@ const Contatos = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filtroZona, setFiltroZona] = useState('todos');
   const [filtroTipo, setFiltroTipo] = useState('todos');
+  const [filtroTag, setFiltroTag] = useState('todos');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [selectedContato, setSelectedContato] = useState<Contato | null>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -242,8 +246,9 @@ const Contatos = () => {
       const matchesZona = filtroZona === 'todos' || contato.zona === filtroZona;
       const tipo = getTipoContato(contato);
       const matchesTipo = filtroTipo === 'todos' || tipo === filtroTipo;
+      const matchesTag = filtroTag === 'todos' || (contato.tags && contato.tags.includes(filtroTag));
       
-      return matchesSearch && matchesZona && matchesTipo;
+      return matchesSearch && matchesZona && matchesTipo && matchesTag;
     })
     .sort((a, b) => {
       if (!sortDirection) return calcularLeadScore(b) - calcularLeadScore(a);
@@ -287,6 +292,7 @@ const Contatos = () => {
   const currentContatos = contatosFiltrados.slice(startIndex, endIndex);
 
   const zonas = [...new Set(contatos.map(c => c.zona).filter(Boolean))];
+  const todasTags = [...new Set(contatos.flatMap(c => c.tags || []).filter(Boolean))];
 
   const estatisticas = {
     total: contatos.length,
@@ -322,121 +328,138 @@ const Contatos = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Contatos</h1>
-          <p className="text-gray-600">Gerencie sua base de contatos</p>
+          <p className="text-gray-600">Gerencie todos seus contatos com ranking de engajamento</p>
         </div>
         
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-blue-600 hover:bg-blue-700">
-              <Plus className="w-4 h-4 mr-2" />
-              Novo Contato
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>Adicionar Novo Contato</DialogTitle>
-              <DialogDescription>
-                Preencha as informações do novo contato
-              </DialogDescription>
-            </DialogHeader>
-            
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+        <div className="flex gap-3">
+          <Dialog open={isUploadOpen} onOpenChange={setIsUploadOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" className="bg-white">
+                <Upload className="w-4 h-4 mr-2" />
+                Upload CSV
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>Upload CSV de Contatos</DialogTitle>
+              </DialogHeader>
+              <UploadCSVContatos />
+            </DialogContent>
+          </Dialog>
+
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-blue-600 hover:bg-blue-700">
+                <Plus className="w-4 h-4 mr-2" />
+                Novo Contato
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>Adicionar Novo Contato</DialogTitle>
+                <DialogDescription>
+                  Preencha as informações do novo contato
+                </DialogDescription>
+              </DialogHeader>
+              
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="nome">Nome *</Label>
+                    <Input
+                      id="nome"
+                      value={nome}
+                      onChange={(e) => setNome(e.target.value)}
+                      placeholder="Nome completo"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="email">Email</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="email@exemplo.com"
+                    />
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="telefone">Telefone</Label>
+                    <Input
+                      id="telefone"
+                      value={telefone}
+                      onChange={(e) => setTelefone(e.target.value)}
+                      placeholder="(11) 99999-9999"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="zona">Zona</Label>
+                    <Input
+                      id="zona"
+                      value={zona}
+                      onChange={(e) => setZona(e.target.value)}
+                      placeholder="Centro, Zona Norte, etc."
+                    />
+                  </div>
+                </div>
+                
                 <div>
-                  <Label htmlFor="nome">Nome *</Label>
+                  <Label htmlFor="endereco">Endereço</Label>
                   <Input
-                    id="nome"
-                    value={nome}
-                    onChange={(e) => setNome(e.target.value)}
-                    placeholder="Nome completo"
-                    required
+                    id="endereco"
+                    value={endereco}
+                    onChange={(e) => setEndereco(e.target.value)}
+                    placeholder="Rua, número, bairro"
                   />
                 </div>
+                
                 <div>
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="data-nascimento">Data de Nascimento</Label>
                   <Input
-                    id="email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="email@exemplo.com"
+                    id="data-nascimento"
+                    type="date"
+                    value={dataNascimento}
+                    onChange={(e) => setDataNascimento(e.target.value)}
                   />
                 </div>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4">
+                
                 <div>
-                  <Label htmlFor="telefone">Telefone</Label>
+                  <Label htmlFor="tags">Tags</Label>
                   <Input
-                    id="telefone"
-                    value={telefone}
-                    onChange={(e) => setTelefone(e.target.value)}
-                    placeholder="(11) 99999-9999"
+                    id="tags"
+                    value={tags}
+                    onChange={(e) => setTags(e.target.value)}
+                    placeholder="eleitor, apoiador, líder (separadas por vírgula)"
                   />
                 </div>
+                
                 <div>
-                  <Label htmlFor="zona">Zona</Label>
-                  <Input
-                    id="zona"
-                    value={zona}
-                    onChange={(e) => setZona(e.target.value)}
-                    placeholder="Centro, Zona Norte, etc."
+                  <Label htmlFor="observacoes">Observações</Label>
+                  <Textarea
+                    id="observacoes"
+                    value={observacoes}
+                    onChange={(e) => setObservacoes(e.target.value)}
+                    placeholder="Informações adicionais sobre o contato"
+                    rows={3}
                   />
                 </div>
-              </div>
-              
-              <div>
-                <Label htmlFor="endereco">Endereço</Label>
-                <Input
-                  id="endereco"
-                  value={endereco}
-                  onChange={(e) => setEndereco(e.target.value)}
-                  placeholder="Rua, número, bairro"
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="data-nascimento">Data de Nascimento</Label>
-                <Input
-                  id="data-nascimento"
-                  type="date"
-                  value={dataNascimento}
-                  onChange={(e) => setDataNascimento(e.target.value)}
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="tags">Tags</Label>
-                <Input
-                  id="tags"
-                  value={tags}
-                  onChange={(e) => setTags(e.target.value)}
-                  placeholder="eleitor, apoiador, líder (separadas por vírgula)"
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="observacoes">Observações</Label>
-                <Textarea
-                  id="observacoes"
-                  value={observacoes}
-                  onChange={(e) => setObservacoes(e.target.value)}
-                  placeholder="Informações adicionais sobre o contato"
-                  rows={3}
-                />
-              </div>
-              
-              <div className="flex justify-end gap-3">
-                <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
-                  Cancelar
-                </Button>
-                <Button type="submit">
-                  Adicionar Contato
-                </Button>
-              </div>
-            </form>
-          </DialogContent>
-        </Dialog>
+                
+                <div className="flex justify-end gap-3">
+                  <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
+                    Cancelar
+                  </Button>
+                  <Button type="submit">
+                    Adicionar Contato
+                  </Button>
+                </div>
+              </form>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       {/* Estatísticas */}
@@ -447,7 +470,7 @@ const Contatos = () => {
               <Users className="w-8 h-8 text-blue-600" />
               <div>
                 <p className="text-2xl font-bold text-gray-900">{estatisticas.total}</p>
-                <p className="text-sm text-gray-600">Total de Contatos</p>
+                <p className="text-sm text-gray-600">Total Contatos</p>
               </div>
             </div>
           </CardContent>
@@ -456,10 +479,10 @@ const Contatos = () => {
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center gap-3">
-              <Mail className="w-8 h-8 text-green-600" />
+              <Users className="w-8 h-8 text-blue-600" />
               <div>
-                <p className="text-2xl font-bold text-gray-900">{estatisticas.comEmail}</p>
-                <p className="text-sm text-gray-600">Com Email</p>
+                <p className="text-2xl font-bold text-gray-900">27</p>
+                <p className="text-sm text-gray-600">Leads Ativos</p>
               </div>
             </div>
           </CardContent>
@@ -468,10 +491,10 @@ const Contatos = () => {
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center gap-3">
-              <Phone className="w-8 h-8 text-purple-600" />
+              <Users className="w-8 h-8 text-purple-600" />
               <div>
-                <p className="text-2xl font-bold text-gray-900">{estatisticas.comTelefone}</p>
-                <p className="text-sm text-gray-600">Com Telefone</p>
+                <p className="text-2xl font-bold text-gray-900">26</p>
+                <p className="text-sm text-gray-600">Líderes</p>
               </div>
             </div>
           </CardContent>
@@ -480,10 +503,10 @@ const Contatos = () => {
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center gap-3">
-              <Calendar className="w-8 h-8 text-orange-600" />
+              <Star className="w-8 h-8 text-pink-600" />
               <div>
-                <p className="text-2xl font-bold text-gray-900">{estatisticas.aniversariantesHoje}</p>
-                <p className="text-sm text-gray-600">Aniversariantes Hoje</p>
+                <p className="text-2xl font-bold text-gray-900">77</p>
+                <p className="text-sm text-gray-600">Score Médio</p>
               </div>
             </div>
           </CardContent>
@@ -506,6 +529,18 @@ const Contatos = () => {
               </div>
             </div>
             
+            <Select value={filtroTag} onValueChange={setFiltroTag}>
+              <SelectTrigger className="w-full md:w-48">
+                <SelectValue placeholder="Todas as tags" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Todas as tags</SelectItem>
+                {todasTags.map(tag => (
+                  <SelectItem key={tag} value={tag}>{tag}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            
             <Select value={filtroTipo} onValueChange={setFiltroTipo}>
               <SelectTrigger className="w-full md:w-48">
                 <SelectValue placeholder="Filtrar por tipo" />
@@ -517,17 +552,10 @@ const Contatos = () => {
               </SelectContent>
             </Select>
             
-            <Select value={filtroZona} onValueChange={setFiltroZona}>
-              <SelectTrigger className="w-full md:w-48">
-                <SelectValue placeholder="Filtrar por zona" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="todos">Todas as zonas</SelectItem>
-                {zonas.map(zona => (
-                  <SelectItem key={zona} value={zona!}>{zona}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Button variant="outline" className="flex items-center gap-2">
+              <Filter className="w-4 h-4" />
+              Filtros
+            </Button>
           </div>
         </CardContent>
       </Card>
@@ -556,7 +584,9 @@ const Contatos = () => {
                     {getSortIcon('nome')}
                   </div>
                 </TableHead>
+                <TableHead className="w-28">Email</TableHead>
                 <TableHead className="w-32">WhatsApp</TableHead>
+                <TableHead className="w-24">Região</TableHead>
                 <TableHead className="w-20">Tipo</TableHead>
                 <TableHead 
                   className="cursor-pointer select-none hover:bg-gray-50 transition-colors w-20"
@@ -574,15 +604,6 @@ const Contatos = () => {
                   <div className="flex items-center gap-2">
                     Engajamento
                     {getSortIcon('engajamento')}
-                  </div>
-                </TableHead>
-                <TableHead 
-                  className="cursor-pointer select-none hover:bg-gray-50 transition-colors w-28"
-                  onClick={() => handleSort('regiao')}
-                >
-                  <div className="flex items-center gap-2">
-                    Região
-                    {getSortIcon('regiao')}
                   </div>
                 </TableHead>
                 <TableHead className="w-28">Ações</TableHead>
@@ -620,14 +641,39 @@ const Contatos = () => {
                           >
                             {contato.nome}
                           </p>
-                          <p className="text-xs text-gray-600">{contato.email}</p>
+                          {contato.tags && contato.tags.length > 0 && (
+                            <div className="flex gap-1 mt-1">
+                              {contato.tags.slice(0, 2).map((tag, index) => (
+                                <Badge key={index} variant="secondary" className="text-xs">
+                                  {tag}
+                                </Badge>
+                              ))}
+                              {contato.tags.length > 2 && (
+                                <Badge variant="secondary" className="text-xs">
+                                  +{contato.tags.length - 2}
+                                </Badge>
+                              )}
+                            </div>
+                          )}
                         </div>
+                      </div>
+                    </TableCell>
+                    <TableCell className="p-2">
+                      <div className="flex items-center gap-1 text-xs text-gray-600">
+                        <Mail className="w-3 h-3" />
+                        <span className="truncate max-w-[80px]">{contato.email || 'N/A'}</span>
                       </div>
                     </TableCell>
                     <TableCell className="p-2">
                       <div className="flex items-center gap-1 text-xs text-green-600">
                         <MessageCircle className="w-3 h-3" />
                         {contato.telefone || 'N/A'}
+                      </div>
+                    </TableCell>
+                    <TableCell className="p-2">
+                      <div className="flex items-center gap-1 text-xs text-gray-600">
+                        <MapPin className="w-3 h-3" />
+                        {contato.zona || 'N/A'}
                       </div>
                     </TableCell>
                     <TableCell className="p-2">
@@ -645,12 +691,6 @@ const Contatos = () => {
                       <span className={`text-xs font-medium ${getEngajamentoColor(engajamento)}`}>
                         {engajamento}
                       </span>
-                    </TableCell>
-                    <TableCell className="p-2">
-                      <div className="flex items-center gap-1 text-xs text-gray-600">
-                        <MapPin className="w-3 h-3" />
-                        {contato.zona || 'N/A'}
-                      </div>
                     </TableCell>
                     <TableCell className="p-2">
                       <div className="flex gap-1">

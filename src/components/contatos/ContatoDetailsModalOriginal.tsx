@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
 import { useState } from "react";
 import { X, Edit, MessageCircle, Calendar, Heart } from "lucide-react";
 import { useTagSync } from "@/hooks/useTagSync";
@@ -53,7 +54,7 @@ export const ContatoDetailsModalOriginal = ({ contato, isOpen, onClose, onEdit }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-0">
+      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto p-0">
         {/* Header */}
         <div className="bg-white border-b p-6 flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -141,6 +142,9 @@ export const ContatoDetailsModalOriginal = ({ contato, isOpen, onClose, onEdit }
                         <p className="font-medium">{contato.telefone || 'Não informado'}</p>
                       </div>
                     </div>
+                    
+                    <Separator className="my-4" />
+                    
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="text-sm text-gray-600">WhatsApp</label>
@@ -151,6 +155,9 @@ export const ContatoDetailsModalOriginal = ({ contato, isOpen, onClose, onEdit }
                         <p className="font-medium text-pink-600">Não informado</p>
                       </div>
                     </div>
+                    
+                    <Separator className="my-4" />
+                    
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="text-sm text-gray-600">Região</label>
@@ -180,6 +187,9 @@ export const ContatoDetailsModalOriginal = ({ contato, isOpen, onClose, onEdit }
                         <p className="font-medium">Não informado</p>
                       </div>
                     </div>
+                    
+                    <Separator className="my-4" />
+                    
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="text-sm text-gray-600">Interesse Principal</label>
@@ -194,8 +204,10 @@ export const ContatoDetailsModalOriginal = ({ contato, isOpen, onClose, onEdit }
                 </div>
               </div>
 
+              <Separator className="my-8" />
+
               {/* Observações */}
-              <div className="mt-8">
+              <div>
                 <h3 className="text-lg font-semibold mb-4">Observações e Notas</h3>
                 <div className="bg-gray-50 rounded-lg p-4">
                   <Textarea 
@@ -209,7 +221,13 @@ export const ContatoDetailsModalOriginal = ({ contato, isOpen, onClose, onEdit }
                     </Button>
                   </div>
                 </div>
-                <p className="text-gray-500 text-sm mt-4">Nenhuma observação registrada ainda.</p>
+                {contato.observacoes ? (
+                  <div className="mt-4 p-4 bg-blue-50 rounded-lg">
+                    <p className="text-gray-700">{contato.observacoes}</p>
+                  </div>
+                ) : (
+                  <p className="text-gray-500 text-sm mt-4">Nenhuma observação registrada ainda.</p>
+                )}
               </div>
             </TabsContent>
 
@@ -218,6 +236,27 @@ export const ContatoDetailsModalOriginal = ({ contato, isOpen, onClose, onEdit }
                 <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
                   🏷️ Gerenciar Tags
                 </h3>
+                
+                {/* Tags atuais do contato */}
+                {contato.tags && contato.tags.length > 0 && (
+                  <div className="mb-6">
+                    <label className="text-sm text-gray-600 mb-2 block">Tags do Contato:</label>
+                    <div className="flex flex-wrap gap-2">
+                      {contato.tags.map((tag, index) => (
+                        <Badge 
+                          key={index} 
+                          variant="default" 
+                          className="bg-indigo-100 text-indigo-800"
+                        >
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                <Separator className="my-6" />
+                
                 <div className="mb-6">
                   <label className="text-sm text-gray-600 mb-2 block">Tags Disponíveis:</label>
                   <div className="flex flex-wrap gap-2">
@@ -341,7 +380,9 @@ export const ContatoDetailsModalOriginal = ({ contato, isOpen, onClose, onEdit }
                   Agendar Mensagem
                 </Button>
 
-                <div className="mt-8">
+                <Separator className="my-8" />
+
+                <div>
                   <h4 className="font-semibold mb-4 flex items-center gap-2 text-pink-600">
                     <Heart className="w-4 h-4" />
                     Automação de Aniversário
@@ -372,6 +413,9 @@ export const ContatoDetailsModalOriginal = ({ contato, isOpen, onClose, onEdit }
                       <span className="text-xs text-gray-500">27/05/2024</span>
                     </div>
                   </div>
+                  
+                  <Separator />
+                  
                   <div className="border-l-4 border-pink-500 pl-4 py-2">
                     <div className="flex justify-between items-start">
                       <div>
@@ -381,6 +425,9 @@ export const ContatoDetailsModalOriginal = ({ contato, isOpen, onClose, onEdit }
                       <span className="text-xs text-gray-500">25/05/2024</span>
                     </div>
                   </div>
+                  
+                  <Separator />
+                  
                   <div className="border-l-4 border-blue-500 pl-4 py-2">
                     <div className="flex justify-between items-start">
                       <div>
