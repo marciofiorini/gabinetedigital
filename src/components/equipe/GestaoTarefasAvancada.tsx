@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -34,6 +33,7 @@ export const GestaoTarefasAvancada = () => {
     descricao: '',
     funcionario_id: '',
     prioridade: 'media' as const,
+    status: 'pendente' as const,
     data_inicio: '',
     data_limite: ''
   });
@@ -47,6 +47,7 @@ export const GestaoTarefasAvancada = () => {
         descricao: '',
         funcionario_id: '',
         prioridade: 'media',
+        status: 'pendente',
         data_inicio: '',
         data_limite: ''
       });
