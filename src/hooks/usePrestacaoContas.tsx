@@ -48,7 +48,7 @@ export const usePrestacaoContas = () => {
       const { data, error } = await query;
 
       if (error) throw error;
-      setPrestacoes(data || []);
+      setPrestacoes((data || []) as PrestacaoContas[]);
     } catch (error: any) {
       console.error('Erro ao buscar prestações de contas:', error);
       toast({

@@ -54,7 +54,7 @@ export const useProjetosFinanceiro = () => {
       const { data, error } = await query;
 
       if (error) throw error;
-      setProjetos(data || []);
+      setProjetos((data || []) as ProjetoFinanceiro[]);
     } catch (error: any) {
       console.error('Erro ao buscar projetos financeiros:', error);
       toast({

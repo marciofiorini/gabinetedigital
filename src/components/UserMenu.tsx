@@ -16,7 +16,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { Bell, User, LogOut, Settings, CheckCheck, Crown } from 'lucide-react';
+import { Bell, User, LogOut, Settings, CheckCheck, Crown, HelpCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -128,15 +128,21 @@ export const UserMenu = () => {
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem asChild>
-            <Link to="/configuracoes" className="flex items-center w-full">
-              <Settings className="w-4 h-4 mr-2" />
-              Configurações
+            <Link to="/ajuda" className="flex items-center w-full">
+              <HelpCircle className="w-4 h-4 mr-2" />
+              Ajuda
             </Link>
           </DropdownMenuItem>
           <DropdownMenuItem asChild>
             <Link to="/planos" className="flex items-center w-full">
               <Crown className="w-4 h-4 mr-2" />
               Planos
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link to="/configuracoes" className="flex items-center w-full">
+              <Settings className="w-4 h-4 mr-2" />
+              Configurações
             </Link>
           </DropdownMenuItem>
           <DropdownMenuSeparator />

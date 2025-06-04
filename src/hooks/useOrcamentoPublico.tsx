@@ -40,7 +40,7 @@ export const useOrcamentoPublico = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setOrcamentos(data || []);
+      setOrcamentos((data || []) as OrcamentoPublico[]);
     } catch (error: any) {
       console.error('Erro ao buscar orçamentos:', error);
       toast({
