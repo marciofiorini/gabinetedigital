@@ -13,6 +13,8 @@ import { ComparativosPage } from '@/components/analytics/ComparativosPage';
 import { DadosEleitoraisUpload } from '@/components/analytics/DadosEleitoraisUpload';
 import { DadosRedesSociaisUpload } from '@/components/analytics/DadosRedesSociaisUpload';
 import { GestaoFinanceiraCompleta } from '@/components/analytics/GestaoFinanceiraCompleta';
+import { SecureUploadCSVLideres } from '@/components/SecureUploadCSVLideres';
+import { SecureUploadCSVContatos } from '@/components/SecureUploadCSVContatos';
 import { 
   BarChart3, 
   TrendingUp, 
@@ -363,8 +365,12 @@ const AnalyticsAvancado = () => {
           <ComparativosPage />
         </TabsContent>
 
-        {/* Upload de Dados */}
+        {/* Upload de Dados - UPDATED TO USE SECURE COMPONENTS */}
         <TabsContent value="upload" className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <SecureUploadCSVLideres />
+            <SecureUploadCSVContatos />
+          </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <DadosEleitoraisUpload />
             <DadosRedesSociaisUpload />
