@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useLocation, Link } from 'react-router-dom';
 import { cn } from "@/lib/utils";
@@ -38,7 +37,10 @@ import {
   Cake,
   Zap,
   Settings,
-  CreditCard
+  CreditCard,
+  DollarSign,
+  Receipt,
+  PieChart
 } from "lucide-react";
 import { useAuth } from '@/contexts/AuthContext';
 import { useDashboardStats } from '@/hooks/useDashboardStats';
@@ -121,6 +123,9 @@ export const SidebarNew = ({ isOpen }: SidebarProps) => {
       { name: 'Equipe', icon: Users, path: '/equipe', minPlan: 'premium' as UserPlan },
       { name: 'Configurações', icon: Settings, path: '/configuracoes', minPlan: 'basic' as UserPlan },
       { name: 'Planos', icon: CreditCard, path: '/planos', minPlan: 'basic' as UserPlan },
+      { name: 'Orçamento Público', icon: DollarSign, path: '/orcamento-publico', minPlan: 'premium' as UserPlan },
+      { name: 'Prestação de Contas', icon: Receipt, path: '/prestacao-contas', minPlan: 'premium' as UserPlan },
+      { name: 'Projetos c/ Impacto Financeiro', icon: PieChart, path: '/projetos-financeiro', minPlan: 'premium' as UserPlan },
     ]
   };
 
