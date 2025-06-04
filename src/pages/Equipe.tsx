@@ -18,13 +18,16 @@ import {
   Trash2,
   Calendar,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
+  BarChart3,
+  ArrowRight
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
+import { Link } from 'react-router-dom';
 
 export default function Equipe() {
   const { funcionarios, loading: loadingFuncionarios, createFuncionario, updateFuncionario, deleteFuncionario } = useEquipe();
@@ -108,71 +111,128 @@ export default function Equipe() {
           <h1 className="text-3xl font-bold text-gray-900">Gestão de Equipe</h1>
           <p className="text-gray-600">Gerencie sua equipe, tarefas e controle de ponto</p>
         </div>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <UserPlus className="w-4 h-4 mr-2" />
-              Novo Funcionário
+        <div className="flex gap-2">
+          <Link to="/equipe-completa">
+            <Button variant="outline" className="flex items-center gap-2">
+              <BarChart3 className="w-4 h-4" />
+              Central Completa
+              <ArrowRight className="w-4 h-4" />
             </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle>Adicionar Funcionário</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <Label>Nome</Label>
-                <Input
-                  value={novoFuncionario.nome}
-                  onChange={(e) => setNovoFuncionario(prev => ({ ...prev, nome: e.target.value }))}
-                  placeholder="Nome completo"
-                />
-              </div>
-              <div>
-                <Label>Email</Label>
-                <Input
-                  value={novoFuncionario.email}
-                  onChange={(e) => setNovoFuncionario(prev => ({ ...prev, email: e.target.value }))}
-                  placeholder="email@exemplo.com"
-                />
-              </div>
-              <div>
-                <Label>Cargo</Label>
-                <Select value={novoFuncionario.cargo} onValueChange={(value: CargoEquipe) => setNovoFuncionario(prev => ({ ...prev, cargo: value }))}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="assessor">Assessor</SelectItem>
-                    <SelectItem value="estagiario">Estagiário</SelectItem>
-                    <SelectItem value="coordenador">Coordenador</SelectItem>
-                    <SelectItem value="secretario">Secretário</SelectItem>
-                    <SelectItem value="chefe_gabinete">Chefe de Gabinete</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label>Data de Admissão</Label>
-                <Input
-                  type="date"
-                  value={novoFuncionario.data_admissao}
-                  onChange={(e) => setNovoFuncionario(prev => ({ ...prev, data_admissao: e.target.value }))}
-                />
-              </div>
-              <div>
-                <Label>Carga Horária (horas/semana)</Label>
-                <Input
-                  type="number"
-                  value={novoFuncionario.carga_horaria}
-                  onChange={(e) => setNovoFuncionario(prev => ({ ...prev, carga_horaria: parseInt(e.target.value) }))}
-                />
-              </div>
-              <Button onClick={handleCreateFuncionario} className="w-full">
-                Adicionar Funcionário
+          </Link>
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <UserPlus className="w-4 h-4 mr-2" />
+                Novo Funcionário
               </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle>Adicionar Funcionário</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <Label>Nome</Label>
+                  <Input
+                    value={novoFuncionario.nome}
+                    onChange={(e) => setNovoFuncionario(prev => ({ ...prev, nome: e.target.value }))}
+                    placeholder="Nome completo"
+                  />
+                </div>
+                <div>
+                  <Label>Email</Label>
+                  <Input
+                    value={novoFuncionario.email}
+                    onChange={(e) => setNovoFuncionario(prev => ({ ...prev, email: e.target.value }))}
+                    placeholder="email@exemplo.com"
+                  />
+                </div>
+                <div>
+                  <Label>Cargo</Label>
+                  <Select value={novoFuncionario.cargo} onValueChange={(value: CargoEquipe) => setNovoFuncionario(prev => ({ ...prev, cargo: value }))}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="assessor">Assessor</SelectItem>
+                      <SelectItem value="estagiario">Estagiário</SelectItem>
+                      <SelectItem value="coordenador">Coordenador</SelectItem>
+                      <SelectItem value="secretario">Secretário</SelectItem>
+                      <SelectItem value="chefe_gabinete">Chefe de Gabinete</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>Data de Admissão</Label>
+                  <Input
+                    type="date"
+                    value={novoFuncionario.data_admissao}
+                    onChange={(e) => setNovoFuncionario(prev => ({ ...prev, data_admissao: e.target.value }))}
+                  />
+                </div>
+                <div>
+                  <Label>Carga Horária (horas/semana)</Label>
+                  <Input
+                    type="number"
+                    value={novoFuncionario.carga_horaria}
+                    onChange={(e) => setNovoFuncionario(prev => ({ ...prev, carga_horaria: parseInt(e.target.value) }))}
+                  />
+                </div>
+                <Button onClick={handleCreateFuncionario} className="w-full">
+                  Adicionar Funcionário
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
+      </div>
+
+      {/* Quick Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2">
+              <Users className="w-5 h-5 text-blue-600" />
+              <div>
+                <p className="text-sm text-gray-600">Total</p>
+                <p className="text-xl font-bold">{funcionarios.length}</p>
+              </div>
             </div>
-          </DialogContent>
-        </Dialog>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2">
+              <CheckCircle className="w-5 h-5 text-green-600" />
+              <div>
+                <p className="text-sm text-gray-600">Ativos</p>
+                <p className="text-xl font-bold">{funcionarios.filter(f => f.status === 'ativo').length}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2">
+              <ClipboardList className="w-5 h-5 text-orange-600" />
+              <div>
+                <p className="text-sm text-gray-600">Tarefas</p>
+                <p className="text-xl font-bold">{tarefas.length}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2">
+              <Clock className="w-5 h-5 text-purple-600" />
+              <div>
+                <p className="text-sm text-gray-600">Registros</p>
+                <p className="text-xl font-bold">{registros.length}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       <Tabs defaultValue="funcionarios" className="space-y-4">

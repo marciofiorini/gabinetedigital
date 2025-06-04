@@ -1,38 +1,41 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { AuthProvider } from '@/contexts/AuthContext';
-import { Toaster } from '@/components/ui/toaster';
-import { ProtectedLayout } from '@/components/ProtectedLayout';
-import Index from '@/pages/Index';
-import Analytics from '@/pages/Analytics';
-import CrmKanban from '@/pages/CrmKanban';
-import DashboardComparativo from '@/pages/DashboardComparativo';
-import Agenda from '@/pages/Agenda';
-import Contatos from '@/pages/Contatos';
-import Lideres from '@/pages/Lideres';
-import WhatsApp from '@/pages/WhatsApp';
-import Instagram from '@/pages/Instagram';
-import Email from '@/pages/Email';
-import Demandas from '@/pages/Demandas';
-import DemandasCompleta from '@/pages/DemandasCompleta';
-import MonitorRedes from '@/pages/MonitorRedes';
-import ComunicacaoIntegrada from '@/pages/ComunicacaoIntegrada';
-import BancoMidia from '@/pages/BancoMidia';
-import PortalCidadao from '@/pages/PortalCidadao';
-import ProjetosLei from '@/pages/ProjetosLei';
-import Pesquisas from '@/pages/Pesquisas';
-import Planos from '@/pages/Planos';
-import Configuracoes from '@/pages/Configuracoes';
-import Administracao from '@/pages/Administracao';
-import NotFound from '@/pages/NotFound';
-import CrmCompleto from '@/pages/CrmCompleto';
-import AgendaCompleta from '@/pages/AgendaCompleta';
-import MapaInfluencia from '@/pages/MapaInfluencia';
-import SistemaVotacoes from '@/pages/SistemaVotacoes';
-import Comunicacao from '@/pages/Comunicacao';
-import Integracoes from '@/pages/Integracoes';
-import Equipe from '@/pages/Equipe';
-import { NotificationToasts } from '@/components/NotificationToasts';
+
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "@/contexts/AuthContext";
+import ProtectedLayout from "@/components/ProtectedLayout";
+import Index from "./pages/Index";
+import Contatos from "./pages/Contatos";
+import CrmKanban from "./pages/CrmKanban";
+import CrmCompleto from "./pages/CrmCompleto";
+import Lideres from "./pages/Lideres";
+import Demandas from "./pages/Demandas";
+import DemandasCompleta from "./pages/DemandasCompleta";
+import WhatsApp from "./pages/WhatsApp";
+import Instagram from "./pages/Instagram";
+import Email from "./pages/Email";
+import Comunicacao from "./pages/Comunicacao";
+import ComunicacaoIntegrada from "./pages/ComunicacaoIntegrada";
+import Analytics from "./pages/Analytics";
+import DashboardComparativo from "./pages/DashboardComparativo";
+import MonitorRedes from "./pages/MonitorRedes";
+import Pesquisas from "./pages/Pesquisas";
+import PortalCidadao from "./pages/PortalCidadao";
+import MapaInfluencia from "./pages/MapaInfluencia";
+import SistemaVotacoes from "./pages/SistemaVotacoes";
+import Equipe from "./pages/Equipe";
+import EquipeCompleta from "./pages/EquipeCompleta";
+import Configuracoes from "./pages/Configuracoes";
+import Planos from "./pages/Planos";
+import ProjetosLei from "./pages/ProjetosLei";
+import Agenda from "./pages/Agenda";
+import AgendaCompleta from "./pages/AgendaCompleta";
+import BancoMidia from "./pages/BancoMidia";
+import Integracoes from "./pages/Integracoes";
+import Administracao from "./pages/Administracao";
+import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
@@ -40,43 +43,46 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <Router>
-          <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
             <Routes>
-              <Route path="/" element={<ProtectedLayout><Index /></ProtectedLayout>} />
-              <Route path="/contatos" element={<ProtectedLayout><Contatos /></ProtectedLayout>} />
-              <Route path="/lideres" element={<ProtectedLayout><Lideres /></ProtectedLayout>} />
-              <Route path="/demandas" element={<ProtectedLayout><Demandas /></ProtectedLayout>} />
-              <Route path="/demandas-completa" element={<ProtectedLayout><DemandasCompleta /></ProtectedLayout>} />
-              <Route path="/crm" element={<ProtectedLayout><CrmKanban /></ProtectedLayout>} />
-              <Route path="/crm-completo" element={<ProtectedLayout><CrmCompleto /></ProtectedLayout>} />
-              <Route path="/agenda" element={<ProtectedLayout><Agenda /></ProtectedLayout>} />
-              <Route path="/agenda-completa" element={<ProtectedLayout><AgendaCompleta /></ProtectedLayout>} />
-              <Route path="/projetos-lei" element={<ProtectedLayout><ProjetosLei /></ProtectedLayout>} />
-              <Route path="/planos" element={<ProtectedLayout><Planos /></ProtectedLayout>} />
-              <Route path="/analytics" element={<ProtectedLayout><Analytics /></ProtectedLayout>} />
-              <Route path="/monitor-redes" element={<ProtectedLayout><MonitorRedes /></ProtectedLayout>} />
-              <Route path="/mapa-influencia" element={<ProtectedLayout><MapaInfluencia /></ProtectedLayout>} />
-              <Route path="/pesquisas" element={<ProtectedLayout><Pesquisas /></ProtectedLayout>} />
-              <Route path="/portal-cidadao" element={<ProtectedLayout><PortalCidadao /></ProtectedLayout>} />
-              <Route path="/sistema-votacoes" element={<ProtectedLayout><SistemaVotacoes /></ProtectedLayout>} />
-              <Route path="/banco-midia" element={<ProtectedLayout><BancoMidia /></ProtectedLayout>} />
-              <Route path="/dashboard-comparativo" element={<ProtectedLayout><DashboardComparativo /></ProtectedLayout>} />
-              <Route path="/comunicacao-integrada" element={<ProtectedLayout><ComunicacaoIntegrada /></ProtectedLayout>} />
-              <Route path="/administracao" element={<ProtectedLayout><Administracao /></ProtectedLayout>} />
-              <Route path="/configuracoes" element={<ProtectedLayout><Configuracoes /></ProtectedLayout>} />
-              <Route path="/comunicacao" element={<ProtectedLayout><Comunicacao /></ProtectedLayout>} />
-              <Route path="/integracoes" element={<ProtectedLayout><Integracoes /></ProtectedLayout>} />
-              <Route path="/email" element={<ProtectedLayout><Email /></ProtectedLayout>} />
-              <Route path="/whatsapp" element={<ProtectedLayout><WhatsApp /></ProtectedLayout>} />
-              <Route path="/instagram" element={<ProtectedLayout><Instagram /></ProtectedLayout>} />
-              <Route path="/equipe" element={<ProtectedLayout><Equipe /></ProtectedLayout>} />
-              <Route path="*" element={<NotFound />} />
+              <Route path="/" element={<ProtectedLayout />}>
+                <Route index element={<Index />} />
+                <Route path="contatos" element={<Contatos />} />
+                <Route path="crm" element={<CrmKanban />} />
+                <Route path="crm-completo" element={<CrmCompleto />} />
+                <Route path="lideres" element={<Lideres />} />
+                <Route path="demandas" element={<Demandas />} />
+                <Route path="demandas-completa" element={<DemandasCompleta />} />
+                <Route path="whatsapp" element={<WhatsApp />} />
+                <Route path="instagram" element={<Instagram />} />
+                <Route path="email" element={<Email />} />
+                <Route path="comunicacao" element={<Comunicacao />} />
+                <Route path="comunicacao-integrada" element={<ComunicacaoIntegrada />} />
+                <Route path="analytics" element={<Analytics />} />
+                <Route path="dashboard-comparativo" element={<DashboardComparativo />} />
+                <Route path="monitor-redes" element={<MonitorRedes />} />
+                <Route path="pesquisas" element={<Pesquisas />} />
+                <Route path="portal-cidadao" element={<PortalCidadao />} />
+                <Route path="mapa-influencia" element={<MapaInfluencia />} />
+                <Route path="sistema-votacoes" element={<SistemaVotacoes />} />
+                <Route path="equipe" element={<Equipe />} />
+                <Route path="equipe-completa" element={<EquipeCompleta />} />
+                <Route path="configuracoes" element={<Configuracoes />} />
+                <Route path="planos" element={<Planos />} />
+                <Route path="projetos-lei" element={<ProjetosLei />} />
+                <Route path="agenda" element={<Agenda />} />
+                <Route path="agenda-completa" element={<AgendaCompleta />} />
+                <Route path="banco-midia" element={<BancoMidia />} />
+                <Route path="integracoes" element={<Integracoes />} />
+                <Route path="administracao" element={<Administracao />} />
+                <Route path="*" element={<NotFound />} />
+              </Route>
             </Routes>
-            <Toaster />
-            <NotificationToasts />
-          </div>
-        </Router>
+          </BrowserRouter>
+        </TooltipProvider>
       </AuthProvider>
     </QueryClientProvider>
   );

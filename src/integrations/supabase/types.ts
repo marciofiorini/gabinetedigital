@@ -42,6 +42,68 @@ export type Database = {
         }
         Relationships: []
       }
+      agenda_funcionario: {
+        Row: {
+          created_at: string
+          data_fim: string
+          data_inicio: string
+          descricao: string | null
+          funcionario_id: string
+          id: string
+          local: string | null
+          observacoes: string | null
+          participantes: string[] | null
+          prioridade: string
+          status: string
+          tipo: string
+          titulo: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          data_fim: string
+          data_inicio: string
+          descricao?: string | null
+          funcionario_id: string
+          id?: string
+          local?: string | null
+          observacoes?: string | null
+          participantes?: string[] | null
+          prioridade?: string
+          status?: string
+          tipo?: string
+          titulo: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          data_fim?: string
+          data_inicio?: string
+          descricao?: string | null
+          funcionario_id?: string
+          id?: string
+          local?: string | null
+          observacoes?: string | null
+          participantes?: string[] | null
+          prioridade?: string
+          status?: string
+          tipo?: string
+          titulo?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agenda_funcionario_funcionario_id_fkey"
+            columns: ["funcionario_id"]
+            isOneToOne: false
+            referencedRelation: "funcionarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       alertas_automaticos: {
         Row: {
           ativo: boolean
@@ -80,6 +142,75 @@ export type Database = {
           valor_limite?: number
         }
         Relationships: []
+      }
+      avaliacoes_desempenho: {
+        Row: {
+          avaliador_id: string | null
+          comentarios_avaliador: string | null
+          comentarios_funcionario: string | null
+          created_at: string
+          funcionario_id: string
+          id: string
+          nota_geral: number | null
+          objetivos_proximos: string | null
+          periodo_fim: string
+          periodo_inicio: string
+          pontos_fortes: string | null
+          pontos_melhoria: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avaliador_id?: string | null
+          comentarios_avaliador?: string | null
+          comentarios_funcionario?: string | null
+          created_at?: string
+          funcionario_id: string
+          id?: string
+          nota_geral?: number | null
+          objetivos_proximos?: string | null
+          periodo_fim: string
+          periodo_inicio: string
+          pontos_fortes?: string | null
+          pontos_melhoria?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avaliador_id?: string | null
+          comentarios_avaliador?: string | null
+          comentarios_funcionario?: string | null
+          created_at?: string
+          funcionario_id?: string
+          id?: string
+          nota_geral?: number | null
+          objetivos_proximos?: string | null
+          periodo_fim?: string
+          periodo_inicio?: string
+          pontos_fortes?: string | null
+          pontos_melhoria?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "avaliacoes_desempenho_avaliador_id_fkey"
+            columns: ["avaliador_id"]
+            isOneToOne: false
+            referencedRelation: "funcionarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "avaliacoes_desempenho_funcionario_id_fkey"
+            columns: ["funcionario_id"]
+            isOneToOne: false
+            referencedRelation: "funcionarios"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       comparativos_temporais: {
         Row: {
@@ -215,6 +346,44 @@ export type Database = {
           zona?: string | null
         }
         Relationships: []
+      }
+      criterios_avaliacao: {
+        Row: {
+          avaliacao_id: string
+          created_at: string
+          criterio: string
+          id: string
+          nota: number | null
+          observacoes: string | null
+          peso: number | null
+        }
+        Insert: {
+          avaliacao_id: string
+          created_at?: string
+          criterio: string
+          id?: string
+          nota?: number | null
+          observacoes?: string | null
+          peso?: number | null
+        }
+        Update: {
+          avaliacao_id?: string
+          created_at?: string
+          criterio?: string
+          id?: string
+          nota?: number | null
+          observacoes?: string | null
+          peso?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "criterios_avaliacao_avaliacao_id_fkey"
+            columns: ["avaliacao_id"]
+            isOneToOne: false
+            referencedRelation: "avaliacoes_desempenho"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       dados_eleitorais: {
         Row: {
@@ -431,6 +600,86 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      folha_pagamento: {
+        Row: {
+          adicional_noturno: number | null
+          created_at: string
+          funcionario_id: string
+          horas_extras: number | null
+          horas_trabalhadas: number | null
+          id: string
+          inss: number | null
+          ir: number | null
+          mes_referencia: string
+          observacoes: string | null
+          outros_beneficios: number | null
+          outros_descontos: number | null
+          plano_saude: number | null
+          salario_base: number
+          salario_liquido: number | null
+          status: string
+          updated_at: string
+          user_id: string
+          vale_alimentacao: number | null
+          vale_transporte: number | null
+          valor_hora_extra: number | null
+        }
+        Insert: {
+          adicional_noturno?: number | null
+          created_at?: string
+          funcionario_id: string
+          horas_extras?: number | null
+          horas_trabalhadas?: number | null
+          id?: string
+          inss?: number | null
+          ir?: number | null
+          mes_referencia: string
+          observacoes?: string | null
+          outros_beneficios?: number | null
+          outros_descontos?: number | null
+          plano_saude?: number | null
+          salario_base: number
+          salario_liquido?: number | null
+          status?: string
+          updated_at?: string
+          user_id: string
+          vale_alimentacao?: number | null
+          vale_transporte?: number | null
+          valor_hora_extra?: number | null
+        }
+        Update: {
+          adicional_noturno?: number | null
+          created_at?: string
+          funcionario_id?: string
+          horas_extras?: number | null
+          horas_trabalhadas?: number | null
+          id?: string
+          inss?: number | null
+          ir?: number | null
+          mes_referencia?: string
+          observacoes?: string | null
+          outros_beneficios?: number | null
+          outros_descontos?: number | null
+          plano_saude?: number | null
+          salario_base?: number
+          salario_liquido?: number | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+          vale_alimentacao?: number | null
+          vale_transporte?: number | null
+          valor_hora_extra?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "folha_pagamento_funcionario_id_fkey"
+            columns: ["funcionario_id"]
+            isOneToOne: false
+            referencedRelation: "funcionarios"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       follow_ups: {
         Row: {
