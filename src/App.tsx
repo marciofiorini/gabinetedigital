@@ -20,6 +20,7 @@ import WhatsApp from "./pages/WhatsApp";
 import Instagram from "./pages/Instagram";
 import Email from "./pages/Email";
 import Analytics from "./pages/Analytics";
+import AnalyticsAvancado from "./pages/AnalyticsAvancado";
 import MonitorRedes from "./pages/MonitorRedes";
 import Pesquisas from "./pages/Pesquisas";
 import PortalCidadao from "./pages/PortalCidadao";
@@ -66,6 +67,7 @@ const App = () => (
               <Route path="instagram" element={<Instagram />} />
               <Route path="email" element={<Email />} />
               <Route path="analytics" element={<Analytics />} />
+              <Route path="analytics-avancado" element={<AnalyticsAvancado />} />
               <Route path="monitor-redes" element={<MonitorRedes />} />
               <Route path="pesquisas" element={<Pesquisas />} />
               <Route path="portal-cidadao" element={<PortalCidadao />} />

@@ -1,47 +1,35 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { 
-  Plus, 
-  Download, 
-  Calendar, 
-  Clock, 
-  FileText, 
-  Mail, 
-  Settings,
-  Eye,
-  Trash2,
-  Play,
-  Pause
-} from "lucide-react";
+import { Plus, FileText, Download, Calendar, Mail, Settings } from "lucide-react";
 import { useRelatoriosAutomatizados } from '@/hooks/useRelatoriosAutomatizados';
 
 export const RelatoriosPDF = () => {
   const { relatorios, loading, createRelatorio, executarRelatorio } = useRelatoriosAutomatizados();
   const [novoRelatorio, setNovoRelatorio] = useState({
     nome: '',
-    tipo_relatorio: '',
+    tipo_relatorio: 'dashboard',
     formato: 'pdf',
-    frequencia: '',
+    frequencia: 'semanal',
     destinatarios: [''],
-    configuracao: {}
+    configuracao: {},
+    ativo: true,
+    proxima_execucao: null,
+    ultima_execucao: null
   });
 
   const tiposRelatorio = [
     { value: 'dashboard', label: 'Dashboard Geral' },
     { value: 'eleitoral', label: 'Relatório Eleitoral' },
-    { value: 'financeiro', label: 'Relatório Financeiro' },
-    { value: 'engajamento', label: 'Relatório de Engajamento' },
-    { value: 'contatos', label: 'Relatório de Contatos' },
-    { value: 'eventos', label: 'Relatório de Eventos' }
+    { value: 'engajamento', label: 'Engajamento' },
+    { value: 'financeiro', label: 'Financeiro' }
   ];
 
   const frequencias = [
@@ -57,35 +45,19 @@ export const RelatoriosPDF = () => {
     { value: 'csv', label: 'CSV' }
   ];
 
-  const getFrequenciaColor = (freq: string) => {
-    switch (freq) {
-      case 'diario': return 'bg-green-100 text-green-800';
-      case 'semanal': return 'bg-blue-100 text-blue-800';
-      case 'mensal': return 'bg-purple-100 text-purple-800';
-      case 'trimestral': return 'bg-orange-100 text-orange-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const getFormatoIcon = (formato: string) => {
-    switch (formato) {
-      case 'pdf': return <FileText className="w-4 h-4" />;
-      case 'excel': return <FileText className="w-4 h-4 text-green-600" />;
-      case 'csv': return <FileText className="w-4 h-4 text-blue-600" />;
-      default: return <FileText className="w-4 h-4" />;
-    }
-  };
-
   const handleCreateRelatorio = async () => {
     try {
       await createRelatorio(novoRelatorio);
       setNovoRelatorio({
         nome: '',
-        tipo_relatorio: '',
+        tipo_relatorio: 'dashboard',
         formato: 'pdf',
-        frequencia: '',
+        frequencia: 'semanal',
         destinatarios: [''],
-        configuracao: {}
+        configuracao: {},
+        ativo: true,
+        proxima_execucao: null,
+        ultima_execucao: null
       });
     } catch (error) {
       console.error('Erro ao criar relatório:', error);
