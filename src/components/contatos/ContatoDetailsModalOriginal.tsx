@@ -1,15 +1,14 @@
-
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
+import { useState } from "react";
+import { X, Edit, Mail, Phone, MapPin, Calendar, User, Building2, MessageCircle, Heart } from "lucide-react";
+import { useTagSync } from "@/hooks/useTagSync";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { useState } from "react";
-import { X, Edit, MessageCircle, Calendar, Heart } from "lucide-react";
-import { useTagSync } from "@/hooks/useTagSync";
 
 interface Contato {
   id: string;
@@ -54,11 +53,11 @@ export const ContatoDetailsModalOriginal = ({ contato, isOpen, onClose, onEdit }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto p-0">
+      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto p-0">
         {/* Header */}
         <div className="bg-white border-b p-6 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-indigo-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
+            <div className="w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
               {contato.nome.split(' ').map(n => n[0]).join('').slice(0, 2)}
             </div>
             <div>
@@ -127,54 +126,75 @@ export const ContatoDetailsModalOriginal = ({ contato, isOpen, onClose, onEdit }
             <TabsContent value="perfil" className="mt-0">
               <div className="grid grid-cols-2 gap-8">
                 {/* Informações Básicas */}
-                <div>
-                  <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                    👤 Informações Básicas
+                <div className="bg-white border rounded-lg p-6">
+                  <h3 className="text-lg font-semibold mb-6 flex items-center gap-2">
+                    <User className="w-5 h-5 text-gray-600" />
+                    Informações Básicas
                   </h3>
                   <div className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="text-sm text-gray-600">E-mail</label>
+                        <label className="text-sm text-gray-600 flex items-center gap-2">
+                          <Mail className="w-4 h-4" />
+                          E-mail
+                        </label>
                         <p className="font-medium">{contato.email || 'Não informado'}</p>
                       </div>
                       <div>
-                        <label className="text-sm text-gray-600">Telefone</label>
+                        <label className="text-sm text-gray-600 flex items-center gap-2">
+                          <Phone className="w-4 h-4" />
+                          Telefone
+                        </label>
                         <p className="font-medium">{contato.telefone || 'Não informado'}</p>
                       </div>
                     </div>
                     
-                    <Separator className="my-4" />
+                    <hr className="my-4" />
                     
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="text-sm text-gray-600">WhatsApp</label>
+                        <label className="text-sm text-gray-600 flex items-center gap-2">
+                          <Phone className="w-4 h-4 text-green-600" />
+                          WhatsApp
+                        </label>
                         <p className="font-medium text-green-600">{contato.telefone || 'Não informado'}</p>
                       </div>
                       <div>
-                        <label className="text-sm text-gray-600">Instagram</label>
+                        <label className="text-sm text-gray-600 flex items-center gap-2">
+                          📷 Instagram
+                        </label>
                         <p className="font-medium text-pink-600">Não informado</p>
                       </div>
                     </div>
                     
-                    <Separator className="my-4" />
+                    <hr className="my-4" />
                     
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="text-sm text-gray-600">Região</label>
+                        <label className="text-sm text-gray-600 flex items-center gap-2">
+                          <MapPin className="w-4 h-4" />
+                          Região
+                        </label>
                         <p className="font-medium">{contato.zona || 'Não informado'}</p>
                       </div>
                       <div>
-                        <label className="text-sm text-gray-600">Aniversário</label>
-                        <p className="font-medium text-pink-600">{contato.data_nascimento ? new Date(contato.data_nascimento).toLocaleDateString('pt-BR') : 'Não informado'}</p>
+                        <label className="text-sm text-gray-600 flex items-center gap-2">
+                          <Calendar className="w-4 h-4 text-pink-600" />
+                          Aniversário
+                        </label>
+                        <p className="font-medium text-pink-600">
+                          {contato.data_nascimento ? new Date(contato.data_nascimento).toLocaleDateString('pt-BR') : 'Não informado'}
+                        </p>
                       </div>
                     </div>
                   </div>
                 </div>
 
                 {/* Informações Profissionais */}
-                <div>
-                  <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                    💼 Informações Profissionais
+                <div className="bg-white border rounded-lg p-6">
+                  <h3 className="text-lg font-semibold mb-6 flex items-center gap-2">
+                    <Building2 className="w-5 h-5 text-gray-600" />
+                    Informações Profissionais
                   </h3>
                   <div className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
@@ -188,7 +208,7 @@ export const ContatoDetailsModalOriginal = ({ contato, isOpen, onClose, onEdit }
                       </div>
                     </div>
                     
-                    <Separator className="my-4" />
+                    <hr className="my-4" />
                     
                     <div className="grid grid-cols-2 gap-4">
                       <div>
@@ -204,10 +224,7 @@ export const ContatoDetailsModalOriginal = ({ contato, isOpen, onClose, onEdit }
                 </div>
               </div>
 
-              <Separator className="my-8" />
-
-              {/* Observações */}
-              <div>
+              <div className="mt-8">
                 <h3 className="text-lg font-semibold mb-4">Observações e Notas</h3>
                 <div className="bg-gray-50 rounded-lg p-4">
                   <Textarea 
