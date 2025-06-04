@@ -1,47 +1,38 @@
 
-import { toast } from "sonner";
-import { CheckCircle, AlertCircle, Info, XCircle } from "lucide-react";
+import { useToast } from '@/hooks/use-toast';
 
 export const useToastEnhanced = () => {
-  const showSuccess = (message: string, description?: string) => {
-    toast.success(message, {
+  const { toast } = useToast();
+
+  const showSuccess = (title: string, description?: string) => {
+    toast({
+      title,
       description,
-      icon: <CheckCircle className="w-4 h-4" />,
-      className: "toast-custom",
-      duration: 4000,
+      variant: "default"
     });
   };
 
-  const showError = (message: string, description?: string) => {
-    toast.error(message, {
+  const showError = (title: string, description?: string) => {
+    toast({
+      title,
       description,
-      icon: <XCircle className="w-4 h-4" />,
-      className: "toast-custom",
-      duration: 5000,
+      variant: "destructive"
     });
   };
 
-  const showWarning = (message: string, description?: string) => {
-    toast.warning(message, {
+  const showWarning = (title: string, description?: string) => {
+    toast({
+      title,
       description,
-      icon: <AlertCircle className="w-4 h-4" />,
-      className: "toast-custom",
-      duration: 4000,
+      variant: "destructive"
     });
   };
 
-  const showInfo = (message: string, description?: string) => {
-    toast.info(message, {
+  const showInfo = (title: string, description?: string) => {
+    toast({
+      title,
       description,
-      icon: <Info className="w-4 h-4" />,
-      className: "toast-custom",
-      duration: 3000,
-    });
-  };
-
-  const showLoading = (message: string) => {
-    return toast.loading(message, {
-      className: "toast-custom",
+      variant: "default"
     });
   };
 
@@ -50,6 +41,6 @@ export const useToastEnhanced = () => {
     showError,
     showWarning,
     showInfo,
-    showLoading,
+    toast
   };
 };
