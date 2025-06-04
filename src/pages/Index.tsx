@@ -5,7 +5,6 @@ import { NotificationBell } from '@/components/NotificationBell';
 import { NotificationToasts } from '@/components/NotificationToasts';
 import { FollowUpNotifications } from '@/components/FollowUpNotifications';
 import { AniversariantesSection } from '@/components/AniversariantesSection';
-import { PrimeirosPassosCard } from '@/components/PrimeirosPassosCard';
 
 const Index = () => {
   return (
@@ -32,7 +31,6 @@ const Index = () => {
 
         {/* Sidebar Direita - 1/3 */}
         <div className="space-y-6">
-          <PrimeirosPassosCard />
           <AniversariantesSection />
         </div>
       </div>
