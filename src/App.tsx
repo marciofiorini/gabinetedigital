@@ -26,6 +26,8 @@ import ProjetosLei from '@/pages/ProjetosLei';
 import Pesquisas from '@/pages/Pesquisas';
 import Planos from '@/pages/Planos';
 import Administracao from '@/pages/Administracao';
+import Configuracoes from '@/pages/Configuracoes';
+import Integracoes from '@/pages/Integracoes';
 import { LoginForm } from '@/components/LoginForm';
 import ResetPassword from '@/pages/ResetPassword';
 import NotFound from '@/pages/NotFound';
@@ -70,6 +72,8 @@ function App() {
                 <Route path="pesquisas" element={<Pesquisas />} />
                 <Route path="planos" element={<Planos />} />
                 <Route path="administracao" element={<Administracao />} />
+                <Route path="configuracoes" element={<Configuracoes />} />
+                <Route path="integracoes" element={<Integracoes />} />
                 <Route path="*" element={<NotFound />} />
               </Route>
             </Routes>
