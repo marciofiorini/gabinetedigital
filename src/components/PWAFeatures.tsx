@@ -1,142 +1,113 @@
 
-import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Download, Wifi, WifiOff, Share2, Smartphone } from 'lucide-react';
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { useNativeFeatures } from '@/hooks/useNativeFeatures';
-import { useToast } from '@/hooks/use-toast';
+import { 
+  Smartphone, 
+  Share, 
+  Vibrate, 
+  Wifi, 
+  WifiOff,
+  Download,
+  Bell
+} from "lucide-react";
 
 export const PWAFeatures = () => {
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
-  const [isInstallable, setIsInstallable] = useState(false);
-  const [isInstalled, setIsInstalled] = useState(false);
   const { isNative, networkStatus, shareContent, hapticFeedback } = useNativeFeatures();
-  const { toast } = useToast();
-
-  useEffect(() => {
-    // Check if app is already installed
-    if (window.matchMedia('(display-mode: standalone)').matches) {
-      setIsInstalled(true);
-    }
-
-    // Listen for beforeinstallprompt event
-    const handleBeforeInstallPrompt = (e: Event) => {
-      e.preventDefault();
-      setDeferredPrompt(e);
-      setIsInstallable(true);
-    };
-
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-
-    // Listen for app installed event
-    window.addEventListener('appinstalled', () => {
-      setIsInstalled(true);
-      setIsInstallable(false);
-      toast({
-        title: "App Instalado!",
-        description: "O Gabinete Digital foi instalado com sucesso!"
-      });
-    });
-
-    return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-    };
-  }, [toast]);
-
-  const installPWA = async () => {
-    if (!deferredPrompt) return;
-
-    await hapticFeedback();
-    
-    const result = await deferredPrompt.prompt();
-    
-    if (result.outcome === 'accepted') {
-      setDeferredPrompt(null);
-      setIsInstallable(false);
-    }
-  };
 
   const handleShare = async () => {
-    await hapticFeedback();
     await shareContent(
-      'Gabinete Digital',
-      'Sistema completo para gestão de gabinetes políticos',
+      "Gabinete Digital",
+      "Sistema completo para gestão de gabinetes políticos",
       window.location.origin
     );
   };
 
-  if (isInstalled && isNative) {
-    return null; // Don't show PWA features if already installed as native app
-  }
+  const handleHaptic = async () => {
+    await hapticFeedback();
+  };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Smartphone className="w-5 h-5" />
-            Status do App
+            Status do App Mobile
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
-            <span>Conexão de Rede</span>
-            <Badge variant={networkStatus.connected ? "default" : "destructive"}>
+            <span>Modo Nativo:</span>
+            <Badge variant={isNative ? "default" : "secondary"}>
+              {isNative ? "Ativo" : "Web"}
+            </Badge>
+          </div>
+          
+          <div className="flex items-center justify-between">
+            <span className="flex items-center gap-2">
               {networkStatus.connected ? (
-                <><Wifi className="w-3 h-3 mr-1" /> Online</>
+                <Wifi className="w-4 h-4 text-green-600" />
               ) : (
-                <><WifiOff className="w-3 h-3 mr-1" /> Offline</>
+                <WifiOff className="w-4 h-4 text-red-600" />
               )}
+              Conexão:
+            </span>
+            <Badge variant={networkStatus.connected ? "default" : "destructive"}>
+              {networkStatus.connected ? "Online" : "Offline"}
             </Badge>
           </div>
-
-          <div className="flex items-center justify-between">
-            <span>Tipo de Conexão</span>
-            <Badge variant="outline">
-              {networkStatus.connectionType.toUpperCase()}
-            </Badge>
-          </div>
-
-          <div className="flex items-center justify-between">
-            <span>Plataforma</span>
-            <Badge variant="outline">
-              {isNative ? 'App Nativo' : 'Web App'}
-            </Badge>
-          </div>
-
-          {isInstallable && !isInstalled && (
-            <div className="pt-4 border-t">
-              <Button onClick={installPWA} className="w-full">
-                <Download className="w-4 h-4 mr-2" />
-                Instalar App
-              </Button>
-              <p className="text-xs text-muted-foreground mt-2 text-center">
-                Instale para acesso offline e melhor experiência
-              </p>
-            </div>
-          )}
-
-          <Button variant="outline" onClick={handleShare} className="w-full">
-            <Share2 className="w-4 h-4 mr-2" />
-            Compartilhar App
-          </Button>
         </CardContent>
       </Card>
 
-      {!networkStatus.connected && (
-        <Card className="border-orange-200 bg-orange-50">
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-2 text-orange-800">
-              <WifiOff className="w-4 h-4" />
-              <span className="font-medium">Modo Offline</span>
-            </div>
-            <p className="text-sm text-orange-700 mt-1">
-              Algumas funcionalidades podem estar limitadas sem conexão à internet.
-            </p>
-          </CardContent>
-        </Card>
-      )}
+      <Card>
+        <CardHeader>
+          <CardTitle>Funcionalidades Nativas</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Button onClick={handleShare} variant="outline" className="flex items-center gap-2">
+              <Share className="w-4 h-4" />
+              Compartilhar App
+            </Button>
+            
+            <Button onClick={handleHaptic} variant="outline" className="flex items-center gap-2">
+              <Vibrate className="w-4 h-4" />
+              Feedback Tátil
+            </Button>
+          </div>
+          
+          <div className="text-sm text-gray-600">
+            <p className="mb-2 font-medium">Para ativar as funcionalidades completas:</p>
+            <ol className="list-decimal list-inside space-y-1 text-xs">
+              <li>Exporte o projeto para GitHub</li>
+              <li>Execute: npm install</li>
+              <li>Adicione plataforma: npx cap add ios/android</li>
+              <li>Execute: npx cap run ios/android</li>
+            </ol>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Download className="w-5 h-5" />
+            PWA - Progressive Web App
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-gray-600 mb-4">
+            Este app pode ser instalado como PWA diretamente do navegador.
+          </p>
+          <div className="flex items-center gap-2">
+            <Bell className="w-4 h-4 text-blue-600" />
+            <span className="text-sm">Notificações push habilitadas</span>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };

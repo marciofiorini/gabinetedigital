@@ -91,14 +91,32 @@ export const useCampanhasAutomatizadas = () => {
     }
   };
 
-  const criarCampanha = async (dadosCampanha: Partial<CampanhaAutomatizada>) => {
+  const criarCampanha = async (dadosCampanha: {
+    nome: string;
+    tipo?: string;
+    template_mensagem?: string;
+    status?: string;
+    frequencia?: string;
+    configuracoes?: any;
+    total_enviados?: number;
+    total_abertos?: number;
+    total_cliques?: number;
+  }) => {
     if (!user) return;
 
     try {
       const { data, error } = await supabase
         .from('campanhas_marketing')
         .insert({
-          ...dadosCampanha,
+          nome: dadosCampanha.nome,
+          tipo: dadosCampanha.tipo || 'email',
+          template_mensagem: dadosCampanha.template_mensagem,
+          status: dadosCampanha.status || 'ativa',
+          frequencia: dadosCampanha.frequencia || 'unica',
+          configuracoes: dadosCampanha.configuracoes || {},
+          total_enviados: dadosCampanha.total_enviados || 0,
+          total_abertos: dadosCampanha.total_abertos || 0,
+          total_cliques: dadosCampanha.total_cliques || 0,
           user_id: user.id
         })
         .select()
