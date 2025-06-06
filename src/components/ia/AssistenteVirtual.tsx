@@ -1,11 +1,12 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Bot, Send, MessageSquare, Brain, TrendingUp } from "lucide-react";
+import { Bot, Send, MessageSquare, Brain, TrendingUp, Loader2 } from "lucide-react";
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Mensagem {
   id: string;
@@ -28,6 +29,7 @@ export const AssistenteVirtual = () => {
   const [novaMensagem, setNovaMensagem] = useState('');
   const [carregando, setCarregando] = useState(false);
   const { toast } = useToast();
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const sugestoesPredefinidas = [
     'Análise do engajamento nas redes sociais',
@@ -36,8 +38,16 @@ export const AssistenteVirtual = () => {
     'Análise de demandas por região'
   ];
 
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [mensagens]);
+
   const enviarMensagem = async () => {
-    if (!novaMensagem.trim()) return;
+    if (!novaMensagem.trim() || carregando) return;
 
     const mensagemUsuario: Mensagem = {
       id: Date.now().toString(),
@@ -47,23 +57,58 @@ export const AssistenteVirtual = () => {
     };
 
     setMensagens(prev => [...prev, mensagemUsuario]);
+    const mensagemEnviada = novaMensagem;
     setNovaMensagem('');
     setCarregando(true);
 
-    // Simular resposta do assistente (em produção seria chamada para OpenAI)
-    setTimeout(() => {
-      const respostaAssistente = gerarRespostaSimulada(novaMensagem);
+    try {
+      // Chamar a edge function do assistente virtual
+      const { data, error } = await supabase.functions.invoke('assistente-virtual', {
+        body: {
+          mensagem: mensagemEnviada,
+          contexto: {
+            usuario_logado: true,
+            pagina_atual: 'whatsapp',
+            timestamp: new Date().toISOString()
+          }
+        }
+      });
+
+      if (error) throw error;
+
       const mensagemAssistente: Mensagem = {
         id: (Date.now() + 1).toString(),
         tipo: 'assistente',
-        conteudo: respostaAssistente.conteudo,
+        conteudo: data.resposta || 'Desculpe, não consegui processar sua solicitação.',
         timestamp: new Date(),
-        categoria: respostaAssistente.categoria
+        categoria: data.categoria || 'geral'
       };
 
       setMensagens(prev => [...prev, mensagemAssistente]);
+
+    } catch (error) {
+      console.error('Erro ao enviar mensagem:', error);
+      
+      // Fallback para resposta simulada
+      const respostaFallback = gerarRespostaSimulada(mensagemEnviada);
+      const mensagemAssistente: Mensagem = {
+        id: (Date.now() + 1).toString(),
+        tipo: 'assistente',
+        conteudo: respostaFallback.conteudo,
+        timestamp: new Date(),
+        categoria: respostaFallback.categoria
+      };
+
+      setMensagens(prev => [...prev, mensagemAssistente]);
+      
+      toast({
+        title: "Aviso",
+        description: "Usando modo offline. Configure a API da OpenAI para funcionalidade completa.",
+        variant: "default"
+      });
+    } finally {
       setCarregando(false);
-    }, 2000);
+    }
   };
 
   const gerarRespostaSimulada = (pergunta: string) => {
@@ -90,10 +135,10 @@ export const AssistenteVirtual = () => {
       };
     }
     
-    if (perguntaLower.includes('demandas') || perguntaLower.includes('região')) {
+    if (perguntaLower.includes('whatsapp')) {
       return {
-        conteudo: 'Análise regional mostra: 45% das demandas são de infraestrutura, concentradas na Zona Norte. Recomendo priorizar iluminação pública e saneamento. ROI estimado: 78% de satisfação.',
-        categoria: 'analise'
+        conteudo: 'Para WhatsApp, recomendo: 1) Segmentar mensagens por região, 2) Usar templates aprovados pelo WhatsApp Business, 3) Horários ideais: 9h-11h e 19h-21h, 4) Taxa de resposta média: 65%. Evite spam enviando no máximo 1 mensagem por semana por contato.',
+        categoria: 'estrategia'
       };
     }
     
@@ -146,7 +191,7 @@ export const AssistenteVirtual = () => {
               <CardTitle className="text-lg">Chat com Assistente</CardTitle>
             </CardHeader>
             <CardContent className="flex-1 flex flex-col">
-              <div className="flex-1 overflow-y-auto space-y-4 mb-4">
+              <div className="flex-1 overflow-y-auto space-y-4 mb-4 p-2">
                 {mensagens.map((mensagem) => (
                   <div
                     key={mensagem.id}
@@ -167,7 +212,7 @@ export const AssistenteVirtual = () => {
                           </Badge>
                         </div>
                       )}
-                      <p className="text-sm">{mensagem.conteudo}</p>
+                      <p className="text-sm whitespace-pre-wrap">{mensagem.conteudo}</p>
                       <p className={`text-xs mt-1 ${
                         mensagem.tipo === 'usuario' ? 'text-blue-100' : 'text-gray-500'
                       }`}>
@@ -180,12 +225,13 @@ export const AssistenteVirtual = () => {
                   <div className="flex justify-start">
                     <div className="bg-gray-100 p-3 rounded-lg">
                       <div className="flex items-center gap-2">
-                        <Bot className="w-4 h-4 animate-pulse" />
+                        <Loader2 className="w-4 h-4 animate-spin" />
                         <span className="text-sm">Analisando...</span>
                       </div>
                     </div>
                   </div>
                 )}
+                <div ref={messagesEndRef} />
               </div>
               
               <div className="flex gap-2">
@@ -193,15 +239,16 @@ export const AssistenteVirtual = () => {
                   value={novaMensagem}
                   onChange={(e) => setNovaMensagem(e.target.value)}
                   placeholder="Digite sua pergunta..."
-                  onKeyPress={(e) => e.key === 'Enter' && enviarMensagem()}
+                  onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && enviarMensagem()}
                   disabled={carregando}
+                  className="flex-1"
                 />
                 <Button 
                   onClick={enviarMensagem} 
                   disabled={carregando || !novaMensagem.trim()}
                   size="icon"
                 >
-                  <Send className="w-4 h-4" />
+                  {carregando ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                 </Button>
               </div>
             </CardContent>
@@ -218,8 +265,9 @@ export const AssistenteVirtual = () => {
                 <Button
                   key={index}
                   variant="outline"
-                  className="w-full text-left justify-start h-auto p-3"
+                  className="w-full text-left justify-start h-auto p-3 hover:bg-gray-50"
                   onClick={() => usarSugestao(sugestao)}
+                  disabled={carregando}
                 >
                   <MessageSquare className="w-4 h-4 mr-2 flex-shrink-0" />
                   <span className="text-sm">{sugestao}</span>
@@ -239,12 +287,15 @@ export const AssistenteVirtual = () => {
                   <Badge className="bg-green-100 text-green-800">GPT-4</Badge>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">Precisão</span>
-                  <span className="text-sm">87%</span>
+                  <span className="text-sm font-medium">Status</span>
+                  <Badge className="bg-blue-100 text-blue-800">Online</Badge>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium">Consultas Hoje</span>
-                  <span className="text-sm">23</span>
+                  <span className="text-sm">{mensagens.filter(m => m.tipo === 'usuario').length}</span>
+                </div>
+                <div className="text-xs text-gray-500 mt-2">
+                  💡 Configure sua chave da OpenAI nas configurações para funcionalidade completa
                 </div>
               </div>
             </CardContent>
