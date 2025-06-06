@@ -1,5 +1,4 @@
 
-
 project_id = "xhuazohviheoxibwkozf"
 
 [api]
@@ -51,16 +50,19 @@ jwt_expiry = 3600
 enable_signup = true
 email_double_confirm_changes = true
 enable_manual_linking = false
-# Security: Password protection settings
 enable_leaked_password_protection = true
-password_policy = { min_length = 8, require_upper = true, require_lower = true, require_numbers = true }
 
 [auth.email]
 enable_signup = true
 double_confirm_changes = true
 enable_confirmations = false
-# Security: Enable secure password change
 secure_password_change = true
+
+[auth.password_policy]
+min_length = 8
+require_upper = true
+require_lower = true
+require_numbers = true
 
 [functions.create-checkout]
 verify_jwt = true
@@ -74,4 +76,3 @@ verify_jwt = true
 [edge-runtime]
 policy = "per_worker"
 inspector_port = 8083
-
