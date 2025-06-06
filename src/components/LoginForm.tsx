@@ -1,300 +1,275 @@
 
-import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/contexts/AuthContext';
-import { ResetPasswordModal } from '@/components/ResetPasswordModal';
-import { Mail, Lock, Chrome, User, Eye, EyeOff, Shield, CheckCircle, XCircle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Mail, Lock, User, UserPlus, Eye, EyeOff } from 'lucide-react';
+import { toast } from 'sonner';
 
 export const LoginForm = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
-  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+  const { signInWithEmail, signInWithUsername, signUpWithEmail, signInWithGoogle, loading } = useAuth();
+  
   const [showPassword, setShowPassword] = useState(false);
-  const [showResetModal, setShowResetModal] = useState(false);
-  const [loginAttempts, setLoginAttempts] = useState(0);
-  const [lastAttempt, setLastAttempt] = useState<Date | null>(null);
-  const { signInWithGoogle, signInWithEmail, signUpWithEmail } = useAuth();
+  const [loginData, setLoginData] = useState({
+    identifier: '', // Can be email or username
+    password: ''
+  });
+  
+  const [signupData, setSignupData] = useState({
+    name: '',
+    username: '',
+    email: '',
+    password: '',
+    confirmPassword: ''
+  });
 
-  // Security enhancement: Improved rate limiting with exponential backoff
-  const isRateLimited = () => {
-    if (!lastAttempt) return false;
-    const timeSinceLastAttempt = Date.now() - lastAttempt.getTime();
-    const waitTime = Math.min(Math.pow(2, loginAttempts) * 1000, 30000); // Exponential backoff, max 30s
-    return timeSinceLastAttempt < waitTime && loginAttempts >= 3;
-  };
-
-  const handleEmailLogin = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (isRateLimited()) {
-      const waitTime = Math.min(Math.pow(2, loginAttempts) * 1000, 30000);
-      const remainingTime = Math.ceil((waitTime - (Date.now() - lastAttempt!.getTime())) / 1000);
-      alert(`Muitas tentativas. Aguarde ${remainingTime} segundos.`);
-      return;
-    }
-    
-    setLoading(true);
-    
     try {
-      await signInWithEmail(email, password);
-      // Reset attempts on success
-      setLoginAttempts(0);
-      setLastAttempt(null);
-    } catch (error) {
-      // Security enhancement: Log failed attempts for monitoring
-      console.log('Failed login attempt:', {
-        email: email.replace(/(.{2}).*@/, '$1***@'), // Partial email for security
-        timestamp: new Date().toISOString(),
-        attempts: loginAttempts + 1
-      });
+      const { identifier, password } = loginData;
       
-      // Increment attempts on failure
-      setLoginAttempts(prev => prev + 1);
-      setLastAttempt(new Date());
-    } finally {
-      setLoading(false);
+      // Check if identifier is email or username
+      const isEmail = identifier.includes('@');
+      
+      if (isEmail) {
+        await signInWithEmail(identifier, password);
+      } else {
+        await signInWithUsername(identifier, password);
+      }
+      
+      navigate('/');
+    } catch (error) {
+      // Error already handled in context
     }
   };
 
-  // Security enhancement: Stronger password validation
-  const validatePassword = (pass: string) => {
-    return {
-      length: pass.length >= 8,
-      uppercase: /[A-Z]/.test(pass),
-      lowercase: /[a-z]/.test(pass),
-      number: /\d/.test(pass),
-      special: /[!@#$%^&*(),.?":{}|<>]/.test(pass)
-    };
-  };
-
-  const passwordValidation = validatePassword(password);
-  const isPasswordStrong = Object.values(passwordValidation).every(Boolean);
-
-  const handleEmailSignUp = async (e: React.FormEvent) => {
+  const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!isPasswordStrong) {
-      alert('A senha deve ter pelo menos 8 caracteres, incluindo maiúscula, minúscula, número e símbolo especial');
+    if (signupData.password !== signupData.confirmPassword) {
+      toast.error('As senhas não coincidem');
       return;
     }
-    
-    setLoading(true);
-    
+
+    if (signupData.password.length < 6) {
+      toast.error('A senha deve ter pelo menos 6 caracteres');
+      return;
+    }
+
     try {
-      await signUpWithEmail(email, password, name);
+      await signUpWithEmail(
+        signupData.email, 
+        signupData.password, 
+        signupData.name,
+        signupData.username || undefined
+      );
     } catch (error) {
-      // Error handling is done in the context
-    } finally {
-      setLoading(false);
+      // Error already handled in context
     }
   };
 
   const handleGoogleLogin = async () => {
-    await signInWithGoogle();
+    try {
+      await signInWithGoogle();
+    } catch (error) {
+      // Error already handled in context
+    }
   };
 
-  const RequirementItem = ({ met, text }: { met: boolean; text: string }) => (
-    <div className={`flex items-center gap-2 text-xs ${met ? 'text-green-600' : 'text-red-500'}`}>
-      {met ? <CheckCircle className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
-      {text}
-    </div>
-  );
-
   return (
-    <>
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-100 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md shadow-2xl bg-white/80 backdrop-blur-sm">
-          <CardHeader className="text-center">
-            <CardTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              Gabinete Digital
-            </CardTitle>
-            <CardDescription>
-              Acesse sua plataforma política
-            </CardDescription>
-            {isRateLimited() && (
-              <div className="flex items-center gap-2 text-yellow-600 text-sm bg-yellow-50 p-2 rounded">
-                <Shield className="w-4 h-4" />
-                Proteção ativa: aguarde antes de tentar novamente
-              </div>
-            )}
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <Button
-              onClick={handleGoogleLogin}
-              disabled={loading}
-              className="w-full bg-red-500 hover:bg-red-600 text-white"
-            >
-              <Chrome className="w-4 h-4 mr-2" />
-              Continuar com Google
-            </Button>
-
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-white px-2 text-muted-foreground">
-                  Ou continue com email
-                </span>
-              </div>
-            </div>
-
-            <Tabs defaultValue="login" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="login">Entrar</TabsTrigger>
-                <TabsTrigger value="signup">Cadastrar</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="login">
-                <form onSubmit={handleEmailLogin} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                      <Input
-                        id="email"
-                        type="email"
-                        placeholder="seu@email.com"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        className="pl-10"
-                        required
-                        disabled={isRateLimited()}
-                      />
-                    </div>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+      <Card className="w-full max-w-md">
+        <CardHeader className="text-center">
+          <CardTitle className="text-2xl font-bold">Sistema de Gestão</CardTitle>
+          <CardDescription>
+            Faça login ou crie sua conta para continuar
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Tabs defaultValue="login" className="space-y-4">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="login">Entrar</TabsTrigger>
+              <TabsTrigger value="signup">Cadastrar</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="login">
+              <form onSubmit={handleLogin} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="identifier">Email ou Nome de Usuário</Label>
+                  <div className="relative">
+                    <Input
+                      id="identifier"
+                      type="text"
+                      value={loginData.identifier}
+                      onChange={(e) => setLoginData({ ...loginData, identifier: e.target.value })}
+                      placeholder="seu@email.com ou seu_usuario"
+                      className="pl-10"
+                      required
+                    />
+                    <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="password">Senha</Label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                      <Input
-                        id="password"
-                        type={showPassword ? "text" : "password"}
-                        placeholder="••••••••"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        className="pl-10 pr-10"
-                        required
-                        disabled={isRateLimited()}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                      >
-                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                      </button>
-                    </div>
-                  </div>
-                  
-                  <div className="flex justify-end">
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="password">Senha</Label>
+                  <div className="relative">
+                    <Input
+                      id="password"
+                      type={showPassword ? "text" : "password"}
+                      value={loginData.password}
+                      onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
+                      placeholder="Sua senha"
+                      className="pl-10 pr-10"
+                      required
+                    />
+                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                     <button
                       type="button"
-                      onClick={() => setShowResetModal(true)}
-                      className="text-sm text-blue-600 hover:text-blue-800 hover:underline"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                     >
-                      Esqueci minha senha
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
-
-                  <Button
-                    type="submit"
-                    disabled={loading || isRateLimited()}
-                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-                  >
-                    {loading ? 'Entrando...' : 'Entrar'}
-                  </Button>
-                </form>
-              </TabsContent>
+                </div>
+                
+                <Button type="submit" className="w-full" disabled={loading}>
+                  {loading ? 'Entrando...' : 'Entrar'}
+                </Button>
+              </form>
               
-              <TabsContent value="signup">
-                <form onSubmit={handleEmailSignUp} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-name">Nome</Label>
-                    <div className="relative">
-                      <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                      <Input
-                        id="signup-name"
-                        type="text"
-                        placeholder="Seu nome completo"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        className="pl-10"
-                        required
-                      />
-                    </div>
+              <div className="mt-4">
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t" />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-email">Email</Label>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                      <Input
-                        id="signup-email"
-                        type="email"
-                        placeholder="seu@email.com"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        className="pl-10"
-                        required
-                      />
-                    </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-background px-2 text-muted-foreground">Ou continue com</span>
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-password">Senha</Label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                      <Input
-                        id="signup-password"
-                        type={showPassword ? "text" : "password"}
-                        placeholder="••••••••"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        className="pl-10 pr-10"
-                        required
-                        minLength={8}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                      >
-                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                      </button>
-                    </div>
-                    {password && (
-                      <div className="space-y-1 p-2 bg-gray-50 rounded">
-                        <p className="text-xs font-medium text-gray-700">Requisitos da senha:</p>
-                        <RequirementItem met={passwordValidation.length} text="Mínimo 8 caracteres" />
-                        <RequirementItem met={passwordValidation.uppercase} text="Letra maiúscula" />
-                        <RequirementItem met={passwordValidation.lowercase} text="Letra minúscula" />
-                        <RequirementItem met={passwordValidation.number} text="Número" />
-                        <RequirementItem met={passwordValidation.special} text="Símbolo especial" />
-                      </div>
-                    )}
+                </div>
+                
+                <Button 
+                  variant="outline" 
+                  className="w-full mt-4" 
+                  onClick={handleGoogleLogin}
+                  disabled={loading}
+                >
+                  <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24">
+                    <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                    <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                    <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                    <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                  </svg>
+                  Google
+                </Button>
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="signup">
+              <form onSubmit={handleSignup} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Nome Completo</Label>
+                  <div className="relative">
+                    <Input
+                      id="name"
+                      type="text"
+                      value={signupData.name}
+                      onChange={(e) => setSignupData({ ...signupData, name: e.target.value })}
+                      placeholder="Seu nome completo"
+                      className="pl-10"
+                      required
+                    />
+                    <UserPlus className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                   </div>
-                  <Button
-                    type="submit"
-                    disabled={loading || !isPasswordStrong}
-                    className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
-                  >
-                    {loading ? 'Criando conta...' : 'Criar conta'}
-                  </Button>
-                </form>
-              </TabsContent>
-            </Tabs>
-          </CardContent>
-        </Card>
-      </div>
+                </div>
 
-      <ResetPasswordModal 
-        open={showResetModal} 
-        onOpenChange={setShowResetModal} 
-      />
-    </>
+                <div className="space-y-2">
+                  <Label htmlFor="username">Nome de Usuário (opcional)</Label>
+                  <div className="relative">
+                    <Input
+                      id="username"
+                      type="text"
+                      value={signupData.username}
+                      onChange={(e) => setSignupData({ ...signupData, username: e.target.value })}
+                      placeholder="seu_usuario"
+                      className="pl-10"
+                    />
+                    <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Deixe em branco se não quiser um nome de usuário
+                  </p>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <div className="relative">
+                    <Input
+                      id="email"
+                      type="email"
+                      value={signupData.email}
+                      onChange={(e) => setSignupData({ ...signupData, email: e.target.value })}
+                      placeholder="seu@email.com"
+                      className="pl-10"
+                      required
+                    />
+                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="password">Senha</Label>
+                  <div className="relative">
+                    <Input
+                      id="password"
+                      type={showPassword ? "text" : "password"}
+                      value={signupData.password}
+                      onChange={(e) => setSignupData({ ...signupData, password: e.target.value })}
+                      placeholder="Mínimo 6 caracteres"
+                      className="pl-10 pr-10"
+                      required
+                    />
+                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="confirmPassword">Confirmar Senha</Label>
+                  <div className="relative">
+                    <Input
+                      id="confirmPassword"
+                      type={showPassword ? "text" : "password"}
+                      value={signupData.confirmPassword}
+                      onChange={(e) => setSignupData({ ...signupData, confirmPassword: e.target.value })}
+                      placeholder="Confirme sua senha"
+                      className="pl-10"
+                      required
+                    />
+                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  </div>
+                </div>
+                
+                <Button type="submit" className="w-full" disabled={loading}>
+                  {loading ? 'Criando conta...' : 'Criar Conta'}
+                </Button>
+              </form>
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+      </Card>
+    </div>
   );
 };

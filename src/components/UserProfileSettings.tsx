@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,17 +7,16 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAuth } from '@/contexts/AuthContext';
-import { useUpdateProfile } from '@/hooks/useUpdateProfile';
-import { Camera, User, Mail, Save, Lock } from 'lucide-react';
+import { Camera, User, Mail, Save, Lock, CheckCircle, XCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
 export const UserProfileSettings = () => {
-  const { user, profile } = useAuth();
-  const { updateProfile, updatePassword, loading } = useUpdateProfile();
+  const { user, profile, updateProfile, updatePassword, checkUsernameAvailability, loading } = useAuth();
   
   const [formData, setFormData] = useState({
-    name: profile?.name || '',
-    email: user?.email || '',
+    name: '',
+    username: '',
+    email: '',
     bio: '',
     phone: '',
     location: ''
@@ -29,6 +28,50 @@ export const UserProfileSettings = () => {
     confirmPassword: ''
   });
 
+  const [usernameStatus, setUsernameStatus] = useState<'available' | 'taken' | 'checking' | null>(null);
+  const [originalUsername, setOriginalUsername] = useState('');
+
+  useEffect(() => {
+    if (profile && user) {
+      const data = {
+        name: profile.name || '',
+        username: profile.username || '',
+        email: user.email || '',
+        bio: profile.bio || '',
+        phone: profile.phone || '',
+        location: profile.location || ''
+      };
+      setFormData(data);
+      setOriginalUsername(profile.username || '');
+    }
+  }, [profile, user]);
+
+  const checkUsername = async (username: string) => {
+    if (!username || username === originalUsername) {
+      setUsernameStatus(null);
+      return;
+    }
+
+    setUsernameStatus('checking');
+    try {
+      const isAvailable = await checkUsernameAvailability(username);
+      setUsernameStatus(isAvailable ? 'available' : 'taken');
+    } catch (error) {
+      setUsernameStatus(null);
+    }
+  };
+
+  const handleUsernameChange = (value: string) => {
+    setFormData({ ...formData, username: value });
+    
+    // Debounce username check
+    const timeoutId = setTimeout(() => {
+      checkUsername(value);
+    }, 500);
+
+    return () => clearTimeout(timeoutId);
+  };
+
   const handleProfileUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -37,9 +80,22 @@ export const UserProfileSettings = () => {
       return;
     }
 
-    const success = await updateProfile(formData.name);
+    if (usernameStatus === 'taken') {
+      toast.error('Nome de usuário não está disponível');
+      return;
+    }
+
+    const success = await updateProfile({
+      name: formData.name,
+      username: formData.username || undefined,
+      phone: formData.phone || undefined,
+      location: formData.location || undefined,
+      bio: formData.bio || undefined
+    });
+
     if (success) {
-      toast.success('Perfil atualizado com sucesso!');
+      setOriginalUsername(formData.username);
+      setUsernameStatus(null);
     }
   };
 
@@ -56,14 +112,28 @@ export const UserProfileSettings = () => {
       return;
     }
 
-    const success = await updatePassword(passwordData.newPassword);
-    if (success) {
+    try {
+      await updatePassword(passwordData.newPassword);
       setPasswordData({
         currentPassword: '',
         newPassword: '',
         confirmPassword: ''
       });
-      toast.success('Senha alterada com sucesso!');
+    } catch (error) {
+      // Error already handled in context
+    }
+  };
+
+  const getUsernameIcon = () => {
+    switch (usernameStatus) {
+      case 'checking':
+        return <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />;
+      case 'available':
+        return <CheckCircle className="w-4 h-4 text-green-500" />;
+      case 'taken':
+        return <XCircle className="w-4 h-4 text-red-500" />;
+      default:
+        return null;
     }
   };
 
@@ -104,13 +174,40 @@ export const UserProfileSettings = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Nome */}
               <div className="space-y-2">
-                <Label htmlFor="name">Nome Completo</Label>
+                <Label htmlFor="name">Nome Completo *</Label>
                 <Input
                   id="name"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   placeholder="Seu nome completo"
+                  required
                 />
+              </div>
+
+              {/* Username */}
+              <div className="space-y-2">
+                <Label htmlFor="username">Nome de Usuário</Label>
+                <div className="relative">
+                  <Input
+                    id="username"
+                    value={formData.username}
+                    onChange={(e) => handleUsernameChange(e.target.value)}
+                    placeholder="seu_usuario"
+                    className="pr-10"
+                  />
+                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                    {getUsernameIcon()}
+                  </div>
+                </div>
+                {usernameStatus === 'available' && (
+                  <p className="text-xs text-green-600">Nome de usuário disponível</p>
+                )}
+                {usernameStatus === 'taken' && (
+                  <p className="text-xs text-red-600">Nome de usuário já está em uso</p>
+                )}
+                <p className="text-xs text-muted-foreground">
+                  Use apenas letras, números e sublinhados. Deixe em branco se não quiser um nome de usuário.
+                </p>
               </div>
 
               {/* Email */}
@@ -143,7 +240,7 @@ export const UserProfileSettings = () => {
               </div>
 
               {/* Localização */}
-              <div className="space-y-2">
+              <div className="space-y-2 md:col-span-2">
                 <Label htmlFor="location">Localização</Label>
                 <Input
                   id="location"
@@ -166,7 +263,11 @@ export const UserProfileSettings = () => {
               />
             </div>
 
-            <Button type="submit" disabled={loading} className="flex items-center gap-2">
+            <Button 
+              type="submit" 
+              disabled={loading || usernameStatus === 'taken'} 
+              className="flex items-center gap-2"
+            >
               <Save className="w-4 h-4" />
               {loading ? 'Salvando...' : 'Salvar Alterações'}
             </Button>
@@ -249,6 +350,12 @@ export const UserProfileSettings = () => {
                 {profile?.created_at ? new Date(profile.created_at).toLocaleDateString('pt-BR') : 'N/A'}
               </p>
             </div>
+            {profile?.username && (
+              <div>
+                <Label className="text-sm font-medium">Nome de usuário</Label>
+                <p className="text-sm text-muted-foreground">@{profile.username}</p>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>

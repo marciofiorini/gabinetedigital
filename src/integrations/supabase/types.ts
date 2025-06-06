@@ -2205,6 +2205,10 @@ export type Database = {
           valor_final: number
         }[]
       }
+      check_username_availability: {
+        Args: { check_username: string }
+        Returns: boolean
+      }
       current_user_has_role: {
         Args: { _role: Database["public"]["Enums"]["app_role"] }
         Returns: boolean
@@ -2266,7 +2270,16 @@ export type Database = {
         Returns: undefined
       }
       update_user_profile: {
-        Args: { new_name: string; new_avatar_url?: string }
+        Args:
+          | { new_name: string; new_avatar_url?: string }
+          | {
+              new_name?: string
+              new_username?: string
+              new_phone?: string
+              new_location?: string
+              new_bio?: string
+              new_avatar_url?: string
+            }
         Returns: undefined
       }
       validate_user_session: {
