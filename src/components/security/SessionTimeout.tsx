@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -170,7 +169,7 @@ export const SessionTimeout = ({
             <AlertTriangle className="w-5 h-5 text-yellow-600" />
             Sessão Expirando
             {!sessionValid && (
-              <Shield className="w-5 h-5 text-red-600" title="Sessão inválida detectada" />
+              <Shield className="w-5 h-5 text-red-600" />
             )}
           </DialogTitle>
           <DialogDescription>
