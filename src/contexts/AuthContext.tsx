@@ -42,7 +42,14 @@ interface AuthContextType {
   signUpWithEmail: (email: string, password: string, name: string, username?: string) => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   updatePassword: (password: string) => Promise<void>;
-  updateProfile: (data: Partial<Profile>) => Promise<boolean>;
+  updateProfile: (data: {
+    name?: string;
+    username?: string;
+    phone?: string;
+    location?: string;
+    bio?: string;
+    avatar_url?: string;
+  }) => Promise<boolean>;
   updateSettings: (data: Partial<UserSettings>) => Promise<boolean>;
   checkUsernameAvailability: (username: string) => Promise<boolean>;
   signOut: () => Promise<void>;
@@ -60,6 +67,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const fetchProfile = async (userId: string) => {
     try {
+      console.log('Fetching profile for user:', userId);
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -71,6 +79,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return null;
       }
 
+      console.log('Profile fetched successfully:', data);
       return data;
     } catch (error) {
       console.error('Error in fetchProfile:', error);
@@ -80,6 +89,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const fetchSettings = async (userId: string) => {
     try {
+      console.log('Fetching settings for user:', userId);
       const { data, error } = await supabase
         .from('user_settings')
         .select('*')
@@ -91,6 +101,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return null;
       }
 
+      console.log('Settings fetched successfully:', data);
       return data;
     } catch (error) {
       console.error('Error in fetchSettings:', error);
@@ -265,19 +276,42 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const updateProfile = async (data: Partial<Profile>) => {
+  const updateProfile = async (data: {
+    name?: string;
+    username?: string;
+    phone?: string;
+    location?: string;
+    bio?: string;
+    avatar_url?: string;
+  }) => {
     try {
-      const { error } = await supabase.rpc('update_user_profile', {
-        new_name: data.name,
-        new_username: data.username,
-        new_phone: data.phone,
-        new_location: data.location,
-        new_bio: data.bio,
-        new_avatar_url: data.avatar_url
-      });
+      console.log('Updating profile with data:', data);
+      
+      if (!user) {
+        throw new Error('Usuário não autenticado');
+      }
 
-      if (error) throw error;
+      // Use direct update instead of RPC function
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          name: data.name,
+          username: data.username,
+          phone: data.phone,
+          location: data.location,
+          bio: data.bio,
+          avatar_url: data.avatar_url,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', user.id);
 
+      if (error) {
+        console.error('Profile update error:', error);
+        throw error;
+      }
+
+      console.log('Profile updated successfully');
+      
       // Refresh profile data
       await refreshProfile();
       toast.success('Perfil atualizado com sucesso!');
@@ -314,12 +348,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const checkUsernameAvailability = async (username: string) => {
     try {
-      const { data, error } = await supabase.rpc('check_username_availability', {
-        check_username: username
-      });
+      console.log('Checking username availability:', username);
+      
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('username', username)
+        .neq('id', user?.id || '00000000-0000-0000-0000-000000000000');
 
-      if (error) throw error;
-      return data;
+      if (error) {
+        console.error('Username check error:', error);
+        return false;
+      }
+
+      const isAvailable = !data || data.length === 0;
+      console.log('Username availability result:', isAvailable);
+      return isAvailable;
     } catch (error: any) {
       console.error('Check username error:', error);
       return false;

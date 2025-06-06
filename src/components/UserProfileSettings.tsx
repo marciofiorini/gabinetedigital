@@ -30,8 +30,12 @@ export const UserProfileSettings = () => {
 
   const [usernameStatus, setUsernameStatus] = useState<'available' | 'taken' | 'checking' | null>(null);
   const [originalUsername, setOriginalUsername] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
+    console.log('Profile data changed:', profile);
+    console.log('User data:', user);
+    
     if (profile && user) {
       const data = {
         name: profile.name || '',
@@ -41,6 +45,7 @@ export const UserProfileSettings = () => {
         phone: profile.phone || '',
         location: profile.location || ''
       };
+      console.log('Setting form data:', data);
       setFormData(data);
       setOriginalUsername(profile.username || '');
     }
@@ -57,6 +62,7 @@ export const UserProfileSettings = () => {
       const isAvailable = await checkUsernameAvailability(username);
       setUsernameStatus(isAvailable ? 'available' : 'taken');
     } catch (error) {
+      console.error('Error checking username:', error);
       setUsernameStatus(null);
     }
   };
@@ -85,17 +91,28 @@ export const UserProfileSettings = () => {
       return;
     }
 
-    const success = await updateProfile({
-      name: formData.name,
-      username: formData.username || undefined,
-      phone: formData.phone || undefined,
-      location: formData.location || undefined,
-      bio: formData.bio || undefined
-    });
+    setIsSubmitting(true);
+    
+    try {
+      console.log('Submitting profile update:', formData);
+      
+      const success = await updateProfile({
+        name: formData.name,
+        username: formData.username || undefined,
+        phone: formData.phone || undefined,
+        location: formData.location || undefined,
+        bio: formData.bio || undefined
+      });
 
-    if (success) {
-      setOriginalUsername(formData.username);
-      setUsernameStatus(null);
+      if (success) {
+        setOriginalUsername(formData.username);
+        setUsernameStatus(null);
+        console.log('Profile updated successfully');
+      }
+    } catch (error) {
+      console.error('Error updating profile:', error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -120,7 +137,7 @@ export const UserProfileSettings = () => {
         confirmPassword: ''
       });
     } catch (error) {
-      // Error already handled in context
+      console.error('Error updating password:', error);
     }
   };
 
@@ -265,11 +282,11 @@ export const UserProfileSettings = () => {
 
             <Button 
               type="submit" 
-              disabled={loading || usernameStatus === 'taken'} 
+              disabled={loading || usernameStatus === 'taken' || isSubmitting} 
               className="flex items-center gap-2"
             >
               <Save className="w-4 h-4" />
-              {loading ? 'Salvando...' : 'Salvar Alterações'}
+              {isSubmitting ? 'Salvando...' : 'Salvar Alterações'}
             </Button>
           </form>
         </CardContent>
