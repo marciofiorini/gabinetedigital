@@ -44,14 +44,19 @@ import Integracoes from "./pages/Integracoes";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <AuthProvider>
-        <Toaster />
-        <Sonner />
         <BrowserRouter>
           <Routes>
             <Route path="/reset-password" element={<ResetPassword />} />
@@ -95,6 +100,8 @@ const App = () => (
             </Route>
           </Routes>
         </BrowserRouter>
+        <Toaster />
+        <Sonner />
       </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
