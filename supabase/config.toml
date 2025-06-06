@@ -50,21 +50,14 @@ jwt_expiry = 3600
 enable_signup = true
 email_double_confirm_changes = true
 enable_manual_linking = false
-# Security: Enable leaked password protection
-password_policy = {
-  min_length = 8,
-  require_upper = true,
-  require_lower = true,
-  require_numbers = true,
-  require_symbols = false,
-  check_breached_passwords = true
-}
+# Security: Enable leaked password protection with HaveIBeenPwned integration
+enable_leaked_password_protection = true
 
 [auth.email]
 enable_signup = true
 double_confirm_changes = true
 enable_confirmations = false
-# Security: Enable password breach checking
+# Security: Enable secure password change
 secure_password_change = true
 
 [functions.create-checkout]
