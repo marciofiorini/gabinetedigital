@@ -1,9 +1,10 @@
+
 import { useState, useEffect } from 'react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { AlertTriangle, Shield, Clock, Eye, Activity, Server } from 'lucide-react';
+import { AlertTriangle, Shield, Clock, Eye, Activity } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { formatDistanceToNow } from 'date-fns';
@@ -11,7 +12,7 @@ import { ptBR } from 'date-fns/locale';
 
 interface SecurityAlert {
   id: string;
-  type: 'failed_login_attempts' | 'session_anomaly' | 'rate_limit_exceeded' | 'suspicious_activity' | 'server_validation_failed';
+  type: 'failed_login_attempts' | 'session_anomaly' | 'suspicious_activity';
   severity: 'low' | 'medium' | 'high' | 'critical';
   timestamp: Date;
   message: string;
@@ -25,7 +26,7 @@ export const SecurityAlerts = () => {
   const [securityLogs, setSecurityLogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch security logs from the enhanced monitoring system
+  // Fetch security logs
   const fetchSecurityLogs = async () => {
     if (!user) return;
 
@@ -41,12 +42,12 @@ export const SecurityAlerts = () => {
       
       setSecurityLogs(data || []);
       
-      // Generate intelligent alerts based on security logs
+      // Generate alerts based on security logs
       const recentLogs = data?.filter(log => 
         new Date(log.created_at) > new Date(Date.now() - 24 * 60 * 60 * 1000) // Last 24 hours
       ) || [];
       
-      const generatedAlerts = generateIntelligentAlerts(recentLogs);
+      const generatedAlerts = generateAlerts(recentLogs);
       setAlerts(generatedAlerts);
       
     } catch (error) {
@@ -56,131 +57,46 @@ export const SecurityAlerts = () => {
     }
   };
 
-  const generateIntelligentAlerts = (logs: any[]): SecurityAlert[] => {
+  const generateAlerts = (logs: any[]): SecurityAlert[] => {
     const alerts: SecurityAlert[] = [];
     
-    // Analyze failed login patterns
+    // Check for failed login attempts
     const failedLogins = logs.filter(log => log.action === 'failed_login');
     if (failedLogins.length >= 3) {
-      const severity = failedLogins.length >= 10 ? 'critical' : 
-                     failedLogins.length >= 5 ? 'high' : 'medium';
-      
       alerts.push({
         id: `failed_login_${Date.now()}`,
         type: 'failed_login_attempts',
-        severity,
+        severity: failedLogins.length >= 5 ? 'high' : 'medium',
         timestamp: new Date(),
         message: `${failedLogins.length} tentativas de login falharam nas últimas 24 horas`,
         resolved: false,
-        details: { 
-          count: failedLogins.length, 
-          recent_attempts: failedLogins.slice(0, 5),
-          pattern_analysis: analyzeLoginPattern(failedLogins)
-        }
+        details: { count: failedLogins.length }
       });
     }
     
-    // Analyze session validation failures
-    const sessionFailures = logs.filter(log => 
-      log.action === 'session_validation' && 
-      log.changes && 
-      JSON.parse(log.changes).session_valid === false
-    );
-    if (sessionFailures.length > 0) {
-      alerts.push({
-        id: `session_anomaly_${Date.now()}`,
-        type: 'session_anomaly',
-        severity: sessionFailures.length > 5 ? 'high' : 'medium',
-        timestamp: new Date(),
-        message: `${sessionFailures.length} validação(ões) de sessão falharam - possível atividade suspeita`,
-        resolved: false,
-        details: { count: sessionFailures.length, failures: sessionFailures }
-      });
-    }
-    
-    // Analyze user agent diversity (potential account takeover)
-    const userAgents = logs
-      .map(log => log.user_agent)
-      .filter(Boolean)
-      .filter((ua, index, arr) => arr.indexOf(ua) === index);
-    
-    if (userAgents.length > 3) {
+    // Check for suspicious activity patterns
+    const userAgents = new Set(logs.map(log => log.user_agent).filter(Boolean));
+    if (userAgents.size > 3) {
       alerts.push({
         id: `suspicious_activity_${Date.now()}`,
         type: 'suspicious_activity',
-        severity: userAgents.length > 5 ? 'high' : 'medium',
-        timestamp: new Date(),
-        message: `Atividade de ${userAgents.length} dispositivos/navegadores diferentes detectada`,
-        resolved: false,
-        details: { 
-          user_agents: userAgents,
-          device_analysis: analyzeDevicePatterns(userAgents)
-        }
-      });
-    }
-
-    // Check for session extension failures (potential security breach)
-    const extensionFailures = logs.filter(log => log.action === 'session_extension_failed');
-    if (extensionFailures.length > 0) {
-      alerts.push({
-        id: `server_validation_failed_${Date.now()}`,
-        type: 'server_validation_failed',
         severity: 'high',
         timestamp: new Date(),
-        message: `${extensionFailures.length} tentativa(s) de extensão de sessão bloqueada(s) pelo servidor`,
+        message: `Atividade de ${userAgents.size} dispositivos/navegadores diferentes detectada`,
         resolved: false,
-        details: { count: extensionFailures.length, failures: extensionFailures }
+        details: { user_agents: Array.from(userAgents) }
       });
     }
 
     return alerts;
   };
 
-  const analyzeLoginPattern = (failedLogins: any[]) => {
-    const timeGaps = failedLogins
-      .map(log => new Date(log.created_at).getTime())
-      .sort((a, b) => b - a)
-      .slice(0, -1)
-      .map((time, i, arr) => arr[i + 1] ? time - arr[i + 1] : 0)
-      .filter(gap => gap > 0);
-
-    const avgGap = timeGaps.length > 0 ? timeGaps.reduce((a, b) => a + b, 0) / timeGaps.length : 0;
-    const isRapidFire = avgGap < 60000; // Less than 1 minute between attempts
-
-    return {
-      rapid_fire: isRapidFire,
-      average_gap_minutes: Math.round(avgGap / 60000),
-      pattern: isRapidFire ? 'automated' : 'manual'
-    };
-  };
-
-  const analyzeDevicePatterns = (userAgents: string[]) => {
-    const devices = userAgents.map(ua => {
-      if (ua.includes('Mobile') || ua.includes('Android') || ua.includes('iPhone')) return 'mobile';
-      if (ua.includes('Chrome')) return 'chrome';
-      if (ua.includes('Firefox')) return 'firefox';
-      if (ua.includes('Safari')) return 'safari';
-      return 'unknown';
-    });
-
-    const deviceCounts = devices.reduce((acc, device) => {
-      acc[device] = (acc[device] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
-
-    return {
-      device_types: deviceCounts,
-      diversity_score: Object.keys(deviceCounts).length,
-      suspicious: Object.keys(deviceCounts).length > 3
-    };
-  };
-
   useEffect(() => {
     fetchSecurityLogs();
     
-    // Set up enhanced real-time monitoring
+    // Set up real-time subscription
     const channel = supabase
-      .channel('enhanced-security-logs')
+      .channel('security-logs')
       .on(
         'postgres_changes',
         {
@@ -189,9 +105,8 @@ export const SecurityAlerts = () => {
           table: 'access_logs',
           filter: 'module=eq.security'
         },
-        (payload) => {
-          console.log('Security event detected:', payload);
-          fetchSecurityLogs(); // Refresh when new security logs arrive
+        () => {
+          fetchSecurityLogs();
         }
       )
       .subscribe();
@@ -205,17 +120,6 @@ export const SecurityAlerts = () => {
     setAlerts(prev => prev.map(alert => 
       alert.id === alertId ? { ...alert, resolved: true } : alert
     ));
-
-    // Log alert resolution
-    try {
-      await supabase.rpc('log_security_event', {
-        p_event_type: 'alert_resolved',
-        p_user_id: user?.id,
-        p_details: { alert_id: alertId, resolved_by: user?.id }
-      });
-    } catch (error) {
-      console.error('Failed to log alert resolution:', error);
-    }
   };
 
   const getSeverityColor = (severity: string) => {
@@ -232,9 +136,7 @@ export const SecurityAlerts = () => {
     switch (type) {
       case 'failed_login_attempts': return <Shield className="w-4 h-4" />;
       case 'session_anomaly': return <Clock className="w-4 h-4" />;
-      case 'rate_limit_exceeded': return <AlertTriangle className="w-4 h-4" />;
       case 'suspicious_activity': return <Eye className="w-4 h-4" />;
-      case 'server_validation_failed': return <Server className="w-4 h-4" />;
       default: return <Activity className="w-4 h-4" />;
     }
   };
@@ -252,55 +154,50 @@ export const SecurityAlerts = () => {
           <AlertTriangle className="h-4 w-4 text-red-600" />
           <AlertDescription className="text-red-800">
             <strong>Alerta Crítico de Segurança:</strong> {criticalAlerts.length} evento(s) crítico(s) detectado(s). 
-            Ação imediata necessária. Sistema de monitoramento aprimorado ativo.
+            Ação imediata necessária.
           </AlertDescription>
         </Alert>
       )}
 
-      {/* Enhanced Security Status */}
+      {/* Security Status */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Shield className="w-5 h-5" />
-            Status de Segurança Aprimorado
+            Status de Segurança
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="text-center p-3 bg-green-50 rounded-lg">
               <Activity className="w-6 h-6 mx-auto text-green-600 mb-2" />
               <p className="text-sm text-green-800 font-medium">Monitoramento</p>
               <p className="text-xs text-green-600">{securityLogs.length} eventos</p>
             </div>
             <div className="text-center p-3 bg-blue-50 rounded-lg">
-              <Server className="w-6 h-6 mx-auto text-blue-600 mb-2" />
-              <p className="text-sm text-blue-800 font-medium">Validação Server-Side</p>
+              <Shield className="w-6 h-6 mx-auto text-blue-600 mb-2" />
+              <p className="text-sm text-blue-800 font-medium">Validação Ativa</p>
               <p className="text-xs text-blue-600">Sistema ativo</p>
             </div>
             <div className="text-center p-3 bg-purple-50 rounded-lg">
               <Eye className="w-6 h-6 mx-auto text-purple-600 mb-2" />
-              <p className="text-sm text-purple-800 font-medium">Alertas Inteligentes</p>
+              <p className="text-sm text-purple-800 font-medium">Alertas</p>
               <p className="text-xs text-purple-600">{activeAlerts.length} ativos</p>
-            </div>
-            <div className="text-center p-3 bg-orange-50 rounded-lg">
-              <Shield className="w-6 h-6 mx-auto text-orange-600 mb-2" />
-              <p className="text-sm text-orange-800 font-medium">Análise de Padrões</p>
-              <p className="text-xs text-orange-600">IA integrada</p>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Security Alerts - keep existing logic */}
+      {/* Security Alerts */}
       {activeAlerts.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <AlertTriangle className="w-5 h-5" />
-              Alertas de Segurança Inteligentes ({activeAlerts.length})
+              Alertas de Segurança ({activeAlerts.length})
             </CardTitle>
             <CardDescription>
-              Eventos analisados por IA que requerem atenção
+              Eventos que requerem atenção
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -308,7 +205,7 @@ export const SecurityAlerts = () => {
               {activeAlerts.slice(0, 5).map((alert) => (
                 <div
                   key={alert.id}
-                  className="flex items-start justify-between p-4 border rounded-lg bg-white hover:bg-gray-50 transition-colors"
+                  className="flex items-start justify-between p-4 border rounded-lg bg-white"
                 >
                   <div className="flex items-start gap-3">
                     <div className="text-gray-600 mt-1">
@@ -329,18 +226,6 @@ export const SecurityAlerts = () => {
                             locale: ptBR 
                           })}
                         </div>
-                        {alert.details && (
-                          <details className="mt-2">
-                            <summary className="cursor-pointer text-blue-600 hover:text-blue-800 text-sm">
-                              Ver análise detalhada
-                            </summary>
-                            <div className="mt-2 p-3 bg-gray-50 rounded text-xs">
-                              <pre className="whitespace-pre-wrap overflow-auto">
-                                {JSON.stringify(alert.details, null, 2)}
-                              </pre>
-                            </div>
-                          </details>
-                        )}
                       </div>
                     </div>
                   </div>

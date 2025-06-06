@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -20,27 +21,6 @@ export const SessionTimeout = ({
   const [timeLeft, setTimeLeft] = useState(timeoutMinutes * 60);
   const [isActive, setIsActive] = useState(true);
   const [sessionValid, setSessionValid] = useState(true);
-
-  const validateSessionServerSide = useCallback(async () => {
-    if (!user) return false;
-
-    try {
-      const { data, error } = await supabase.rpc('validate_user_session', {
-        p_user_id: user.id,
-        p_session_timeout_minutes: timeoutMinutes
-      });
-
-      if (error) {
-        console.error('Session validation error:', error);
-        return false;
-      }
-
-      return data || false;
-    } catch (error) {
-      console.error('Session validation failed:', error);
-      return false;
-    }
-  }, [user, timeoutMinutes]);
 
   const logSecurityEvent = useCallback(async (eventType: string, details?: any) => {
     if (!user) return;
@@ -72,34 +52,21 @@ export const SessionTimeout = ({
   }, [signOut, logSecurityEvent]);
 
   const extendSession = useCallback(async () => {
-    // Validate session server-side before extending
-    const isValid = await validateSessionServerSide();
-    if (!isValid) {
-      await logSecurityEvent('session_extension_failed', { reason: 'server_validation_failed' });
-      setSessionValid(false);
+    if (!sessionValid) {
       await handleLogout();
       return;
     }
     
     resetTimer();
     await logSecurityEvent('session_extended_manually');
-  }, [validateSessionServerSide, resetTimer, logSecurityEvent, handleLogout]);
+  }, [sessionValid, resetTimer, logSecurityEvent, handleLogout]);
 
-  // Activity detection with enhanced security logging
+  // Activity detection
   useEffect(() => {
     const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
     
-    const resetTimerOnActivity = async () => {
+    const resetTimerOnActivity = () => {
       if (isActive) {
-        // Periodically validate session during activity (10% chance)
-        if (Math.random() < 0.1) {
-          const isValid = await validateSessionServerSide();
-          if (!isValid) {
-            setSessionValid(false);
-            await handleLogout();
-            return;
-          }
-        }
         resetTimer();
       }
     };
@@ -113,13 +80,13 @@ export const SessionTimeout = ({
         document.removeEventListener(event, resetTimerOnActivity, true);
       });
     };
-  }, [resetTimer, isActive, validateSessionServerSide, handleLogout]);
+  }, [resetTimer, isActive]);
 
-  // Countdown timer with enhanced security validation
+  // Countdown timer
   useEffect(() => {
     if (!user || !isActive) return;
 
-    const interval = setInterval(async () => {
+    const interval = setInterval(() => {
       setTimeLeft((prev) => {
         const newTimeLeft = prev - 1;
         
@@ -127,16 +94,6 @@ export const SessionTimeout = ({
         if (newTimeLeft <= warningMinutes * 60 && !showWarning) {
           setShowWarning(true);
           logSecurityEvent('session_warning_shown', { time_left: newTimeLeft });
-        }
-        
-        // Validate session server-side when approaching timeout
-        if (newTimeLeft === 300) { // 5 minutes before timeout
-          validateSessionServerSide().then(isValid => {
-            if (!isValid) {
-              setSessionValid(false);
-              handleLogout();
-            }
-          });
         }
         
         // Auto logout when time runs out
@@ -151,7 +108,7 @@ export const SessionTimeout = ({
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [user, isActive, warningMinutes, showWarning, handleLogout, validateSessionServerSide, logSecurityEvent]);
+  }, [user, isActive, warningMinutes, showWarning, handleLogout, logSecurityEvent]);
 
   // Don't render if user is not logged in
   if (!user) return null;
@@ -216,7 +173,6 @@ export const SessionTimeout = ({
           
           <div className="text-xs text-gray-500 text-center">
             <p>Por segurança, sessões inativas são automaticamente encerradas após {timeoutMinutes} minutos</p>
-            <p className="mt-1">🔒 Sistema de validação de sessão server-side ativo</p>
           </div>
         </div>
       </DialogContent>
