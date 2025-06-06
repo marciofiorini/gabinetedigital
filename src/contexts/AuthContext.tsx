@@ -27,6 +27,25 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Security: Standard error messages to prevent information disclosure
+const STANDARD_ERROR_MESSAGES = {
+  INVALID_CREDENTIALS: 'Email ou senha incorretos',
+  EMAIL_NOT_CONFIRMED: 'Email não confirmado. Verifique sua caixa de entrada.',
+  RATE_LIMITED: 'Muitas tentativas. Tente novamente em alguns minutos.',
+  WEAK_PASSWORD: 'A senha deve ter pelo menos 8 caracteres, incluindo maiúscula, minúscula e número',
+  EMAIL_IN_USE: 'Este email já está em uso',
+  INVALID_EMAIL: 'Email inválido',
+  REQUIRED_FIELDS: 'Todos os campos são obrigatórios',
+  NAME_TOO_SHORT: 'Nome deve ter pelo menos 2 caracteres',
+  GENERAL_ERROR: 'Erro no sistema. Tente novamente.',
+  UNAUTHORIZED_REDIRECT: 'Redirect URL não autorizada',
+  PASSWORD_RESET_SENT: 'Email de redefinição de senha enviado! Verifique sua caixa de entrada.',
+  PASSWORD_UPDATED: 'Senha atualizada com sucesso!',
+  ACCOUNT_CREATED: 'Conta criada com sucesso! Verifique seu email para confirmar a conta.',
+  LOGIN_SUCCESS: 'Login realizado com sucesso!',
+  LOGOUT_SUCCESS: 'Logout realizado'
+};
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -34,18 +53,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Configurar listener de mudanças de autenticação
+    // Configure authentication state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        // Only log essential information in production
+        // Security: Only log essential information in development
         if (process.env.NODE_ENV === 'development') {
           console.log('Auth state changed:', event, session?.user?.id);
         }
+        
         setSession(session);
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Buscar perfil do usuário
+          // Security: Defer profile fetch to prevent auth callback deadlock
           setTimeout(async () => {
             await fetchUserProfile(session.user.id);
           }, 0);
@@ -57,7 +77,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     );
 
-    // Verificar sessão existente
+    // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
@@ -81,7 +101,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (error) throw error;
       setProfile(data);
     } catch (error) {
-      console.error('Erro ao buscar perfil:', error);
+      // Security: Log error without exposing sensitive information
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Profile fetch error:', error);
+      }
     }
   };
 
@@ -97,8 +120,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) throw error;
     } catch (error: any) {
-      console.error('Erro no login com Google');
-      toast.error('Erro ao fazer login com Google');
+      toast.error(STANDARD_ERROR_MESSAGES.GENERAL_ERROR);
+      throw error;
     } finally {
       setLoading(false);
     }
@@ -108,18 +131,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setLoading(true);
       
-      // Enhanced input validation
+      // Security: Enhanced input validation
       if (!email || !password) {
-        throw new Error('Email e senha são obrigatórios');
+        throw new Error(STANDARD_ERROR_MESSAGES.REQUIRED_FIELDS);
       }
       
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        throw new Error('Email inválido');
+        throw new Error(STANDARD_ERROR_MESSAGES.INVALID_EMAIL);
       }
 
-      // Security enhancement: Stronger password requirements
+      // Security: Minimum password length check
       if (password.length < 8) {
-        throw new Error('A senha deve ter pelo menos 8 caracteres');
+        throw new Error(STANDARD_ERROR_MESSAGES.WEAK_PASSWORD);
       }
 
       const { error } = await supabase.auth.signInWithPassword({
@@ -129,20 +152,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) throw error;
 
-      toast.success('Login realizado com sucesso!');
+      toast.success(STANDARD_ERROR_MESSAGES.LOGIN_SUCCESS);
     } catch (error: any) {
-      console.error('Erro no login');
-      
-      // Provide user-friendly error messages without exposing sensitive info
-      let errorMessage = 'Erro ao fazer login';
+      // Security: Standardized error messages to prevent information disclosure
+      let errorMessage = STANDARD_ERROR_MESSAGES.GENERAL_ERROR;
       
       if (error.message?.includes('Invalid login credentials')) {
-        errorMessage = 'Email ou senha incorretos';
+        errorMessage = STANDARD_ERROR_MESSAGES.INVALID_CREDENTIALS;
       } else if (error.message?.includes('Email not confirmed')) {
-        errorMessage = 'Email não confirmado. Verifique sua caixa de entrada.';
+        errorMessage = STANDARD_ERROR_MESSAGES.EMAIL_NOT_CONFIRMED;
       } else if (error.message?.includes('Too many requests')) {
-        errorMessage = 'Muitas tentativas. Tente novamente em alguns minutos.';
-      } else if (error.message?.includes('senha deve ter pelo menos')) {
+        errorMessage = STANDARD_ERROR_MESSAGES.RATE_LIMITED;
+      } else if (error.message === STANDARD_ERROR_MESSAGES.WEAK_PASSWORD ||
+                 error.message === STANDARD_ERROR_MESSAGES.REQUIRED_FIELDS ||
+                 error.message === STANDARD_ERROR_MESSAGES.INVALID_EMAIL) {
         errorMessage = error.message;
       }
       
@@ -157,34 +180,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setLoading(true);
       
-      // Enhanced input validation with stronger password requirements
+      // Security: Enhanced input validation
       if (!email || !password || !name) {
-        throw new Error('Todos os campos são obrigatórios');
+        throw new Error(STANDARD_ERROR_MESSAGES.REQUIRED_FIELDS);
       }
       
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        throw new Error('Email inválido');
+        throw new Error(STANDARD_ERROR_MESSAGES.INVALID_EMAIL);
       }
       
-      // Security enhancement: Stronger password requirements
+      // Security: Strong password requirements
       if (password.length < 8) {
-        throw new Error('Senha deve ter pelo menos 8 caracteres');
+        throw new Error(STANDARD_ERROR_MESSAGES.WEAK_PASSWORD);
       }
       
       if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(password)) {
-        throw new Error('Senha deve conter pelo menos uma letra maiúscula, uma minúscula e um número');
+        throw new Error(STANDARD_ERROR_MESSAGES.WEAK_PASSWORD);
       }
       
       if (name.trim().length < 2) {
-        throw new Error('Nome deve ter pelo menos 2 caracteres');
+        throw new Error(STANDARD_ERROR_MESSAGES.NAME_TOO_SHORT);
       }
 
-      // Security enhancement: Validate redirect URL to prevent open redirects
+      // Security: Validate redirect URL to prevent open redirects
       const allowedDomains = [window.location.origin];
       const redirectUrl = window.location.origin;
       
       if (!allowedDomains.includes(redirectUrl)) {
-        throw new Error('Redirect URL não autorizada');
+        throw new Error(STANDARD_ERROR_MESSAGES.UNAUTHORIZED_REDIRECT);
       }
 
       const { error } = await supabase.auth.signUp({
@@ -200,15 +223,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) throw error;
 
-      toast.success('Conta criada com sucesso! Verifique seu email para confirmar a conta.');
+      toast.success(STANDARD_ERROR_MESSAGES.ACCOUNT_CREATED);
     } catch (error: any) {
-      console.error('Erro no cadastro');
-      
-      let errorMessage = 'Erro ao criar conta';
+      let errorMessage = STANDARD_ERROR_MESSAGES.GENERAL_ERROR;
       
       if (error.message?.includes('already registered')) {
-        errorMessage = 'Este email já está em uso';
-      } else if (error.message) {
+        errorMessage = STANDARD_ERROR_MESSAGES.EMAIL_IN_USE;
+      } else if (error.message === STANDARD_ERROR_MESSAGES.WEAK_PASSWORD ||
+                 error.message === STANDARD_ERROR_MESSAGES.REQUIRED_FIELDS ||
+                 error.message === STANDARD_ERROR_MESSAGES.INVALID_EMAIL ||
+                 error.message === STANDARD_ERROR_MESSAGES.NAME_TOO_SHORT ||
+                 error.message === STANDARD_ERROR_MESSAGES.UNAUTHORIZED_REDIRECT) {
         errorMessage = error.message;
       }
       
@@ -224,7 +249,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoading(true);
       
       if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        throw new Error('Email válido é obrigatório');
+        throw new Error(STANDARD_ERROR_MESSAGES.INVALID_EMAIL);
       }
 
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
@@ -233,10 +258,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) throw error;
 
-      toast.success('Email de redefinição de senha enviado! Verifique sua caixa de entrada.');
+      toast.success(STANDARD_ERROR_MESSAGES.PASSWORD_RESET_SENT);
     } catch (error: any) {
-      console.error('Erro ao solicitar redefinição de senha');
-      toast.error(error.message || 'Erro ao enviar email de redefinição');
+      const errorMessage = error.message === STANDARD_ERROR_MESSAGES.INVALID_EMAIL 
+        ? error.message 
+        : STANDARD_ERROR_MESSAGES.GENERAL_ERROR;
+      
+      toast.error(errorMessage);
       throw error;
     } finally {
       setLoading(false);
@@ -247,13 +275,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setLoading(true);
       
-      // Security enhancement: Stronger password requirements
+      // Security: Strong password requirements
       if (password.length < 8) {
-        throw new Error('Senha deve ter pelo menos 8 caracteres');
+        throw new Error(STANDARD_ERROR_MESSAGES.WEAK_PASSWORD);
       }
       
       if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(password)) {
-        throw new Error('Senha deve conter pelo menos uma letra maiúscula, uma minúscula e um número');
+        throw new Error(STANDARD_ERROR_MESSAGES.WEAK_PASSWORD);
       }
 
       const { error } = await supabase.auth.updateUser({
@@ -262,10 +290,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) throw error;
 
-      toast.success('Senha atualizada com sucesso!');
+      toast.success(STANDARD_ERROR_MESSAGES.PASSWORD_UPDATED);
     } catch (error: any) {
-      console.error('Erro ao atualizar senha');
-      toast.error(error.message || 'Erro ao atualizar senha');
+      const errorMessage = error.message === STANDARD_ERROR_MESSAGES.WEAK_PASSWORD 
+        ? error.message 
+        : STANDARD_ERROR_MESSAGES.GENERAL_ERROR;
+      
+      toast.error(errorMessage);
       throw error;
     } finally {
       setLoading(false);
@@ -281,10 +312,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setProfile(null);
       setSession(null);
 
-      toast.success('Logout realizado');
+      toast.success(STANDARD_ERROR_MESSAGES.LOGOUT_SUCCESS);
     } catch (error: any) {
-      console.error('Erro no logout');
-      toast.error('Erro ao fazer logout');
+      toast.error(STANDARD_ERROR_MESSAGES.GENERAL_ERROR);
     }
   };
 
