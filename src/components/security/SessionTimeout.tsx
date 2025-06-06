@@ -33,12 +33,14 @@ export const SessionTimeout = ({
 
   const extendSession = useCallback(() => {
     resetTimer();
-    // Log security event
-    console.log('Session extended by user:', {
-      userId: user?.id,
-      timestamp: new Date().toISOString(),
-      action: 'session_extended'
-    });
+    // Security: Log session extension for audit trail
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Session extended by user:', {
+        userId: user?.id,
+        timestamp: new Date().toISOString(),
+        action: 'session_extended'
+      });
+    }
   }, [resetTimer, user?.id]);
 
   // Activity detection
@@ -77,11 +79,13 @@ export const SessionTimeout = ({
         
         // Auto logout when time runs out
         if (newTimeLeft <= 0) {
-          console.log('Session timeout - auto logout:', {
-            userId: user.id,
-            timestamp: new Date().toISOString(),
-            reason: 'session_timeout'
-          });
+          if (process.env.NODE_ENV === 'development') {
+            console.log('Session timeout - auto logout:', {
+              userId: user.id,
+              timestamp: new Date().toISOString(),
+              reason: 'session_timeout'
+            });
+          }
           handleLogout();
           return 0;
         }
