@@ -1,4 +1,5 @@
 
+
 project_id = "xhuazohviheoxibwkozf"
 
 [api]
@@ -50,8 +51,9 @@ jwt_expiry = 3600
 enable_signup = true
 email_double_confirm_changes = true
 enable_manual_linking = false
-# Security: Enable leaked password protection with HaveIBeenPwned integration
+# Security: Password protection settings
 enable_leaked_password_protection = true
+password_policy = { min_length = 8, require_upper = true, require_lower = true, require_numbers = true }
 
 [auth.email]
 enable_signup = true
@@ -72,3 +74,4 @@ verify_jwt = true
 [edge-runtime]
 policy = "per_worker"
 inspector_port = 8083
+
