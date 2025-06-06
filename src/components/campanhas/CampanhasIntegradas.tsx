@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,7 +23,7 @@ import {
 } from "lucide-react";
 
 export const CampanhasIntegradas = () => {
-  const { campanhas, loading, criarCampanhaEmail, criarCampanhaWhatsApp, obterEstatisticas } = useCampanhasAutomatizadas();
+  const { campanhas, loading, carregarCampanhas, criarCampanhaEmail, criarCampanhaWhatsApp, obterEstatisticas } = useCampanhasAutomatizadas();
   const { segmentos } = useSegmentosContatos();
   
   const [novaCampanha, setNovaCampanha] = useState({
@@ -34,6 +34,10 @@ export const CampanhasIntegradas = () => {
     segmento: '',
     agendamento: ''
   });
+
+  useEffect(() => {
+    carregarCampanhas();
+  }, []);
 
   const estatisticas = obterEstatisticas();
 
@@ -201,12 +205,12 @@ export const CampanhasIntegradas = () => {
                             <div>
                               <h4 className="font-semibold text-gray-900">{campanha.nome}</h4>
                               <p className="text-sm text-gray-600">
-                                Trigger: {campanha.trigger_evento} • Frequência: {campanha.frequencia}
+                                Trigger: {campanha.trigger_evento || 'Manual'} • Frequência: {campanha.frequencia}
                               </p>
                               <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
                                 <span>Enviados: {campanha.total_enviados}</span>
                                 <span>Abertos: {campanha.total_abertos}</span>
-                                <span>Taxa: {campanha.taxa_conversao}%</span>
+                                <span>Taxa: {campanha.taxa_conversao || 0}%</span>
                               </div>
                             </div>
                           </div>
@@ -228,6 +232,11 @@ export const CampanhasIntegradas = () => {
                       </CardContent>
                     </Card>
                   ))}
+                  {campanhas.length === 0 && (
+                    <div className="text-center py-8">
+                      <p className="text-gray-500">Nenhuma campanha encontrada</p>
+                    </div>
+                  )}
                 </div>
               )}
             </CardContent>
