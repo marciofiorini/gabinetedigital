@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -42,7 +41,7 @@ interface AuthContextType {
   signUpWithEmail: (email: string, password: string, name: string, username?: string) => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   updatePassword: (password: string) => Promise<void>;
-  updateProfile: (data: Partial<Profile>) => Promise<boolean>;
+  updateProfile: (data: Partial<Omit<Profile, 'id' | 'created_at' | 'updated_at'>>) => Promise<boolean>;
   updateSettings: (data: Partial<UserSettings>) => Promise<boolean>;
   checkUsernameAvailability: (username: string) => Promise<boolean>;
   signOut: () => Promise<void>;
@@ -124,13 +123,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       if (error) {
         console.error('Google sign in error:', error);
+        if (error.message.includes('provider is not enabled')) {
+          toast.error('Login com Google não está configurado. Entre em contato com o administrador.');
+        } else {
+          toast.error(error.message || 'Erro ao fazer login com Google');
+        }
         throw error;
       }
       
       console.log('Google sign in initiated successfully');
     } catch (error: any) {
       console.error('Google sign in error:', error);
-      toast.error(error.message || 'Erro ao fazer login com Google');
       throw error;
     }
   };
@@ -232,7 +235,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const updateProfile = async (data: Partial<Profile>): Promise<boolean> => {
+  const updateProfile = async (data: Partial<Omit<Profile, 'id' | 'created_at' | 'updated_at'>>) => {
     try {
       console.log('Updating profile with data:', data);
       
@@ -240,11 +243,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error('Usuário não autenticado');
       }
 
-      // Clean data - remove undefined values
+      // Clean data - remove undefined values and empty strings
       const cleanData: Record<string, any> = {};
       for (const [key, value] of Object.entries(data)) {
-        if (value !== undefined && value !== null && value !== '') {
-          cleanData[key] = value;
+        if (value !== undefined && value !== null) {
+          // Para username, permitir string vazia para remover o username
+          if (key === 'username') {
+            cleanData[key] = value === '' ? null : value;
+          } else if (value !== '') {
+            cleanData[key] = value;
+          }
         }
       }
 
@@ -317,10 +325,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return true;
       }
 
+      const trimmedUsername = username.trim();
+      
+      // Se o username for igual ao atual do usuário, consideramos disponível
+      if (profile?.username === trimmedUsername) {
+        return true;
+      }
+
       const { data, error } = await supabase
         .from('profiles')
         .select('id')
-        .eq('username', username.trim())
+        .eq('username', trimmedUsername)
         .neq('id', user?.id || '00000000-0000-0000-0000-000000000000');
 
       if (error) {

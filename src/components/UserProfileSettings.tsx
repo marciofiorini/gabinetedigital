@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -29,8 +28,8 @@ export const UserProfileSettings = () => {
   });
 
   const [usernameStatus, setUsernameStatus] = useState<'available' | 'taken' | 'checking' | null>(null);
-  const [originalUsername, setOriginalUsername] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [usernameCheckTimeout, setUsernameCheckTimeout] = useState<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     console.log('Profile data changed:', profile);
@@ -47,12 +46,12 @@ export const UserProfileSettings = () => {
       };
       console.log('Setting form data:', data);
       setFormData(data);
-      setOriginalUsername(profile.username || '');
     }
   }, [profile, user]);
 
   const checkUsername = async (username: string) => {
-    if (!username || username === originalUsername) {
+    // Se o username for igual ao atual ou vazio, não precisa verificar
+    if (!username || username === profile?.username) {
       setUsernameStatus(null);
       return;
     }
@@ -70,12 +69,20 @@ export const UserProfileSettings = () => {
   const handleUsernameChange = (value: string) => {
     setFormData({ ...formData, username: value });
     
-    // Debounce username check
+    // Clear previous timeout
+    if (usernameCheckTimeout) {
+      clearTimeout(usernameCheckTimeout);
+    }
+    
+    // Reset status immediately
+    setUsernameStatus(null);
+    
+    // Set new timeout for username check
     const timeoutId = setTimeout(() => {
       checkUsername(value);
     }, 500);
-
-    return () => clearTimeout(timeoutId);
+    
+    setUsernameCheckTimeout(timeoutId);
   };
 
   const handleProfileUpdate = async (e: React.FormEvent) => {
@@ -96,41 +103,20 @@ export const UserProfileSettings = () => {
     try {
       console.log('Submitting profile update:', formData);
       
-      // Prepare update data - only include changed fields
-      const updateData: any = {};
-      
-      if (formData.name.trim() !== (profile?.name || '')) {
-        updateData.name = formData.name.trim();
-      }
-      
-      if (formData.username.trim() !== (profile?.username || '')) {
-        updateData.username = formData.username.trim() || null;
-      }
-      
-      if (formData.phone.trim() !== (profile?.phone || '')) {
-        updateData.phone = formData.phone.trim() || null;
-      }
-      
-      if (formData.location.trim() !== (profile?.location || '')) {
-        updateData.location = formData.location.trim() || null;
-      }
-      
-      if (formData.bio.trim() !== (profile?.bio || '')) {
-        updateData.bio = formData.bio.trim() || null;
-      }
+      // Prepare update data - include all fields that might have changed
+      const updateData = {
+        name: formData.name.trim(),
+        username: formData.username.trim() || null,
+        phone: formData.phone.trim() || null,
+        location: formData.location.trim() || null,
+        bio: formData.bio.trim() || null
+      };
 
       console.log('Update data prepared:', updateData);
-
-      if (Object.keys(updateData).length === 0) {
-        toast.info('Nenhuma alteração detectada');
-        setIsSubmitting(false);
-        return;
-      }
 
       const success = await updateProfile(updateData);
 
       if (success) {
-        setOriginalUsername(formData.username);
         setUsernameStatus(null);
         console.log('Profile updated successfully');
       }
@@ -238,7 +224,15 @@ export const UserProfileSettings = () => {
                     className="pr-10"
                   />
                   <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                    {getUsernameIcon()}
+                    {usernameStatus === 'checking' && (
+                      <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                    )}
+                    {usernameStatus === 'available' && (
+                      <CheckCircle className="w-4 h-4 text-green-500" />
+                    )}
+                    {usernameStatus === 'taken' && (
+                      <XCircle className="w-4 h-4 text-red-500" />
+                    )}
                   </div>
                 </div>
                 {usernameStatus === 'available' && (
