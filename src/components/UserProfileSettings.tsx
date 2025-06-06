@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -22,7 +23,6 @@ export const UserProfileSettings = () => {
   });
 
   const [passwordData, setPasswordData] = useState({
-    currentPassword: '',
     newPassword: '',
     confirmPassword: ''
   });
@@ -106,10 +106,10 @@ export const UserProfileSettings = () => {
       // Prepare update data - include all fields that might have changed
       const updateData = {
         name: formData.name.trim(),
-        username: formData.username.trim() || null,
-        phone: formData.phone.trim() || null,
-        location: formData.location.trim() || null,
-        bio: formData.bio.trim() || null
+        username: formData.username.trim() || undefined,
+        phone: formData.phone.trim() || undefined,
+        location: formData.location.trim() || undefined,
+        bio: formData.bio.trim() || undefined
       };
 
       console.log('Update data prepared:', updateData);
@@ -143,26 +143,17 @@ export const UserProfileSettings = () => {
     try {
       await updatePassword(passwordData.newPassword);
       setPasswordData({
-        currentPassword: '',
         newPassword: '',
         confirmPassword: ''
       });
+      toast.success('Senha alterada com sucesso!');
     } catch (error) {
       console.error('Error updating password:', error);
     }
   };
 
-  const getUsernameIcon = () => {
-    switch (usernameStatus) {
-      case 'checking':
-        return <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />;
-      case 'available':
-        return <CheckCircle className="w-4 h-4 text-green-500" />;
-      case 'taken':
-        return <XCircle className="w-4 h-4 text-red-500" />;
-      default:
-        return null;
-    }
+  const handleAvatarClick = () => {
+    toast.info('Funcionalidade de upload de foto será implementada em breve');
   };
 
   return (
@@ -189,7 +180,13 @@ export const UserProfileSettings = () => {
                 </AvatarFallback>
               </Avatar>
               <div>
-                <Button variant="outline" size="sm" className="flex items-center gap-2">
+                <Button 
+                  type="button"
+                  variant="outline" 
+                  size="sm" 
+                  className="flex items-center gap-2"
+                  onClick={handleAvatarClick}
+                >
                   <Camera className="w-4 h-4" />
                   Alterar Foto
                 </Button>
@@ -325,24 +322,13 @@ export const UserProfileSettings = () => {
         <CardContent>
           <form onSubmit={handlePasswordUpdate} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="currentPassword">Senha Atual</Label>
-              <Input
-                id="currentPassword"
-                type="password"
-                value={passwordData.currentPassword}
-                onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
-                placeholder="Digite sua senha atual"
-              />
-            </div>
-
-            <div className="space-y-2">
               <Label htmlFor="newPassword">Nova Senha</Label>
               <Input
                 id="newPassword"
                 type="password"
                 value={passwordData.newPassword}
                 onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
-                placeholder="Digite a nova senha"
+                placeholder="Digite a nova senha (mínimo 6 caracteres)"
               />
             </div>
 

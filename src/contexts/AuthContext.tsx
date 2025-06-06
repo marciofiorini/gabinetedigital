@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -30,6 +29,15 @@ interface UserSettings {
   tour_completed: boolean;
 }
 
+interface ProfileUpdateData {
+  name?: string;
+  username?: string;
+  phone?: string;
+  location?: string;
+  bio?: string;
+  avatar_url?: string;
+}
+
 interface AuthContextType {
   user: User | null;
   profile: Profile | null;
@@ -42,7 +50,7 @@ interface AuthContextType {
   signUpWithEmail: (email: string, password: string, name: string, username?: string) => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   updatePassword: (password: string) => Promise<void>;
-  updateProfile: (data: any) => Promise<boolean>;
+  updateProfile: (data: ProfileUpdateData) => Promise<boolean>;
   updateSettings: (data: Partial<UserSettings>) => Promise<boolean>;
   checkUsernameAvailability: (username: string) => Promise<boolean>;
   signOut: () => Promise<void>;
@@ -236,7 +244,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const updateProfile = async (data: any) => {
+  const updateProfile = async (data: ProfileUpdateData): Promise<boolean> => {
     try {
       console.log('Updating profile with data:', data);
       
