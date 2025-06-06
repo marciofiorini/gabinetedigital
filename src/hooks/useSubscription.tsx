@@ -28,7 +28,6 @@ export const useSubscription = (): SubscriptionData => {
     
     setLoading(true);
     try {
-      // Por enquanto retorna dados mock - implementação futura
       setSubscription(null);
       setSubscribed(false);
       setSubscriptionTier('basic');
@@ -46,7 +45,6 @@ export const useSubscription = (): SubscriptionData => {
     }
 
     try {
-      // Implementação futura do Stripe
       toast.info('Funcionalidade de checkout em desenvolvimento');
     } catch (error) {
       console.error('Erro ao criar checkout:', error);
@@ -61,7 +59,6 @@ export const useSubscription = (): SubscriptionData => {
     }
 
     try {
-      // Implementação futura do portal do cliente
       toast.info('Portal do cliente em desenvolvimento');
     } catch (error) {
       console.error('Erro ao abrir portal:', error);
