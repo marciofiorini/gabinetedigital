@@ -43,12 +43,22 @@ export const useSecurityMonitoring = () => {
     if (!user) return false;
     
     try {
-      const { data } = await supabase.rpc('is_session_valid', {
-        p_user_id: user.id,
-        p_timeout_minutes: 480 // 8 hours
-      });
+      const { data, error } = await supabase
+        .from('access_logs')
+        .select('created_at')
+        .eq('user_id', user.id)
+        .in('action', ['login', 'page_access', 'api_call'])
+        .order('created_at', { ascending: false })
+        .limit(1);
       
-      return data;
+      if (error) throw error;
+      
+      if (!data || data.length === 0) return false;
+      
+      const lastActivity = new Date(data[0].created_at);
+      const eightHoursAgo = new Date(Date.now() - 8 * 60 * 60 * 1000);
+      
+      return lastActivity > eightHoursAgo;
     } catch (error) {
       console.error('Error checking session validity:', error);
       return false;

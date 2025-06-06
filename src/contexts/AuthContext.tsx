@@ -50,10 +50,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const trackFailedLogin = async (email: string) => {
     try {
-      await supabase.rpc('track_failed_login_attempt', {
-        p_email: email,
-        p_ip_address: null,
-        p_user_agent: navigator.userAgent
+      await supabase.rpc('log_user_action', {
+        p_action: 'failed_login_attempt',
+        p_module: 'security',
+        p_old_value: email
       });
     } catch (error) {
       console.error('Failed to track login attempt:', error);
@@ -62,12 +62,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const checkSuspiciousActivity = async (email: string) => {
     try {
-      const { data } = await supabase.rpc('check_suspicious_login_activity', {
-        p_email: email,
-        p_time_window_minutes: 15
-      });
+      const { data, error } = await supabase
+        .from('access_logs')
+        .select('id')
+        .eq('action', 'failed_login_attempt')
+        .eq('old_value', email)
+        .gte('created_at', new Date(Date.now() - 15 * 60 * 1000).toISOString());
       
-      if (data && data >= 5) {
+      if (error) throw error;
+      
+      if (data && data.length >= 5) {
         toast.error('Muitas tentativas de login falharam. Aguarde alguns minutos.');
         return true;
       }
