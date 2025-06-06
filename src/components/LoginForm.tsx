@@ -271,7 +271,7 @@ export const LoginForm = () => {
                 </Button>
               </form>
             </TabsContent>
-          </tabs>
+          </Tabs>
         </CardContent>
       </Card>
     </div>
