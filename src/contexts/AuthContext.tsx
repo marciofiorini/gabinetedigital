@@ -58,7 +58,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchProfile = async (userId: string) => {
+  const fetchProfile = async (userId: string): Promise<Profile | null> => {
     try {
       console.log('Fetching profile for user:', userId);
       const { data, error } = await supabase
@@ -73,14 +73,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       console.log('Profile fetched successfully:', data);
-      return data;
+      return data as Profile;
     } catch (error) {
       console.error('Error in fetchProfile:', error);
       return null;
     }
   };
 
-  const fetchSettings = async (userId: string) => {
+  const fetchSettings = async (userId: string): Promise<UserSettings | null> => {
     try {
       console.log('Fetching settings for user:', userId);
       const { data, error } = await supabase
@@ -95,14 +95,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       console.log('Settings fetched successfully:', data);
-      return data;
+      return data as UserSettings;
     } catch (error) {
       console.error('Error in fetchSettings:', error);
       return null;
     }
   };
 
-  const refreshProfile = async () => {
+  const refreshProfile = async (): Promise<void> => {
     if (!user) return;
     
     const profileData = await fetchProfile(user.id);
@@ -110,6 +110,247 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     setProfile(profileData);
     setSettings(settingsData);
+  };
+
+  const signInWithGoogle = async (): Promise<void> => {
+    try {
+      console.log('Attempting Google sign in...');
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/`
+        }
+      });
+      
+      if (error) {
+        console.error('Google sign in error:', error);
+        throw error;
+      }
+      
+      console.log('Google sign in initiated successfully');
+    } catch (error: any) {
+      console.error('Google sign in error:', error);
+      toast.error(error.message || 'Erro ao fazer login com Google');
+      throw error;
+    }
+  };
+
+  const signInWithEmail = async (email: string, password: string): Promise<void> => {
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+      
+      if (error) throw error;
+      toast.success('Login realizado com sucesso!');
+    } catch (error: any) {
+      console.error('Email sign in error:', error);
+      toast.error(error.message || 'Erro ao fazer login');
+      throw error;
+    }
+  };
+
+  const signInWithUsername = async (username: string, password: string): Promise<void> => {
+    try {
+      // First, find the email associated with this username
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('email')
+        .eq('username', username)
+        .single();
+
+      if (profileError || !profileData) {
+        throw new Error('Nome de usuário não encontrado');
+      }
+
+      // Then sign in with email and password
+      await signInWithEmail(profileData.email, password);
+    } catch (error: any) {
+      console.error('Username sign in error:', error);
+      toast.error(error.message || 'Erro ao fazer login com nome de usuário');
+      throw error;
+    }
+  };
+
+  const signUpWithEmail = async (email: string, password: string, name: string, username?: string): Promise<void> => {
+    try {
+      // Check if username is available if provided
+      if (username) {
+        const isAvailable = await checkUsernameAvailability(username);
+        if (!isAvailable) {
+          throw new Error('Nome de usuário já está em uso');
+        }
+      }
+
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/`,
+          data: {
+            name,
+            username
+          }
+        }
+      });
+      
+      if (error) throw error;
+      toast.success('Conta criada com sucesso! Verifique seu email.');
+    } catch (error: any) {
+      console.error('Email sign up error:', error);
+      toast.error(error.message || 'Erro ao criar conta');
+      throw error;
+    }
+  };
+
+  const resetPassword = async (email: string): Promise<void> => {
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`
+      });
+      
+      if (error) throw error;
+      toast.success('Email de recuperação enviado!');
+    } catch (error: any) {
+      console.error('Reset password error:', error);
+      toast.error(error.message || 'Erro ao enviar email de recuperação');
+      throw error;
+    }
+  };
+
+  const updatePassword = async (password: string): Promise<void> => {
+    try {
+      const { error } = await supabase.auth.updateUser({ password });
+      
+      if (error) throw error;
+      toast.success('Senha alterada com sucesso!');
+    } catch (error: any) {
+      console.error('Update password error:', error);
+      toast.error(error.message || 'Erro ao alterar senha');
+      throw error;
+    }
+  };
+
+  const updateProfile = async (data: Partial<Profile>): Promise<boolean> => {
+    try {
+      console.log('Updating profile with data:', data);
+      
+      if (!user) {
+        throw new Error('Usuário não autenticado');
+      }
+
+      // Clean data - remove undefined values
+      const cleanData: Record<string, any> = {};
+      for (const [key, value] of Object.entries(data)) {
+        if (value !== undefined && value !== null && value !== '') {
+          cleanData[key] = value;
+        }
+      }
+
+      console.log('Clean data for update:', cleanData);
+
+      if (Object.keys(cleanData).length === 0) {
+        console.log('No data to update');
+        return true;
+      }
+
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          ...cleanData,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', user.id);
+
+      if (error) {
+        console.error('Profile update error:', error);
+        throw error;
+      }
+
+      console.log('Profile updated successfully');
+      
+      // Refresh profile data
+      await refreshProfile();
+      toast.success('Perfil atualizado com sucesso!');
+      return true;
+    } catch (error: any) {
+      console.error('Update profile error:', error);
+      toast.error(error.message || 'Erro ao atualizar perfil');
+      return false;
+    }
+  };
+
+  const updateSettings = async (data: Partial<UserSettings>): Promise<boolean> => {
+    try {
+      if (!user) {
+        throw new Error('Usuário não autenticado');
+      }
+
+      const { error } = await supabase
+        .from('user_settings')
+        .update({
+          ...data,
+          updated_at: new Date().toISOString()
+        })
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      // Update local state
+      setSettings(prev => prev ? { ...prev, ...data } : null);
+      toast.success('Configurações salvas com sucesso!');
+      return true;
+    } catch (error: any) {
+      console.error('Update settings error:', error);
+      toast.error(error.message || 'Erro ao salvar configurações');
+      return false;
+    }
+  };
+
+  const checkUsernameAvailability = async (username: string): Promise<boolean> => {
+    try {
+      console.log('Checking username availability:', username);
+      
+      // Skip check if username is empty
+      if (!username || username.trim() === '') {
+        return true;
+      }
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('username', username.trim())
+        .neq('id', user?.id || '00000000-0000-0000-0000-000000000000');
+
+      if (error) {
+        console.error('Username check error:', error);
+        return false;
+      }
+
+      const isAvailable = !data || data.length === 0;
+      console.log('Username availability result:', isAvailable);
+      return isAvailable;
+    } catch (error: any) {
+      console.error('Check username error:', error);
+      return false;
+    }
+  };
+
+  const signOut = async (): Promise<void> => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      
+      setUser(null);
+      setProfile(null);
+      setSettings(null);
+      setSession(null);
+      toast.success('Logout realizado com sucesso!');
+    } catch (error: any) {
+      console.error('Sign out error:', error);
+      toast.error(error.message || 'Erro ao fazer logout');
+    }
   };
 
   useEffect(() => {
@@ -155,266 +396,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => subscription.unsubscribe();
   }, []);
 
-  const signInWithGoogle = async () => {
-    try {
-      console.log('Attempting Google sign in...');
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/`
-        }
-      });
-      
-      if (error) {
-        console.error('Google sign in error:', error);
-        throw error;
-      }
-      
-      console.log('Google sign in initiated successfully');
-    } catch (error: any) {
-      console.error('Google sign in error:', error);
-      toast.error(error.message || 'Erro ao fazer login com Google');
-      throw error;
-    }
-  };
-
-  const signInWithEmail = async (email: string, password: string) => {
-    try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
-      
-      if (error) throw error;
-      toast.success('Login realizado com sucesso!');
-    } catch (error: any) {
-      console.error('Email sign in error:', error);
-      toast.error(error.message || 'Erro ao fazer login');
-      throw error;
-    }
-  };
-
-  const signInWithUsername = async (username: string, password: string) => {
-    try {
-      // First, find the email associated with this username
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('email')
-        .eq('username', username)
-        .single();
-
-      if (profileError || !profileData) {
-        throw new Error('Nome de usuário não encontrado');
-      }
-
-      // Then sign in with email and password
-      await signInWithEmail(profileData.email, password);
-    } catch (error: any) {
-      console.error('Username sign in error:', error);
-      toast.error(error.message || 'Erro ao fazer login com nome de usuário');
-      throw error;
-    }
-  };
-
-  const signUpWithEmail = async (email: string, password: string, name: string, username?: string) => {
-    try {
-      // Check if username is available if provided
-      if (username) {
-        const isAvailable = await checkUsernameAvailability(username);
-        if (!isAvailable) {
-          throw new Error('Nome de usuário já está em uso');
-        }
-      }
-
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/`,
-          data: {
-            name,
-            username
-          }
-        }
-      });
-      
-      if (error) throw error;
-      toast.success('Conta criada com sucesso! Verifique seu email.');
-    } catch (error: any) {
-      console.error('Email sign up error:', error);
-      toast.error(error.message || 'Erro ao criar conta');
-      throw error;
-    }
-  };
-
-  const resetPassword = async (email: string) => {
-    try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`
-      });
-      
-      if (error) throw error;
-      toast.success('Email de recuperação enviado!');
-    } catch (error: any) {
-      console.error('Reset password error:', error);
-      toast.error(error.message || 'Erro ao enviar email de recuperação');
-      throw error;
-    }
-  };
-
-  const updatePassword = async (password: string) => {
-    try {
-      const { error } = await supabase.auth.updateUser({ password });
-      
-      if (error) throw error;
-      toast.success('Senha alterada com sucesso!');
-    } catch (error: any) {
-      console.error('Update password error:', error);
-      toast.error(error.message || 'Erro ao alterar senha');
-      throw error;
-    }
-  };
-
-  const updateProfile = async (data: Partial<Profile>) => {
-    try {
-      console.log('Updating profile with data:', data);
-      
-      if (!user) {
-        throw new Error('Usuário não autenticado');
-      }
-
-      // Clean data - remove undefined values
-      const cleanData = Object.entries(data).reduce((acc, [key, value]) => {
-        if (value !== undefined && value !== null && value !== '') {
-          acc[key] = value;
-        }
-        return acc;
-      }, {} as any);
-
-      console.log('Clean data for update:', cleanData);
-
-      if (Object.keys(cleanData).length === 0) {
-        console.log('No data to update');
-        return true;
-      }
-
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          ...cleanData,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', user.id);
-
-      if (error) {
-        console.error('Profile update error:', error);
-        throw error;
-      }
-
-      console.log('Profile updated successfully');
-      
-      // Refresh profile data
-      await refreshProfile();
-      toast.success('Perfil atualizado com sucesso!');
-      return true;
-    } catch (error: any) {
-      console.error('Update profile error:', error);
-      toast.error(error.message || 'Erro ao atualizar perfil');
-      return false;
-    }
-  };
-
-  const updateSettings = async (data: Partial<UserSettings>) => {
-    try {
-      if (!user) {
-        throw new Error('Usuário não autenticado');
-      }
-
-      const { error } = await supabase
-        .from('user_settings')
-        .update({
-          ...data,
-          updated_at: new Date().toISOString()
-        })
-        .eq('user_id', user.id);
-
-      if (error) throw error;
-
-      // Update local state
-      setSettings(prev => prev ? { ...prev, ...data } : null);
-      toast.success('Configurações salvas com sucesso!');
-      return true;
-    } catch (error: any) {
-      console.error('Update settings error:', error);
-      toast.error(error.message || 'Erro ao salvar configurações');
-      return false;
-    }
-  };
-
-  const checkUsernameAvailability = async (username: string) => {
-    try {
-      console.log('Checking username availability:', username);
-      
-      // Skip check if username is empty
-      if (!username || username.trim() === '') {
-        return true;
-      }
-
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('username', username.trim())
-        .neq('id', user?.id || '00000000-0000-0000-0000-000000000000');
-
-      if (error) {
-        console.error('Username check error:', error);
-        return false;
-      }
-
-      const isAvailable = !data || data.length === 0;
-      console.log('Username availability result:', isAvailable);
-      return isAvailable;
-    } catch (error: any) {
-      console.error('Check username error:', error);
-      return false;
-    }
-  };
-
-  const signOut = async () => {
-    try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-      
-      setUser(null);
-      setProfile(null);
-      setSettings(null);
-      setSession(null);
-      toast.success('Logout realizado com sucesso!');
-    } catch (error: any) {
-      console.error('Sign out error:', error);
-      toast.error(error.message || 'Erro ao fazer logout');
-    }
+  const contextValue: AuthContextType = {
+    user, 
+    profile, 
+    settings,
+    session, 
+    loading, 
+    signInWithGoogle, 
+    signInWithEmail, 
+    signInWithUsername,
+    signUpWithEmail, 
+    resetPassword,
+    updatePassword,
+    updateProfile,
+    updateSettings,
+    checkUsernameAvailability,
+    signOut,
+    refreshProfile
   };
 
   return (
-    <AuthContext.Provider value={{ 
-      user, 
-      profile, 
-      settings,
-      session, 
-      loading, 
-      signInWithGoogle, 
-      signInWithEmail, 
-      signInWithUsername,
-      signUpWithEmail, 
-      resetPassword,
-      updatePassword,
-      updateProfile,
-      updateSettings,
-      checkUsernameAvailability,
-      signOut,
-      refreshProfile
-    }}>
+    <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
   );
