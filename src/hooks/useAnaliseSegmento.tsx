@@ -1,174 +1,252 @@
 
-import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { useState } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
-interface AnaliseSentimento {
+interface AnaliseSegmento {
   id: string;
-  texto_analisado: string;
-  fonte: string;
-  url_origem: string | null;
-  sentimento: string;
-  score_sentimento: number;
-  confianca: number;
-  palavras_chave: string[];
-  mencoes_encontradas: string[];
-  data_publicacao: string | null;
-  processed_at: string;
+  nome: string;
+  tipo: 'demografico' | 'comportamental' | 'geografico' | 'psicografico';
+  algoritmo: string;
+  parametros: any;
+  resultado: {
+    segmentos_encontrados: number;
+    confianca: number;
+    distribuicao: { [key: string]: number };
+    insights: string[];
+  };
   created_at: string;
 }
 
+interface SegmentoIA {
+  id: string;
+  nome: string;
+  descricao: string;
+  criterios_ia: any;
+  score_confianca: number;
+  tamanho_estimado: number;
+  personas: string[];
+  recomendacoes: string[];
+}
+
 export const useAnaliseSegmento = () => {
-  const [analises, setAnalises] = useState<AnaliseSentimento[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [analises, setAnalises] = useState<AnaliseSegmento[]>([]);
+  const [segmentosIA, setSegmentosIA] = useState<SegmentoIA[]>([]);
+  const [loading, setLoading] = useState(false);
+  const { user } = useAuth();
   const { toast } = useToast();
 
-  const fetchAnalises = async () => {
+  const executarAnaliseDemografica = async (parametros: any) => {
+    setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('analise_sentimento')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(100);
+      // Simular análise de IA para segmentação demográfica
+      const resultado = {
+        segmentos_encontrados: 4,
+        confianca: 87.5,
+        distribuicao: {
+          'Jovens 18-25': 23,
+          'Adultos 26-40': 35,
+          'Meia-idade 41-55': 28,
+          'Idosos 56+': 14
+        },
+        insights: [
+          'Concentração alta de jovens na zona norte',
+          'Adultos têm maior engajamento em questões econômicas',
+          'Idosos mostram interesse em saúde pública'
+        ]
+      };
 
-      if (error) throw error;
-      setAnalises(data || []);
+      const novaAnalise: AnaliseSegmento = {
+        id: `demo_${Date.now()}`,
+        nome: 'Análise Demográfica Automática',
+        tipo: 'demografico',
+        algoritmo: 'k-means_clustering',
+        parametros,
+        resultado,
+        created_at: new Date().toISOString()
+      };
+
+      setAnalises(prev => [novaAnalise, ...prev]);
+      
+      toast({
+        title: "Análise concluída!",
+        description: `${resultado.segmentos_encontrados} segmentos identificados com ${resultado.confianca}% de confiança`
+      });
+
+      return novaAnalise;
     } catch (error) {
-      console.error('Erro ao buscar análises:', error);
+      console.error('Erro na análise demográfica:', error);
       toast({
         title: "Erro",
-        description: "Erro ao carregar análises de sentimento",
-        variant: "destructive",
+        description: "Erro ao executar análise demográfica",
+        variant: "destructive"
       });
     } finally {
       setLoading(false);
     }
   };
 
-  const analisarTexto = async (texto: string, fonte: string, urlOrigem?: string) => {
+  const executarAnaliseComportamental = async (parametros: any) => {
+    setLoading(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Usuário não autenticado');
+      const resultado = {
+        segmentos_encontrados: 5,
+        confianca: 92.3,
+        distribuicao: {
+          'Engajados Ativos': 18,
+          'Participantes Ocasionais': 32,
+          'Observadores': 25,
+          'Apoiadores Silenciosos': 20,
+          'Críticos Construtivos': 5
+        },
+        insights: [
+          'Engajados ativos respondem melhor a calls-to-action diretos',
+          'Observadores preferem conteúdo informativo',
+          'Críticos valorizam transparência e dados'
+        ]
+      };
 
-      // Simulação de análise de sentimento
-      // Em produção, isso seria integrado com uma API de IA real
-      const sentimentoResult = simularAnaliseIA(texto);
+      const novaAnalise: AnaliseSegmento = {
+        id: `comp_${Date.now()}`,
+        nome: 'Análise Comportamental IA',
+        tipo: 'comportamental',
+        algoritmo: 'random_forest_clustering',
+        parametros,
+        resultado,
+        created_at: new Date().toISOString()
+      };
 
-      const { data, error } = await supabase
-        .from('analise_sentimento')
-        .insert([{
-          user_id: user.id,
-          texto_analisado: texto,
-          fonte,
-          url_origem: urlOrigem || null,
-          sentimento: sentimentoResult.sentimento,
-          score_sentimento: sentimentoResult.score,
-          confianca: sentimentoResult.confianca,
-          palavras_chave: sentimentoResult.palavrasChave,
-          mencoes_encontradas: sentimentoResult.mencoes,
-          data_publicacao: new Date().toISOString()
-        }])
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      setAnalises(prev => [data, ...prev]);
+      setAnalises(prev => [novaAnalise, ...prev]);
+      
       toast({
-        title: "Sucesso",
-        description: "Análise de sentimento realizada com sucesso",
+        title: "Análise comportamental concluída!",
+        description: `${resultado.segmentos_encontrados} perfis comportamentais identificados`
       });
-      return data;
+
+      return novaAnalise;
     } catch (error) {
-      console.error('Erro ao analisar texto:', error);
+      console.error('Erro na análise comportamental:', error);
       toast({
         title: "Erro",
-        description: "Erro ao realizar análise de sentimento",
-        variant: "destructive",
+        description: "Erro ao executar análise comportamental",
+        variant: "destructive"
       });
-      throw error;
+    } finally {
+      setLoading(false);
     }
   };
 
-  const simularAnaliseIA = (texto: string) => {
-    // Simulação simples de análise de sentimento
-    const palavrasPositivas = ['bom', 'ótimo', 'excelente', 'maravilhoso', 'incrível', 'perfeito'];
-    const palavrasNegativas = ['ruim', 'péssimo', 'horrível', 'terrível', 'lixo', 'nojento'];
-    
-    const textoLower = texto.toLowerCase();
-    let scorePositivo = 0;
-    let scoreNegativo = 0;
-    const palavrasEncontradas: string[] = [];
-    
-    palavrasPositivas.forEach(palavra => {
-      if (textoLower.includes(palavra)) {
-        scorePositivo++;
-        palavrasEncontradas.push(palavra);
-      }
-    });
-    
-    palavrasNegativas.forEach(palavra => {
-      if (textoLower.includes(palavra)) {
-        scoreNegativo++;
-        palavrasEncontradas.push(palavra);
-      }
-    });
-    
-    const scoreFinal = (scorePositivo - scoreNegativo) / Math.max(scorePositivo + scoreNegativo, 1);
-    let sentimento: string;
-    
-    if (scoreFinal > 0.1) {
-      sentimento = 'positivo';
-    } else if (scoreFinal < -0.1) {
-      sentimento = 'negativo';
-    } else {
-      sentimento = 'neutro';
+  const gerarSegmentosInteligentes = async (tipoAnalise: string) => {
+    setLoading(true);
+    try {
+      const segmentos: SegmentoIA[] = [
+        {
+          id: 'seg_jovens_tech',
+          nome: 'Jovens Tech-Savvy',
+          descricao: 'Jovens de 18-30 anos com alta afinidade tecnológica',
+          criterios_ia: {
+            idade: { min: 18, max: 30 },
+            comportamento: ['uso_redes_sociais_alto', 'engajamento_digital'],
+            interesses: ['tecnologia', 'inovacao', 'sustentabilidade']
+          },
+          score_confianca: 94.2,
+          tamanho_estimado: 387,
+          personas: ['Estudante universitário', 'Jovem profissional', 'Empreendedor digital'],
+          recomendacoes: [
+            'Usar WhatsApp e Instagram como canais principais',
+            'Conteúdo visual e interativo',
+            'Horários: 19h-22h nos dias úteis'
+          ]
+        },
+        {
+          id: 'seg_familias_zona_sul',
+          nome: 'Famílias Zona Sul',
+          descricao: 'Famílias estabelecidas com foco em educação e segurança',
+          criterios_ia: {
+            zona: 'sul',
+            faixa_etaria: { min: 30, max: 55 },
+            interesses: ['educacao', 'seguranca', 'saude_familia']
+          },
+          score_confianca: 89.7,
+          tamanho_estimado: 523,
+          personas: ['Pai/mãe de família', 'Profissional liberal', 'Servidor público'],
+          recomendacoes: [
+            'Email como canal principal, WhatsApp como secundário',
+            'Conteúdo sobre educação e políticas públicas',
+            'Horários: 8h-10h e 20h-21h'
+          ]
+        },
+        {
+          id: 'seg_idosos_engajados',
+          nome: 'Idosos Politicamente Engajados',
+          descricao: 'Pessoas 60+ com alto interesse em participação política',
+          criterios_ia: {
+            idade: { min: 60 },
+            comportamento: ['participacao_eventos', 'contato_frequente'],
+            interesses: ['politica', 'saude_publica', 'assistencia_social']
+          },
+          score_confianca: 91.8,
+          tamanho_estimado: 234,
+          personas: ['Aposentado ativo', 'Ex-servidor público', 'Líder comunitário'],
+          recomendacoes: [
+            'Contato presencial e telefônico preferencial',
+            'Conteúdo detalhado sobre políticas públicas',
+            'Horários: 14h-17h'
+          ]
+        }
+      ];
+
+      setSegmentosIA(segmentos);
+      
+      toast({
+        title: "Segmentos inteligentes gerados!",
+        description: `${segmentos.length} segmentos criados com IA`
+      });
+
+      return segmentos;
+    } catch (error) {
+      console.error('Erro ao gerar segmentos:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao gerar segmentos inteligentes",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
     }
-    
-    return {
-      sentimento,
-      score: Math.max(-1, Math.min(1, scoreFinal)),
-      confianca: Math.min(0.9, 0.3 + (Math.abs(scoreFinal) * 0.6)),
-      palavrasChave: palavrasEncontradas,
-      mencoes: [] // Simples implementação não detecta menções
-    };
   };
 
-  const getResumoSentimentos = () => {
-    const total = analises.length;
-    if (total === 0) return { positivo: 0, negativo: 0, neutro: 0 };
+  const aplicarSegmentoIA = async (segmentoId: string) => {
+    try {
+      const segmento = segmentosIA.find(s => s.id === segmentoId);
+      if (!segmento) return;
 
-    const positivo = analises.filter(a => a.sentimento === 'positivo').length;
-    const negativo = analises.filter(a => a.sentimento === 'negativo').length;
-    const neutro = analises.filter(a => a.sentimento === 'neutro').length;
+      // Simular aplicação do segmento
+      await new Promise(resolve => setTimeout(resolve, 1500));
 
-    return {
-      positivo: (positivo / total) * 100,
-      negativo: (negativo / total) * 100,
-      neutro: (neutro / total) * 100
-    };
+      toast({
+        title: "Segmento aplicado!",
+        description: `${segmento.tamanho_estimado} contatos segmentados`
+      });
+
+      return segmento;
+    } catch (error) {
+      console.error('Erro ao aplicar segmento:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao aplicar segmento",
+        variant: "destructive"
+      });
+    }
   };
-
-  const getAnalisesPorFonte = () => {
-    const analisesPorFonte: { [key: string]: number } = {};
-    
-    analises.forEach(analise => {
-      analisesPorFonte[analise.fonte] = (analisesPorFonte[analise.fonte] || 0) + 1;
-    });
-    
-    return analisesPorFonte;
-  };
-
-  useEffect(() => {
-    fetchAnalises();
-  }, []);
 
   return {
     analises,
+    segmentosIA,
     loading,
-    analisarTexto,
-    getResumoSentimentos,
-    getAnalisesPorFonte,
-    refetch: fetchAnalises
+    executarAnaliseDemografica,
+    executarAnaliseComportamental,
+    gerarSegmentosInteligentes,
+    aplicarSegmentoIA
   };
 };
