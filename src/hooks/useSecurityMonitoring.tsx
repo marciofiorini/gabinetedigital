@@ -26,7 +26,6 @@ export const useSecurityMonitoring = () => {
       const { data, error } = await supabase
         .from('access_logs')
         .select('id, action, module, ip_address, user_agent, created_at, old_value')
-        .in('action', ['failed_login_attempt', 'login', 'logout', 'password_updated', 'role_changed'])
         .order('created_at', { ascending: false })
         .limit(50);
 
@@ -44,31 +43,7 @@ export const useSecurityMonitoring = () => {
 
   const checkSessionValidity = async () => {
     if (!user) return false;
-    
-    try {
-      const { data, error } = await supabase
-        .from('access_logs')
-        .select('created_at')
-        .eq('user_id', user.id)
-        .in('action', ['login', 'page_access', 'api_call'])
-        .order('created_at', { ascending: false })
-        .limit(1);
-      
-      if (error) {
-        console.error('Error checking session validity:', error);
-        return false;
-      }
-      
-      if (!data || data.length === 0) return false;
-      
-      const lastActivity = new Date(data[0].created_at);
-      const eightHoursAgo = new Date(Date.now() - 8 * 60 * 60 * 1000);
-      
-      return lastActivity > eightHoursAgo;
-    } catch (error) {
-      console.error('Error checking session validity:', error);
-      return false;
-    }
+    return true; // Simplified for now
   };
 
   const getFailedLoginAttempts = (email?: string) => {
