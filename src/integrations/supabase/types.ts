@@ -2239,6 +2239,16 @@ export type Database = {
         }
         Returns: boolean
       }
+      log_security_event: {
+        Args: {
+          p_event_type: string
+          p_user_id?: string
+          p_ip_address?: string
+          p_user_agent?: string
+          p_details?: Json
+        }
+        Returns: string
+      }
       log_user_action: {
         Args: {
           p_action: string
@@ -2251,9 +2261,17 @@ export type Database = {
         }
         Returns: string
       }
+      track_failed_login: {
+        Args: { p_email: string; p_ip_address?: string; p_user_agent?: string }
+        Returns: undefined
+      }
       update_user_profile: {
         Args: { new_name: string; new_avatar_url?: string }
         Returns: undefined
+      }
+      validate_user_session: {
+        Args: { p_user_id: string; p_session_timeout_minutes?: number }
+        Returns: boolean
       }
     }
     Enums: {

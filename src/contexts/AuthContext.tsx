@@ -26,7 +26,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Security: Standard error messages to prevent information disclosure
+// Enhanced security: Standard error messages to prevent information disclosure
 const STANDARD_ERROR_MESSAGES = {
   INVALID_CREDENTIALS: 'Email ou senha incorretos',
   EMAIL_NOT_CONFIRMED: 'Email não confirmado. Verifique sua caixa de entrada.',
@@ -51,20 +51,63 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Enhanced security: Log security events
+  const logSecurityEvent = async (eventType: string, details?: any) => {
+    try {
+      await supabase.rpc('log_security_event', {
+        p_event_type: eventType,
+        p_user_id: user?.id,
+        p_ip_address: null, // Client-side can't reliably get IP
+        p_user_agent: navigator.userAgent,
+        p_details: details
+      });
+    } catch (error) {
+      // Silent fail for security logging to not affect user experience
+      console.debug('Security logging failed:', error);
+    }
+  };
+
+  // Enhanced security: Track failed login attempts
+  const trackFailedLogin = async (email: string) => {
+    try {
+      await supabase.rpc('track_failed_login', {
+        p_email: email,
+        p_ip_address: null,
+        p_user_agent: navigator.userAgent
+      });
+    } catch (error) {
+      console.debug('Failed login tracking failed:', error);
+    }
+  };
+
   useEffect(() => {
-    // Configure authentication state listener
+    // Configure authentication state listener with enhanced security monitoring
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         
-        if (session?.user) {
+        // Enhanced security: Log authentication events
+        if (event === 'SIGNED_IN' && session?.user) {
+          await logSecurityEvent('user_login', {
+            user_id: session.user.id,
+            method: 'email_password',
+            timestamp: new Date().toISOString()
+          });
+          
           // Security: Defer profile fetch to prevent auth callback deadlock
           setTimeout(async () => {
             await fetchUserProfile(session.user.id);
           }, 0);
-        } else {
+        } else if (event === 'SIGNED_OUT') {
+          await logSecurityEvent('user_logout', {
+            timestamp: new Date().toISOString()
+          });
           setProfile(null);
+        } else if (event === 'TOKEN_REFRESHED') {
+          await logSecurityEvent('token_refreshed', {
+            timestamp: new Date().toISOString()
+          });
         }
         
         setLoading(false);
@@ -95,8 +138,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (error) throw error;
       setProfile(data);
     } catch (error) {
-      // Security: Silent error handling for profile fetch
-      console.error('Profile fetch error');
+      // Enhanced security: Structured error logging without exposing details
+      await logSecurityEvent('profile_fetch_error', {
+        error_type: 'database_error',
+        user_id: userId,
+        timestamp: new Date().toISOString()
+      });
+      console.debug('Profile fetch error - user may need to complete setup');
     }
   };
 
@@ -112,6 +160,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) throw error;
     } catch (error: any) {
+      await logSecurityEvent('google_signin_failed', {
+        error_type: error.name || 'unknown',
+        timestamp: new Date().toISOString()
+      });
       toast.error(STANDARD_ERROR_MESSAGES.GENERAL_ERROR);
       throw error;
     } finally {
@@ -123,7 +175,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setLoading(true);
       
-      // Security: Enhanced input validation
+      // Enhanced security: Input validation
       if (!email || !password) {
         throw new Error(STANDARD_ERROR_MESSAGES.REQUIRED_FIELDS);
       }
@@ -132,7 +184,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error(STANDARD_ERROR_MESSAGES.INVALID_EMAIL);
       }
 
-      // Security: Minimum password length check
+      // Enhanced security: Minimum password length check
       if (password.length < 8) {
         throw new Error(STANDARD_ERROR_MESSAGES.WEAK_PASSWORD);
       }
@@ -142,19 +194,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         password
       });
 
-      if (error) throw error;
+      if (error) {
+        // Enhanced security: Track failed login attempt
+        await trackFailedLogin(email);
+        throw error;
+      }
 
       toast.success(STANDARD_ERROR_MESSAGES.LOGIN_SUCCESS);
     } catch (error: any) {
-      // Security: Standardized error messages to prevent information disclosure
+      // Enhanced security: Standardized error messages to prevent information disclosure
       let errorMessage = STANDARD_ERROR_MESSAGES.GENERAL_ERROR;
       
       if (error.message?.includes('Invalid login credentials')) {
         errorMessage = STANDARD_ERROR_MESSAGES.INVALID_CREDENTIALS;
+        await logSecurityEvent('invalid_credentials_attempt', {
+          email: email.trim().toLowerCase(),
+          timestamp: new Date().toISOString()
+        });
       } else if (error.message?.includes('Email not confirmed')) {
         errorMessage = STANDARD_ERROR_MESSAGES.EMAIL_NOT_CONFIRMED;
       } else if (error.message?.includes('Too many requests')) {
         errorMessage = STANDARD_ERROR_MESSAGES.RATE_LIMITED;
+        await logSecurityEvent('rate_limit_exceeded', {
+          email: email.trim().toLowerCase(),
+          timestamp: new Date().toISOString()
+        });
       } else if (error.message === STANDARD_ERROR_MESSAGES.WEAK_PASSWORD ||
                  error.message === STANDARD_ERROR_MESSAGES.REQUIRED_FIELDS ||
                  error.message === STANDARD_ERROR_MESSAGES.INVALID_EMAIL) {
@@ -306,6 +370,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       toast.success(STANDARD_ERROR_MESSAGES.LOGOUT_SUCCESS);
     } catch (error: any) {
+      await logSecurityEvent('logout_error', {
+        error_type: error.name || 'unknown',
+        timestamp: new Date().toISOString()
+      });
       toast.error(STANDARD_ERROR_MESSAGES.GENERAL_ERROR);
     }
   };

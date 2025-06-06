@@ -7,15 +7,15 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Clock, AlertTriangle, Shield } from 'lucide-react';
 
-interface SessionTimeoutProps {
+interface EnhancedSessionTimeoutProps {
   timeoutMinutes?: number;
   warningMinutes?: number;
 }
 
-export const SessionTimeout = ({ 
+export const EnhancedSessionTimeout = ({ 
   timeoutMinutes = 30, 
   warningMinutes = 5 
-}: SessionTimeoutProps) => {
+}: EnhancedSessionTimeoutProps) => {
   const { signOut, user } = useAuth();
   const [showWarning, setShowWarning] = useState(false);
   const [timeLeft, setTimeLeft] = useState(timeoutMinutes * 60);
@@ -50,7 +50,7 @@ export const SessionTimeout = ({
       await supabase.rpc('log_security_event', {
         p_event_type: eventType,
         p_user_id: user.id,
-        p_ip_address: null,
+        p_ip_address: null, // Client-side can't reliably get IP
         p_user_agent: navigator.userAgent,
         p_details: details
       });
@@ -77,7 +77,6 @@ export const SessionTimeout = ({
     const isValid = await validateSessionServerSide();
     if (!isValid) {
       await logSecurityEvent('session_extension_failed', { reason: 'server_validation_failed' });
-      setSessionValid(false);
       await handleLogout();
       return;
     }
@@ -86,14 +85,14 @@ export const SessionTimeout = ({
     await logSecurityEvent('session_extended_manually');
   }, [validateSessionServerSide, resetTimer, logSecurityEvent, handleLogout]);
 
-  // Activity detection with enhanced security logging
+  // Enhanced activity detection with security logging
   useEffect(() => {
     const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
     
     const resetTimerOnActivity = async () => {
       if (isActive) {
-        // Periodically validate session during activity (10% chance)
-        if (Math.random() < 0.1) {
+        // Validate session periodically during activity
+        if (Math.random() < 0.1) { // 10% chance to validate on activity
           const isValid = await validateSessionServerSide();
           if (!isValid) {
             setSessionValid(false);
@@ -116,7 +115,7 @@ export const SessionTimeout = ({
     };
   }, [resetTimer, isActive, validateSessionServerSide, handleLogout]);
 
-  // Countdown timer with enhanced security validation
+  // Enhanced countdown timer with server-side validation
   useEffect(() => {
     if (!user || !isActive) return;
 
@@ -177,7 +176,7 @@ export const SessionTimeout = ({
             Sua sessão expirará em breve por motivos de segurança
             {!sessionValid && (
               <span className="block text-red-600 mt-1">
-                Validação de segurança falhou - logout necessário
+                Atividade suspeita detectada - logout necessário
               </span>
             )}
           </DialogDescription>
@@ -217,7 +216,7 @@ export const SessionTimeout = ({
           
           <div className="text-xs text-gray-500 text-center">
             <p>Por segurança, sessões inativas são automaticamente encerradas após {timeoutMinutes} minutos</p>
-            <p className="mt-1">🔒 Sistema de validação de sessão server-side ativo</p>
+            <p className="mt-1">Sistema de validação de sessão ativo</p>
           </div>
         </div>
       </DialogContent>
