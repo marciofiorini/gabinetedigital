@@ -8,7 +8,7 @@ export const useUserPlans = () => {
   const subscriptionData = useSubscription();
   
   return {
-    userPlan: subscriptionData.subscription_tier || 'basic',
+    userPlan: subscriptionData.subscription_tier,
     loading: subscriptionData.loading,
     hasAccessToPlan: subscriptionData.hasAccessToPlan,
     getPlanFeatures: (plan: UserPlan) => {
