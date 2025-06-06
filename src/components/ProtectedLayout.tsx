@@ -4,7 +4,8 @@ import { LoginForm } from '@/components/LoginForm';
 import { Loader2 } from 'lucide-react';
 import { LayoutMain } from '@/components/LayoutMain';
 import { SecurityAlerts } from '@/components/security/SecurityAlerts';
-import { SessionTimeout } from '@/components/security/SessionTimeout';
+import { EnhancedSessionTimeout } from '@/components/security/EnhancedSessionTimeout';
+import { SecurityEnhancementsDashboard } from '@/components/security/SecurityEnhancementsDashboard';
 import { Outlet } from 'react-router-dom';
 
 export const ProtectedLayout = () => {
@@ -28,7 +29,8 @@ export const ProtectedLayout = () => {
   return (
     <LayoutMain>
       <SecurityAlerts />
-      <SessionTimeout timeoutMinutes={30} warningMinutes={5} />
+      <EnhancedSessionTimeout timeoutMinutes={30} warningMinutes={5} />
+      <SecurityEnhancementsDashboard />
       <Outlet />
     </LayoutMain>
   );
