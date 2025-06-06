@@ -30,7 +30,10 @@ export const useSecurityMonitoring = () => {
         .order('created_at', { ascending: false })
         .limit(50);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching security events:', error);
+        return;
+      }
       setSecurityEvents(data || []);
     } catch (error) {
       console.error('Error fetching security events:', error);
@@ -51,7 +54,10 @@ export const useSecurityMonitoring = () => {
         .order('created_at', { ascending: false })
         .limit(1);
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error checking session validity:', error);
+        return false;
+      }
       
       if (!data || data.length === 0) return false;
       
@@ -80,13 +86,16 @@ export const useSecurityMonitoring = () => {
     if (!user) return;
     
     try {
-      await supabase.rpc('log_user_action', {
-        p_action: action,
-        p_module: 'security',
-        p_changes: details
-      });
+      await supabase
+        .from('access_logs')
+        .insert({
+          user_id: user.id,
+          changed_by: user.id,
+          action: action,
+          module: 'security',
+          changes: details
+        });
       
-      // Refresh events after logging
       fetchSecurityEvents();
     } catch (error) {
       console.error('Error logging security action:', error);
