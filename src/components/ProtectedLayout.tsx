@@ -3,9 +3,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { LoginForm } from '@/components/LoginForm';
 import { Loader2 } from 'lucide-react';
 import { LayoutMain } from '@/components/LayoutMain';
-import { SecurityAlerts } from '@/components/security/SecurityAlerts';
-import { EnhancedSessionTimeout } from '@/components/security/EnhancedSessionTimeout';
-import { SecurityEnhancementsDashboard } from '@/components/security/SecurityEnhancementsDashboard';
 import { Outlet } from 'react-router-dom';
 
 export const ProtectedLayout = () => {
@@ -28,9 +25,6 @@ export const ProtectedLayout = () => {
 
   return (
     <LayoutMain>
-      <SecurityAlerts />
-      <EnhancedSessionTimeout timeoutMinutes={30} warningMinutes={5} />
-      <SecurityEnhancementsDashboard />
       <Outlet />
     </LayoutMain>
   );

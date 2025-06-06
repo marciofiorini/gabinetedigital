@@ -6,7 +6,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedLayout } from "@/components/ProtectedLayout";
-import { SessionTimeout } from "@/components/security/SessionTimeout";
 import Index from "./pages/Index";
 import Contatos from "./pages/Contatos";
 import Lideres from "./pages/Lideres";
@@ -51,12 +50,10 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <AuthProvider>
-        <SessionTimeout timeoutMinutes={30} warningMinutes={5} />
         <Toaster />
         <Sonner />
         <BrowserRouter>
           <Routes>
-            {/* Rota pública para redefinição de senha */}
             <Route path="/reset-password" element={<ResetPassword />} />
             
             <Route path="/" element={<ProtectedLayout />}>
