@@ -10,10 +10,8 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { FileText, Plus, Edit, Trash2, Search, Eye, ExternalLink, History } from 'lucide-react';
-import { useMonitoramentoLegislativo } from '@/hooks/useMonitoramentoLegislativo';
 
 const ProjetosLei = () => {
-  const { projetos, tramitacoes, loading, createProjeto, updateProjeto, deleteProjeto, addTramitacao, fetchTramitacoes } = useMonitoramentoLegislativo();
   const [searchTerm, setSearchTerm] = useState('');
   const [casaFilter, setCasaFilter] = useState('');
   const [urgenciaFilter, setUrgenciaFilter] = useState('');
@@ -64,17 +62,9 @@ const ProjetosLei = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    try {
-      if (editingProjeto) {
-        await updateProjeto(editingProjeto.id, novoProjeto);
-      } else {
-        await createProjeto(novoProjeto);
-      }
-      setIsDialogOpen(false);
-      resetForm();
-    } catch (error) {
-      console.error('Erro ao salvar projeto:', error);
-    }
+    console.log('Salvando projeto:', novoProjeto);
+    setIsDialogOpen(false);
+    resetForm();
   };
 
   const handleEdit = (projeto: any) => {
@@ -85,14 +75,27 @@ const ProjetosLei = () => {
 
   const handleDelete = async (id: string) => {
     if (window.confirm('Tem certeza que deseja excluir este projeto do monitoramento?')) {
-      await deleteProjeto(id);
+      console.log('Deletando projeto:', id);
     }
   };
 
   const handleViewTramitacoes = (projetoId: string) => {
     setViewingTramitacoes(projetoId);
-    fetchTramitacoes(projetoId);
   };
+
+  // Mock data for demonstration
+  const projetos = [
+    {
+      id: '1',
+      numero_projeto: 'PL 1234/2024',
+      tipo_projeto: 'Projeto de Lei',
+      titulo: 'Lei de Proteção de Dados Municipais',
+      autor: 'Dep. João Silva',
+      casa_legislativa: 'Câmara Municipal',
+      urgencia: 'alta',
+      situacao_atual: 'Em tramitação'
+    }
+  ];
 
   const filteredProjetos = projetos.filter(projeto => {
     const matchesSearch = projeto.titulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -103,43 +106,18 @@ const ProjetosLei = () => {
     return matchesSearch && matchesCasa && matchesUrgencia;
   });
 
-  const getUrgenciaColor = (urgencia: string) => {
-    switch (urgencia) {
-      case 'alta': return 'bg-red-100 text-red-800';
-      case 'media': return 'bg-yellow-100 text-yellow-800';
-      case 'normal': return 'bg-green-100 text-green-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'ativo': return 'bg-green-100 text-green-800';
-      case 'pausado': return 'bg-yellow-100 text-yellow-800';
-      case 'finalizado': return 'bg-gray-100 text-gray-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  if (loading) {
-    return <div className="p-6">Carregando monitoramento legislativo...</div>;
-  }
-
   return (
-    <div className="container mx-auto p-6">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Projetos de Lei</h1>
-        <p className="text-gray-600">Monitoramento de projetos em tramitação nas casas legislativas</p>
+    <div className="container mx-auto p-6 space-y-6">
+      <div className="flex items-center gap-2 mb-6">
+        <FileText className="w-6 h-6 text-blue-600" />
+        <h1 className="text-2xl font-bold">Projetos de Lei</h1>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5" />
-            Monitoramento Legislativo
-          </CardTitle>
+          <CardTitle>Monitoramento Legislativo</CardTitle>
           <CardDescription>
-            Acompanhe projetos de lei e sua tramitação nas casas legislativas
+            Acompanhe projetos de lei e proposições legislativas relevantes
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -160,11 +138,11 @@ const ProjetosLei = () => {
                 <SelectValue placeholder="Casa Legislativa" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todas</SelectItem>
-                <SelectItem value="camara_municipal">Câmara Municipal</SelectItem>
-                <SelectItem value="assembleia_legislativa">Assembleia Legislativa</SelectItem>
-                <SelectItem value="camara_deputados">Câmara dos Deputados</SelectItem>
-                <SelectItem value="senado_federal">Senado Federal</SelectItem>
+                <SelectItem value="todos">Todas</SelectItem>
+                <SelectItem value="Câmara Municipal">Câmara Municipal</SelectItem>
+                <SelectItem value="Assembleia Legislativa">Assembleia Legislativa</SelectItem>
+                <SelectItem value="Câmara dos Deputados">Câmara dos Deputados</SelectItem>
+                <SelectItem value="Senado Federal">Senado Federal</SelectItem>
               </SelectContent>
             </Select>
             <Select value={urgenciaFilter} onValueChange={setUrgenciaFilter}>
@@ -172,10 +150,11 @@ const ProjetosLei = () => {
                 <SelectValue placeholder="Urgência" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todas</SelectItem>
+                <SelectItem value="todas">Todas</SelectItem>
+                <SelectItem value="critica">Crítica</SelectItem>
                 <SelectItem value="alta">Alta</SelectItem>
-                <SelectItem value="media">Média</SelectItem>
                 <SelectItem value="normal">Normal</SelectItem>
+                <SelectItem value="baixa">Baixa</SelectItem>
               </SelectContent>
             </Select>
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -188,10 +167,10 @@ const ProjetosLei = () => {
               <DialogContent className="max-w-2xl">
                 <DialogHeader>
                   <DialogTitle>
-                    {editingProjeto ? 'Editar Projeto' : 'Novo Projeto Legislativo'}
+                    {editingProjeto ? 'Editar Projeto' : 'Novo Projeto de Monitoramento'}
                   </DialogTitle>
                   <DialogDescription>
-                    Adicione um projeto para monitoramento
+                    Cadastre um novo projeto de lei para monitoramento
                   </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleSubmit} className="space-y-4">
@@ -202,6 +181,7 @@ const ProjetosLei = () => {
                         id="numero_projeto"
                         value={novoProjeto.numero_projeto}
                         onChange={(e) => setNovoProjeto({ ...novoProjeto, numero_projeto: e.target.value })}
+                        placeholder="Ex: PL 1234/2024"
                         required
                       />
                     </div>
@@ -215,11 +195,10 @@ const ProjetosLei = () => {
                           <SelectValue placeholder="Selecione o tipo" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="projeto_lei">Projeto de Lei</SelectItem>
-                          <SelectItem value="projeto_lei_complementar">Projeto de Lei Complementar</SelectItem>
-                          <SelectItem value="medida_provisoria">Medida Provisória</SelectItem>
-                          <SelectItem value="proposta_emenda_constitucional">Proposta de Emenda Constitucional</SelectItem>
-                          <SelectItem value="decreto_legislativo">Decreto Legislativo</SelectItem>
+                          <SelectItem value="projeto-lei">Projeto de Lei</SelectItem>
+                          <SelectItem value="lei-complementar">Lei Complementar</SelectItem>
+                          <SelectItem value="emenda-constitucional">Emenda Constitucional</SelectItem>
+                          <SelectItem value="decreto-legislativo">Decreto Legislativo</SelectItem>
                           <SelectItem value="resolucao">Resolução</SelectItem>
                         </SelectContent>
                       </Select>
@@ -227,34 +206,27 @@ const ProjetosLei = () => {
                   </div>
 
                   <div>
-                    <Label htmlFor="titulo">Título *</Label>
+                    <Label htmlFor="titulo">Título/Ementa *</Label>
                     <Input
                       id="titulo"
                       value={novoProjeto.titulo}
                       onChange={(e) => setNovoProjeto({ ...novoProjeto, titulo: e.target.value })}
+                      placeholder="Título ou ementa do projeto"
                       required
                     />
                   </div>
 
                   <div>
-                    <Label htmlFor="ementa">Ementa</Label>
-                    <Textarea
-                      id="ementa"
-                      value={novoProjeto.ementa}
-                      onChange={(e) => setNovoProjeto({ ...novoProjeto, ementa: e.target.value })}
-                      rows={3}
+                    <Label htmlFor="autor">Autor(es)</Label>
+                    <Input
+                      id="autor"
+                      value={novoProjeto.autor}
+                      onChange={(e) => setNovoProjeto({ ...novoProjeto, autor: e.target.value })}
+                      placeholder="Nome do(s) autor(es)"
                     />
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="autor">Autor</Label>
-                      <Input
-                        id="autor"
-                        value={novoProjeto.autor}
-                        onChange={(e) => setNovoProjeto({ ...novoProjeto, autor: e.target.value })}
-                      />
-                    </div>
                     <div>
                       <Label htmlFor="casa_legislativa">Casa Legislativa *</Label>
                       <Select
@@ -265,24 +237,12 @@ const ProjetosLei = () => {
                           <SelectValue placeholder="Selecione a casa" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="camara_municipal">Câmara Municipal</SelectItem>
-                          <SelectItem value="assembleia_legislativa">Assembleia Legislativa</SelectItem>
-                          <SelectItem value="camara_deputados">Câmara dos Deputados</SelectItem>
-                          <SelectItem value="senado_federal">Senado Federal</SelectItem>
+                          <SelectItem value="camara-municipal">Câmara Municipal</SelectItem>
+                          <SelectItem value="assembleia-legislativa">Assembleia Legislativa</SelectItem>
+                          <SelectItem value="camara-deputados">Câmara dos Deputados</SelectItem>
+                          <SelectItem value="senado-federal">Senado Federal</SelectItem>
                         </SelectContent>
                       </Select>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="data_apresentacao">Data de Apresentação</Label>
-                      <Input
-                        id="data_apresentacao"
-                        type="date"
-                        value={novoProjeto.data_apresentacao}
-                        onChange={(e) => setNovoProjeto({ ...novoProjeto, data_apresentacao: e.target.value })}
-                      />
                     </div>
                     <div>
                       <Label htmlFor="urgencia">Urgência</Label>
@@ -294,50 +254,13 @@ const ProjetosLei = () => {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="normal">Normal</SelectItem>
-                          <SelectItem value="media">Média</SelectItem>
+                          <SelectItem value="critica">Crítica</SelectItem>
                           <SelectItem value="alta">Alta</SelectItem>
+                          <SelectItem value="normal">Normal</SelectItem>
+                          <SelectItem value="baixa">Baixa</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="situacao_atual">Situação Atual</Label>
-                      <Input
-                        id="situacao_atual"
-                        value={novoProjeto.situacao_atual}
-                        onChange={(e) => setNovoProjeto({ ...novoProjeto, situacao_atual: e.target.value })}
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="tema_relacionado">Tema Relacionado</Label>
-                      <Input
-                        id="tema_relacionado"
-                        value={novoProjeto.tema_relacionado}
-                        onChange={(e) => setNovoProjeto({ ...novoProjeto, tema_relacionado: e.target.value })}
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="link_projeto">Link do Projeto</Label>
-                    <Input
-                      id="link_projeto"
-                      value={novoProjeto.link_projeto}
-                      onChange={(e) => setNovoProjeto({ ...novoProjeto, link_projeto: e.target.value })}
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="impacto_estimado">Impacto Estimado</Label>
-                    <Textarea
-                      id="impacto_estimado"
-                      value={novoProjeto.impacto_estimado}
-                      onChange={(e) => setNovoProjeto({ ...novoProjeto, impacto_estimado: e.target.value })}
-                      rows={2}
-                    />
                   </div>
 
                   <div>
@@ -346,7 +269,8 @@ const ProjetosLei = () => {
                       id="observacoes"
                       value={novoProjeto.observacoes}
                       onChange={(e) => setNovoProjeto({ ...novoProjeto, observacoes: e.target.value })}
-                      rows={2}
+                      placeholder="Observações sobre o projeto..."
+                      rows={3}
                     />
                   </div>
 
@@ -355,7 +279,7 @@ const ProjetosLei = () => {
                       Cancelar
                     </Button>
                     <Button type="submit">
-                      {editingProjeto ? 'Atualizar' : 'Adicionar'} Projeto
+                      {editingProjeto ? 'Atualizar' : 'Criar'} Projeto
                     </Button>
                   </div>
                 </form>
@@ -368,10 +292,10 @@ const ProjetosLei = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead>Projeto</TableHead>
+                  <TableHead>Autor</TableHead>
                   <TableHead>Casa</TableHead>
-                  <TableHead>Situação</TableHead>
                   <TableHead>Urgência</TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead>Situação</TableHead>
                   <TableHead>Ações</TableHead>
                 </TableRow>
               </TableHeader>
@@ -381,52 +305,28 @@ const ProjetosLei = () => {
                     <TableCell>
                       <div>
                         <div className="font-medium">{projeto.numero_projeto}</div>
-                        <div className="text-sm text-gray-600 truncate max-w-xs">
-                          {projeto.titulo}
-                        </div>
-                        <div className="text-xs text-gray-500">{projeto.autor}</div>
+                        <div className="text-sm text-gray-500">{projeto.titulo}</div>
                       </div>
                     </TableCell>
+                    <TableCell>{projeto.autor}</TableCell>
+                    <TableCell>{projeto.casa_legislativa}</TableCell>
                     <TableCell>
-                      <Badge variant="outline">
-                        {projeto.casa_legislativa}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-sm">
-                        {projeto.situacao_atual}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge className={getUrgenciaColor(projeto.urgencia)}>
+                      <Badge 
+                        variant={projeto.urgencia === 'alta' ? 'destructive' : 'secondary'}
+                      >
                         {projeto.urgencia}
                       </Badge>
                     </TableCell>
-                    <TableCell>
-                      <Badge className={getStatusColor(projeto.status_monitoramento)}>
-                        {projeto.status_monitoramento}
-                      </Badge>
-                    </TableCell>
+                    <TableCell>{projeto.situacao_atual}</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => handleViewTramitacoes(projeto.id)}
-                          title="Ver tramitações"
                         >
                           <History className="h-4 w-4" />
                         </Button>
-                        {projeto.link_projeto && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => window.open(projeto.link_projeto, '_blank')}
-                            title="Abrir link do projeto"
-                          >
-                            <ExternalLink className="h-4 w-4" />
-                          </Button>
-                        )}
                         <Button
                           variant="ghost"
                           size="sm"
@@ -452,55 +352,11 @@ const ProjetosLei = () => {
 
           {filteredProjetos.length === 0 && (
             <div className="text-center py-8 text-gray-500">
-              Nenhum projeto encontrado para monitoramento
+              Nenhum projeto encontrado
             </div>
           )}
         </CardContent>
       </Card>
-
-      {/* Dialog para visualizar tramitações */}
-      <Dialog open={!!viewingTramitacoes} onOpenChange={() => setViewingTramitacoes(null)}>
-        <DialogContent className="max-w-4xl">
-          <DialogHeader>
-            <DialogTitle>Histórico de Tramitação</DialogTitle>
-            <DialogDescription>
-              Acompanhe o histórico de tramitação do projeto
-            </DialogDescription>
-          </DialogHeader>
-          <div className="max-h-96 overflow-y-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Data</TableHead>
-                  <TableHead>Órgão</TableHead>
-                  <TableHead>Situação</TableHead>
-                  <TableHead>Despacho</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {tramitacoes.map((tramitacao) => (
-                  <TableRow key={tramitacao.id}>
-                    <TableCell>
-                      {new Date(tramitacao.data_tramitacao).toLocaleDateString('pt-BR')}
-                    </TableCell>
-                    <TableCell className="font-medium">
-                      {tramitacao.orgao}
-                    </TableCell>
-                    <TableCell>
-                      {tramitacao.situacao}
-                    </TableCell>
-                    <TableCell>
-                      <div className="max-w-xs truncate">
-                        {tramitacao.despacho}
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };

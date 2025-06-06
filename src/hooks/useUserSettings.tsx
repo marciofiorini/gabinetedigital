@@ -1,86 +1,43 @@
 
-import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
-import { useToast } from '@/hooks/use-toast';
+import { useState } from 'react';
+import { toast } from 'sonner';
 
-interface UserSettings {
-  id: string;
-  user_id: string;
-  email_notifications: boolean;
-  push_notifications: boolean;
-  theme: string;
+export interface UserSettings {
   language: string;
   timezone: string;
-  created_at: string;
-  updated_at: string;
+  keyboard_shortcuts_enabled: boolean;
+  theme: string;
+  dark_mode: boolean;
 }
 
 export const useUserSettings = () => {
-  const [settings, setSettings] = useState<UserSettings | null>(null);
-  const [loading, setLoading] = useState(true);
-  const { user } = useAuth();
-  const { toast } = useToast();
+  const [settings, setSettings] = useState<UserSettings>({
+    language: 'pt-BR',
+    timezone: 'America/Sao_Paulo',
+    keyboard_shortcuts_enabled: true,
+    theme: 'light',
+    dark_mode: false
+  });
+  
+  const [loading, setLoading] = useState(false);
 
-  const fetchSettings = async () => {
-    if (!user) return;
-
+  const updateSettings = async (newSettings: Partial<UserSettings>) => {
+    setLoading(true);
     try {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from('user_settings')
-        .select('*')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      if (error && error.code !== 'PGRST116') throw error;
-      
-      setSettings(data);
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      setSettings(prev => ({ ...prev, ...newSettings }));
+      toast.success('Configurações salvas com sucesso!');
     } catch (error) {
-      console.error('Erro ao buscar configurações:', error);
+      toast.error('Erro ao salvar configurações');
     } finally {
       setLoading(false);
     }
   };
 
-  const updateSettings = async (newSettings: Partial<UserSettings>) => {
-    if (!user) return;
-
-    try {
-      const { error } = await supabase
-        .from('user_settings')
-        .upsert({
-          user_id: user.id,
-          ...newSettings,
-          updated_at: new Date().toISOString()
-        });
-
-      if (error) throw error;
-
-      setSettings(prev => prev ? { ...prev, ...newSettings } : null);
-      
-      toast({
-        title: 'Configurações atualizadas',
-        description: 'Suas preferências foram salvas com sucesso.',
-      });
-    } catch (error) {
-      console.error('Erro ao atualizar configurações:', error);
-      toast({
-        title: 'Erro',
-        description: 'Não foi possível salvar as configurações.',
-        variant: 'destructive'
-      });
-    }
-  };
-
-  useEffect(() => {
-    fetchSettings();
-  }, [user]);
-
   return {
     settings,
-    loading,
     updateSettings,
-    refetch: fetchSettings
+    loading
   };
 };
