@@ -51,75 +51,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const trackFailedLogin = async (email: string) => {
-    try {
-      await supabase
-        .from('access_logs')
-        .insert({
-          user_id: null,
-          changed_by: null,
-          action: 'failed_login_attempt',
-          module: 'security',
-          old_value: email
-        });
-    } catch (error) {
-      console.error('Failed to track login attempt:', error);
-    }
-  };
-
-  const checkSuspiciousActivity = async (email: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('access_logs')
-        .select('id')
-        .eq('action', 'failed_login_attempt')
-        .eq('old_value', email)
-        .gte('created_at', new Date(Date.now() - 15 * 60 * 1000).toISOString());
-      
-      if (error) throw error;
-      
-      if (data && data.length >= 5) {
-        toast.error('Muitas tentativas de login falharam. Aguarde alguns minutos.');
-        return true;
-      }
-      return false;
-    } catch (error) {
-      console.error('Failed to check suspicious activity:', error);
-      return false;
-    }
-  };
-
-  const logUserAction = async (action: string, module?: string) => {
-    if (!user) return;
-    
-    try {
-      await supabase
-        .from('access_logs')
-        .insert({
-          user_id: user.id,
-          changed_by: user.id,
-          action: action,
-          module: module || 'auth'
-        });
-    } catch (error) {
-      console.error('Failed to log user action:', error);
-    }
-  };
-
   useEffect(() => {
     const initializeAuth = async () => {
       try {
-        const { data: { session }, error } = await supabase.auth.getSession();
-        if (error) {
-          console.error('Session error:', error);
-        }
+        const { data: { session } } = await supabase.auth.getSession();
         
         setSession(session);
         setUser(session?.user ?? null);
         
         if (session?.user) {
           await fetchUserProfile(session.user.id);
-          await logUserAction('session_restored');
         }
       } catch (error) {
         console.error('Error initializing auth:', error);
@@ -132,16 +73,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('Auth state change:', event);
         setSession(session);
         setUser(session?.user ?? null);
         
         if (event === 'SIGNED_IN' && session?.user) {
           await fetchUserProfile(session.user.id);
-          await logUserAction('login');
         } else if (event === 'SIGNED_OUT') {
           setProfile(null);
-          await logUserAction('logout');
         }
         
         setLoading(false);
@@ -178,18 +116,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error('Email e senha são obrigatórios');
       }
 
-      const isSuspicious = await checkSuspiciousActivity(email);
-      if (isSuspicious) {
-        return;
-      }
-
       const { error } = await supabase.auth.signInWithPassword({
         email: email.trim().toLowerCase(),
         password
       });
 
       if (error) {
-        await trackFailedLogin(email);
         throw error;
       }
 
@@ -280,7 +212,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) throw error;
 
-      await logUserAction('password_updated', 'security');
       toast.success('Senha atualizada com sucesso!');
     } catch (error: any) {
       toast.error('Erro ao atualizar senha');
