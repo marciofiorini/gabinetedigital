@@ -96,13 +96,38 @@ export const UserProfileSettings = () => {
     try {
       console.log('Submitting profile update:', formData);
       
-      const success = await updateProfile({
-        name: formData.name,
-        username: formData.username || undefined,
-        phone: formData.phone || undefined,
-        location: formData.location || undefined,
-        bio: formData.bio || undefined
-      });
+      // Prepare update data - only include changed fields
+      const updateData: any = {};
+      
+      if (formData.name.trim() !== (profile?.name || '')) {
+        updateData.name = formData.name.trim();
+      }
+      
+      if (formData.username.trim() !== (profile?.username || '')) {
+        updateData.username = formData.username.trim() || null;
+      }
+      
+      if (formData.phone.trim() !== (profile?.phone || '')) {
+        updateData.phone = formData.phone.trim() || null;
+      }
+      
+      if (formData.location.trim() !== (profile?.location || '')) {
+        updateData.location = formData.location.trim() || null;
+      }
+      
+      if (formData.bio.trim() !== (profile?.bio || '')) {
+        updateData.bio = formData.bio.trim() || null;
+      }
+
+      console.log('Update data prepared:', updateData);
+
+      if (Object.keys(updateData).length === 0) {
+        toast.info('Nenhuma alteração detectada');
+        setIsSubmitting(false);
+        return;
+      }
+
+      const success = await updateProfile(updateData);
 
       if (success) {
         setOriginalUsername(formData.username);

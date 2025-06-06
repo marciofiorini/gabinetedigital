@@ -42,14 +42,7 @@ interface AuthContextType {
   signUpWithEmail: (email: string, password: string, name: string, username?: string) => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   updatePassword: (password: string) => Promise<void>;
-  updateProfile: (data: {
-    name?: string;
-    username?: string;
-    phone?: string;
-    location?: string;
-    bio?: string;
-    avatar_url?: string;
-  }) => Promise<boolean>;
+  updateProfile: (data: Partial<Profile>) => Promise<boolean>;
   updateSettings: (data: Partial<UserSettings>) => Promise<boolean>;
   checkUsernameAvailability: (username: string) => Promise<boolean>;
   signOut: () => Promise<void>;
@@ -164,6 +157,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signInWithGoogle = async () => {
     try {
+      console.log('Attempting Google sign in...');
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
@@ -171,7 +165,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       });
       
-      if (error) throw error;
+      if (error) {
+        console.error('Google sign in error:', error);
+        throw error;
+      }
+      
+      console.log('Google sign in initiated successfully');
     } catch (error: any) {
       console.error('Google sign in error:', error);
       toast.error(error.message || 'Erro ao fazer login com Google');
@@ -276,14 +275,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const updateProfile = async (data: {
-    name?: string;
-    username?: string;
-    phone?: string;
-    location?: string;
-    bio?: string;
-    avatar_url?: string;
-  }) => {
+  const updateProfile = async (data: Partial<Profile>) => {
     try {
       console.log('Updating profile with data:', data);
       
@@ -291,16 +283,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error('Usuário não autenticado');
       }
 
-      // Use direct update instead of RPC function
+      // Clean data - remove undefined values
+      const cleanData = Object.entries(data).reduce((acc, [key, value]) => {
+        if (value !== undefined && value !== null && value !== '') {
+          acc[key] = value;
+        }
+        return acc;
+      }, {} as any);
+
+      console.log('Clean data for update:', cleanData);
+
+      if (Object.keys(cleanData).length === 0) {
+        console.log('No data to update');
+        return true;
+      }
+
       const { error } = await supabase
         .from('profiles')
         .update({
-          name: data.name,
-          username: data.username,
-          phone: data.phone,
-          location: data.location,
-          bio: data.bio,
-          avatar_url: data.avatar_url,
+          ...cleanData,
           updated_at: new Date().toISOString()
         })
         .eq('id', user.id);
@@ -325,13 +326,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const updateSettings = async (data: Partial<UserSettings>) => {
     try {
+      if (!user) {
+        throw new Error('Usuário não autenticado');
+      }
+
       const { error } = await supabase
         .from('user_settings')
         .update({
           ...data,
           updated_at: new Date().toISOString()
         })
-        .eq('user_id', user?.id);
+        .eq('user_id', user.id);
 
       if (error) throw error;
 
@@ -350,10 +355,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       console.log('Checking username availability:', username);
       
+      // Skip check if username is empty
+      if (!username || username.trim() === '') {
+        return true;
+      }
+
       const { data, error } = await supabase
         .from('profiles')
         .select('id')
-        .eq('username', username)
+        .eq('username', username.trim())
         .neq('id', user?.id || '00000000-0000-0000-0000-000000000000');
 
       if (error) {

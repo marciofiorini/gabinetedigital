@@ -16,11 +16,22 @@ export const useUpdateProfile = () => {
       
       const profileData: any = {};
       
-      if (name && name.trim()) profileData.name = name.trim();
-      if (username && username.trim()) profileData.username = username.trim();
-      if (phone && phone.trim()) profileData.phone = phone.trim();
-      if (location && location.trim()) profileData.location = location.trim();
-      if (bio && bio.trim()) profileData.bio = bio.trim();
+      // Only add fields that have actual values
+      if (name && name.trim()) {
+        profileData.name = name.trim();
+      }
+      if (username && username.trim()) {
+        profileData.username = username.trim();
+      }
+      if (phone && phone.trim()) {
+        profileData.phone = phone.trim();
+      }
+      if (location && location.trim()) {
+        profileData.location = location.trim();
+      }
+      if (bio && bio.trim()) {
+        profileData.bio = bio.trim();
+      }
       
       console.log('Processed profile data:', profileData);
       
