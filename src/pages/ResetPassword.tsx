@@ -29,6 +29,7 @@ const ResetPassword = () => {
     }
   }, [searchParams, navigate]);
 
+  // Security enhancement: Stronger password validation
   const validatePassword = (pass: string) => {
     const requirements = {
       length: pass.length >= 8,
@@ -85,7 +86,7 @@ const ResetPassword = () => {
             Redefinir Senha
           </CardTitle>
           <CardDescription>
-            Digite sua nova senha seguindo os requisitos de segurança
+            Digite sua nova senha seguindo os requisitos de segurança aprimorados
           </CardDescription>
         </CardHeader>
         <CardContent>

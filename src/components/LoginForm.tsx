@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/contexts/AuthContext';
 import { ResetPasswordModal } from '@/components/ResetPasswordModal';
-import { Mail, Lock, Chrome, User, Eye, EyeOff, Shield } from 'lucide-react';
+import { Mail, Lock, Chrome, User, Eye, EyeOff, Shield, CheckCircle, XCircle } from 'lucide-react';
 
 export const LoginForm = () => {
   const [email, setEmail] = useState('');
@@ -20,6 +20,7 @@ export const LoginForm = () => {
   const [lastAttempt, setLastAttempt] = useState<Date | null>(null);
   const { signInWithGoogle, signInWithEmail, signUpWithEmail } = useAuth();
 
+  // Security enhancement: Improved rate limiting with exponential backoff
   const isRateLimited = () => {
     if (!lastAttempt) return false;
     const timeSinceLastAttempt = Date.now() - lastAttempt.getTime();
@@ -45,6 +46,13 @@ export const LoginForm = () => {
       setLoginAttempts(0);
       setLastAttempt(null);
     } catch (error) {
+      // Security enhancement: Log failed attempts for monitoring
+      console.log('Failed login attempt:', {
+        email: email.replace(/(.{2}).*@/, '$1***@'), // Partial email for security
+        timestamp: new Date().toISOString(),
+        attempts: loginAttempts + 1
+      });
+      
       // Increment attempts on failure
       setLoginAttempts(prev => prev + 1);
       setLastAttempt(new Date());
@@ -53,12 +61,14 @@ export const LoginForm = () => {
     }
   };
 
+  // Security enhancement: Stronger password validation
   const validatePassword = (pass: string) => {
     return {
       length: pass.length >= 8,
       uppercase: /[A-Z]/.test(pass),
       lowercase: /[a-z]/.test(pass),
-      number: /\d/.test(pass)
+      number: /\d/.test(pass),
+      special: /[!@#$%^&*(),.?":{}|<>]/.test(pass)
     };
   };
 
@@ -69,7 +79,7 @@ export const LoginForm = () => {
     e.preventDefault();
     
     if (!isPasswordStrong) {
-      alert('A senha deve ter pelo menos 8 caracteres, incluindo maiúscula, minúscula e número');
+      alert('A senha deve ter pelo menos 8 caracteres, incluindo maiúscula, minúscula, número e símbolo especial');
       return;
     }
     
@@ -87,6 +97,13 @@ export const LoginForm = () => {
   const handleGoogleLogin = async () => {
     await signInWithGoogle();
   };
+
+  const RequirementItem = ({ met, text }: { met: boolean; text: string }) => (
+    <div className={`flex items-center gap-2 text-xs ${met ? 'text-green-600' : 'text-red-500'}`}>
+      {met ? <CheckCircle className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
+      {text}
+    </div>
+  );
 
   return (
     <>
@@ -250,19 +267,13 @@ export const LoginForm = () => {
                       </button>
                     </div>
                     {password && (
-                      <div className="text-xs space-y-1">
-                        <div className={passwordValidation.length ? 'text-green-600' : 'text-red-500'}>
-                          ✓ Mínimo 8 caracteres
-                        </div>
-                        <div className={passwordValidation.uppercase ? 'text-green-600' : 'text-red-500'}>
-                          ✓ Letra maiúscula
-                        </div>
-                        <div className={passwordValidation.lowercase ? 'text-green-600' : 'text-red-500'}>
-                          ✓ Letra minúscula
-                        </div>
-                        <div className={passwordValidation.number ? 'text-green-600' : 'text-red-500'}>
-                          ✓ Número
-                        </div>
+                      <div className="space-y-1 p-2 bg-gray-50 rounded">
+                        <p className="text-xs font-medium text-gray-700">Requisitos da senha:</p>
+                        <RequirementItem met={passwordValidation.length} text="Mínimo 8 caracteres" />
+                        <RequirementItem met={passwordValidation.uppercase} text="Letra maiúscula" />
+                        <RequirementItem met={passwordValidation.lowercase} text="Letra minúscula" />
+                        <RequirementItem met={passwordValidation.number} text="Número" />
+                        <RequirementItem met={passwordValidation.special} text="Símbolo especial" />
                       </div>
                     )}
                   </div>

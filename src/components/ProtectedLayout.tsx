@@ -8,14 +8,19 @@ import { Outlet } from 'react-router-dom';
 export const ProtectedLayout = () => {
   const { user, loading } = useAuth();
 
-  console.log('ProtectedLayout - Estado:', { 
-    user: !!user, 
-    loading, 
-    userId: user?.id 
-  });
+  // Only log essential information in development
+  if (process.env.NODE_ENV === 'development') {
+    console.log('ProtectedLayout - Estado:', { 
+      user: !!user, 
+      loading, 
+      userId: user?.id 
+    });
+  }
 
   if (loading) {
-    console.log('ProtectedLayout - Mostrando loading');
+    if (process.env.NODE_ENV === 'development') {
+      console.log('ProtectedLayout - Loading state active');
+    }
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-100 flex items-center justify-center">
         <div className="text-center">
@@ -27,11 +32,15 @@ export const ProtectedLayout = () => {
   }
 
   if (!user) {
-    console.log('ProtectedLayout - Usuário não logado, mostrando LoginForm');
+    if (process.env.NODE_ENV === 'development') {
+      console.log('ProtectedLayout - User not authenticated, showing login form');
+    }
     return <LoginForm />;
   }
 
-  console.log('ProtectedLayout - Usuário logado, renderizando LayoutMain com Outlet');
+  if (process.env.NODE_ENV === 'development') {
+    console.log('ProtectedLayout - User authenticated, rendering main layout');
+  }
   return (
     <LayoutMain>
       <Outlet />

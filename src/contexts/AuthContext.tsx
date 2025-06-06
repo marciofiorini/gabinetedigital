@@ -117,6 +117,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error('Email inválido');
       }
 
+      // Security enhancement: Stronger password requirements
+      if (password.length < 8) {
+        throw new Error('A senha deve ter pelo menos 8 caracteres');
+      }
+
       const { error } = await supabase.auth.signInWithPassword({
         email: email.trim().toLowerCase(),
         password
@@ -137,6 +142,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         errorMessage = 'Email não confirmado. Verifique sua caixa de entrada.';
       } else if (error.message?.includes('Too many requests')) {
         errorMessage = 'Muitas tentativas. Tente novamente em alguns minutos.';
+      } else if (error.message?.includes('senha deve ter pelo menos')) {
+        errorMessage = error.message;
       }
       
       toast.error(errorMessage);
@@ -150,7 +157,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setLoading(true);
       
-      // Enhanced input validation
+      // Enhanced input validation with stronger password requirements
       if (!email || !password || !name) {
         throw new Error('Todos os campos são obrigatórios');
       }
@@ -159,15 +166,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error('Email inválido');
       }
       
+      // Security enhancement: Stronger password requirements
       if (password.length < 8) {
         throw new Error('Senha deve ter pelo menos 8 caracteres');
+      }
+      
+      if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(password)) {
+        throw new Error('Senha deve conter pelo menos uma letra maiúscula, uma minúscula e um número');
       }
       
       if (name.trim().length < 2) {
         throw new Error('Nome deve ter pelo menos 2 caracteres');
       }
 
-      // Validate redirect URL to prevent open redirects
+      // Security enhancement: Validate redirect URL to prevent open redirects
       const allowedDomains = [window.location.origin];
       const redirectUrl = window.location.origin;
       
@@ -235,8 +247,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setLoading(true);
       
+      // Security enhancement: Stronger password requirements
       if (password.length < 8) {
         throw new Error('Senha deve ter pelo menos 8 caracteres');
+      }
+      
+      if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(password)) {
+        throw new Error('Senha deve conter pelo menos uma letra maiúscula, uma minúscula e um número');
       }
 
       const { error } = await supabase.auth.updateUser({
