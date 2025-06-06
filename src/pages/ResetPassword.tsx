@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/contexts/AuthContext';
-import { Lock, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { Lock, Eye, EyeOff, Loader2, CheckCircle, XCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
 const ResetPassword = () => {
@@ -29,6 +29,21 @@ const ResetPassword = () => {
     }
   }, [searchParams, navigate]);
 
+  const validatePassword = (pass: string) => {
+    const requirements = {
+      length: pass.length >= 8,
+      uppercase: /[A-Z]/.test(pass),
+      lowercase: /[a-z]/.test(pass),
+      number: /\d/.test(pass),
+      special: /[!@#$%^&*(),.?":{}|<>]/.test(pass)
+    };
+    
+    return requirements;
+  };
+
+  const passwordStrength = validatePassword(password);
+  const isPasswordValid = Object.values(passwordStrength).every(Boolean);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -37,8 +52,8 @@ const ResetPassword = () => {
       return;
     }
 
-    if (password.length < 6) {
-      toast.error('A senha deve ter pelo menos 6 caracteres');
+    if (!isPasswordValid) {
+      toast.error('A senha não atende aos requisitos de segurança');
       return;
     }
 
@@ -55,6 +70,13 @@ const ResetPassword = () => {
     }
   };
 
+  const RequirementItem = ({ met, text }: { met: boolean; text: string }) => (
+    <div className={`flex items-center gap-2 text-sm ${met ? 'text-green-600' : 'text-red-500'}`}>
+      {met ? <CheckCircle className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
+      {text}
+    </div>
+  );
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-100 flex items-center justify-center p-4">
       <Card className="w-full max-w-md shadow-2xl bg-white/80 backdrop-blur-sm">
@@ -63,7 +85,7 @@ const ResetPassword = () => {
             Redefinir Senha
           </CardTitle>
           <CardDescription>
-            Digite sua nova senha
+            Digite sua nova senha seguindo os requisitos de segurança
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -80,7 +102,7 @@ const ResetPassword = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   className="pl-10 pr-10"
                   required
-                  minLength={6}
+                  minLength={8}
                   disabled={loading}
                 />
                 <button
@@ -92,6 +114,17 @@ const ResetPassword = () => {
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
+              
+              {password && (
+                <div className="space-y-1 p-3 bg-gray-50 rounded-lg">
+                  <p className="text-sm font-medium text-gray-700">Requisitos da senha:</p>
+                  <RequirementItem met={passwordStrength.length} text="Mínimo 8 caracteres" />
+                  <RequirementItem met={passwordStrength.uppercase} text="Pelo menos uma letra maiúscula" />
+                  <RequirementItem met={passwordStrength.lowercase} text="Pelo menos uma letra minúscula" />
+                  <RequirementItem met={passwordStrength.number} text="Pelo menos um número" />
+                  <RequirementItem met={passwordStrength.special} text="Pelo menos um símbolo especial" />
+                </div>
+              )}
             </div>
             
             <div className="space-y-2">
@@ -106,15 +139,18 @@ const ResetPassword = () => {
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   className="pl-10"
                   required
-                  minLength={6}
+                  minLength={8}
                   disabled={loading}
                 />
               </div>
+              {confirmPassword && password !== confirmPassword && (
+                <p className="text-sm text-red-500">As senhas não coincidem</p>
+              )}
             </div>
 
             <Button
               type="submit"
-              disabled={loading || !password || !confirmPassword}
+              disabled={loading || !password || !confirmPassword || !isPasswordValid}
               className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
             >
               {loading ? (

@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/contexts/AuthContext';
 import { ResetPasswordModal } from '@/components/ResetPasswordModal';
-import { Mail, Lock, Chrome, User, Eye, EyeOff } from 'lucide-react';
+import { Mail, Lock, Chrome, User, Eye, EyeOff, Shield } from 'lucide-react';
 
 export const LoginForm = () => {
   const [email, setEmail] = useState('');
@@ -16,23 +16,63 @@ export const LoginForm = () => {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showResetModal, setShowResetModal] = useState(false);
+  const [loginAttempts, setLoginAttempts] = useState(0);
+  const [lastAttempt, setLastAttempt] = useState<Date | null>(null);
   const { signInWithGoogle, signInWithEmail, signUpWithEmail } = useAuth();
+
+  const isRateLimited = () => {
+    if (!lastAttempt) return false;
+    const timeSinceLastAttempt = Date.now() - lastAttempt.getTime();
+    const waitTime = Math.min(Math.pow(2, loginAttempts) * 1000, 30000); // Exponential backoff, max 30s
+    return timeSinceLastAttempt < waitTime && loginAttempts >= 3;
+  };
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (isRateLimited()) {
+      const waitTime = Math.min(Math.pow(2, loginAttempts) * 1000, 30000);
+      const remainingTime = Math.ceil((waitTime - (Date.now() - lastAttempt!.getTime())) / 1000);
+      alert(`Muitas tentativas. Aguarde ${remainingTime} segundos.`);
+      return;
+    }
+    
     setLoading(true);
     
     try {
       await signInWithEmail(email, password);
+      // Reset attempts on success
+      setLoginAttempts(0);
+      setLastAttempt(null);
     } catch (error) {
-      // Error handling is done in the context
+      // Increment attempts on failure
+      setLoginAttempts(prev => prev + 1);
+      setLastAttempt(new Date());
     } finally {
       setLoading(false);
     }
   };
 
+  const validatePassword = (pass: string) => {
+    return {
+      length: pass.length >= 8,
+      uppercase: /[A-Z]/.test(pass),
+      lowercase: /[a-z]/.test(pass),
+      number: /\d/.test(pass)
+    };
+  };
+
+  const passwordValidation = validatePassword(password);
+  const isPasswordStrong = Object.values(passwordValidation).every(Boolean);
+
   const handleEmailSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!isPasswordStrong) {
+      alert('A senha deve ter pelo menos 8 caracteres, incluindo maiúscula, minúscula e número');
+      return;
+    }
+    
     setLoading(true);
     
     try {
@@ -59,6 +99,12 @@ export const LoginForm = () => {
             <CardDescription>
               Acesse sua plataforma política
             </CardDescription>
+            {isRateLimited() && (
+              <div className="flex items-center gap-2 text-yellow-600 text-sm bg-yellow-50 p-2 rounded">
+                <Shield className="w-4 h-4" />
+                Proteção ativa: aguarde antes de tentar novamente
+              </div>
+            )}
           </CardHeader>
           <CardContent className="space-y-4">
             <Button
@@ -101,6 +147,7 @@ export const LoginForm = () => {
                         onChange={(e) => setEmail(e.target.value)}
                         className="pl-10"
                         required
+                        disabled={isRateLimited()}
                       />
                     </div>
                   </div>
@@ -116,6 +163,7 @@ export const LoginForm = () => {
                         onChange={(e) => setPassword(e.target.value)}
                         className="pl-10 pr-10"
                         required
+                        disabled={isRateLimited()}
                       />
                       <button
                         type="button"
@@ -139,7 +187,7 @@ export const LoginForm = () => {
 
                   <Button
                     type="submit"
-                    disabled={loading}
+                    disabled={loading || isRateLimited()}
                     className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
                   >
                     {loading ? 'Entrando...' : 'Entrar'}
@@ -191,7 +239,7 @@ export const LoginForm = () => {
                         onChange={(e) => setPassword(e.target.value)}
                         className="pl-10 pr-10"
                         required
-                        minLength={6}
+                        minLength={8}
                       />
                       <button
                         type="button"
@@ -201,10 +249,26 @@ export const LoginForm = () => {
                         {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
                     </div>
+                    {password && (
+                      <div className="text-xs space-y-1">
+                        <div className={passwordValidation.length ? 'text-green-600' : 'text-red-500'}>
+                          ✓ Mínimo 8 caracteres
+                        </div>
+                        <div className={passwordValidation.uppercase ? 'text-green-600' : 'text-red-500'}>
+                          ✓ Letra maiúscula
+                        </div>
+                        <div className={passwordValidation.lowercase ? 'text-green-600' : 'text-red-500'}>
+                          ✓ Letra minúscula
+                        </div>
+                        <div className={passwordValidation.number ? 'text-green-600' : 'text-red-500'}>
+                          ✓ Número
+                        </div>
+                      </div>
+                    )}
                   </div>
                   <Button
                     type="submit"
-                    disabled={loading}
+                    disabled={loading || !isPasswordStrong}
                     className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
                   >
                     {loading ? 'Criando conta...' : 'Criar conta'}
