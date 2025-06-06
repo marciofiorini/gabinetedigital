@@ -13,31 +13,49 @@ export type Database = {
         Row: {
           action: string
           changed_by: string | null
+          changes: Json | null
           created_at: string
+          entity_id: string | null
+          entity_type: string | null
           id: string
+          ip_address: string | null
+          module: string | null
           new_value: string | null
           old_value: string | null
           role_changed: string | null
+          user_agent: string | null
           user_id: string
         }
         Insert: {
           action: string
           changed_by?: string | null
+          changes?: Json | null
           created_at?: string
+          entity_id?: string | null
+          entity_type?: string | null
           id?: string
+          ip_address?: string | null
+          module?: string | null
           new_value?: string | null
           old_value?: string | null
           role_changed?: string | null
+          user_agent?: string | null
           user_id: string
         }
         Update: {
           action?: string
           changed_by?: string | null
+          changes?: Json | null
           created_at?: string
+          entity_id?: string | null
+          entity_type?: string | null
           id?: string
+          ip_address?: string | null
+          module?: string | null
           new_value?: string | null
           old_value?: string | null
           role_changed?: string | null
+          user_agent?: string | null
           user_id?: string
         }
         Relationships: []
@@ -319,6 +337,69 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      campanhas_marketing: {
+        Row: {
+          assunto: string | null
+          configuracoes: Json | null
+          created_at: string
+          data_fim: string | null
+          data_inicio: string | null
+          frequencia: string | null
+          id: string
+          nome: string
+          segmento_id: string | null
+          status: string
+          template_mensagem: string | null
+          tipo: string
+          total_abertos: number | null
+          total_cliques: number | null
+          total_enviados: number | null
+          trigger_evento: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          assunto?: string | null
+          configuracoes?: Json | null
+          created_at?: string
+          data_fim?: string | null
+          data_inicio?: string | null
+          frequencia?: string | null
+          id?: string
+          nome: string
+          segmento_id?: string | null
+          status?: string
+          template_mensagem?: string | null
+          tipo?: string
+          total_abertos?: number | null
+          total_cliques?: number | null
+          total_enviados?: number | null
+          trigger_evento?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          assunto?: string | null
+          configuracoes?: Json | null
+          created_at?: string
+          data_fim?: string | null
+          data_inicio?: string | null
+          frequencia?: string | null
+          id?: string
+          nome?: string
+          segmento_id?: string | null
+          status?: string
+          template_mensagem?: string | null
+          tipo?: string
+          total_abertos?: number | null
+          total_cliques?: number | null
+          total_enviados?: number | null
+          trigger_evento?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       comparativos_temporais: {
         Row: {
@@ -730,6 +811,42 @@ export type Database = {
           updated_at?: string | null
           user_id?: string
           zona?: string | null
+        }
+        Relationships: []
+      }
+      envios_campanha: {
+        Row: {
+          campanha_id: string
+          contato_id: string
+          created_at: string
+          data_abertura: string | null
+          data_clique: string | null
+          data_envio: string
+          erro_detalhes: string | null
+          id: string
+          status: string
+        }
+        Insert: {
+          campanha_id: string
+          contato_id: string
+          created_at?: string
+          data_abertura?: string | null
+          data_clique?: string | null
+          data_envio?: string
+          erro_detalhes?: string | null
+          id?: string
+          status?: string
+        }
+        Update: {
+          campanha_id?: string
+          contato_id?: string
+          created_at?: string
+          data_abertura?: string | null
+          data_clique?: string | null
+          data_envio?: string
+          erro_detalhes?: string | null
+          id?: string
+          status?: string
         }
         Relationships: []
       }
@@ -1153,6 +1270,39 @@ export type Database = {
           updated_at?: string | null
           user_id?: string
           zona?: string
+        }
+        Relationships: []
+      }
+      mensagens_ticket: {
+        Row: {
+          anexos: Json | null
+          autor_id: string
+          autor_tipo: string
+          created_at: string
+          id: string
+          mensagem: string
+          ticket_id: string
+          tipo: string | null
+        }
+        Insert: {
+          anexos?: Json | null
+          autor_id: string
+          autor_tipo?: string
+          created_at?: string
+          id?: string
+          mensagem: string
+          ticket_id: string
+          tipo?: string | null
+        }
+        Update: {
+          anexos?: Json | null
+          autor_id?: string
+          autor_tipo?: string
+          created_at?: string
+          id?: string
+          mensagem?: string
+          ticket_id?: string
+          tipo?: string | null
         }
         Relationships: []
       }
@@ -1727,6 +1877,45 @@ export type Database = {
         }
         Relationships: []
       }
+      segmentos_contatos: {
+        Row: {
+          ativo: boolean | null
+          contatos_ids: string[] | null
+          created_at: string
+          criterios: Json
+          descricao: string | null
+          id: string
+          nome: string
+          total_contatos: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          ativo?: boolean | null
+          contatos_ids?: string[] | null
+          created_at?: string
+          criterios?: Json
+          descricao?: string | null
+          id?: string
+          nome: string
+          total_contatos?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          ativo?: boolean | null
+          contatos_ids?: string[] | null
+          created_at?: string
+          criterios?: Json
+          descricao?: string | null
+          id?: string
+          nome?: string
+          total_contatos?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       tarefas_equipe: {
         Row: {
           created_at: string
@@ -1782,6 +1971,72 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      tickets_atendimento: {
+        Row: {
+          anexos: Json | null
+          assunto: string
+          canal: string | null
+          categoria: string | null
+          contato_id: string | null
+          created_at: string
+          data_resolucao: string | null
+          descricao: string
+          id: string
+          numero_ticket: string
+          prioridade: string | null
+          responsavel_id: string | null
+          satisfacao_comentario: string | null
+          satisfacao_nota: number | null
+          status: string | null
+          tags: string[] | null
+          tempo_resposta_sla: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          anexos?: Json | null
+          assunto: string
+          canal?: string | null
+          categoria?: string | null
+          contato_id?: string | null
+          created_at?: string
+          data_resolucao?: string | null
+          descricao: string
+          id?: string
+          numero_ticket: string
+          prioridade?: string | null
+          responsavel_id?: string | null
+          satisfacao_comentario?: string | null
+          satisfacao_nota?: number | null
+          status?: string | null
+          tags?: string[] | null
+          tempo_resposta_sla?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          anexos?: Json | null
+          assunto?: string
+          canal?: string | null
+          categoria?: string | null
+          contato_id?: string | null
+          created_at?: string
+          data_resolucao?: string | null
+          descricao?: string
+          id?: string
+          numero_ticket?: string
+          prioridade?: string | null
+          responsavel_id?: string | null
+          satisfacao_comentario?: string | null
+          satisfacao_nota?: number | null
+          status?: string | null
+          tags?: string[] | null
+          tempo_resposta_sla?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       tramitacao_legislativa: {
         Row: {
@@ -1954,6 +2209,10 @@ export type Database = {
         Args: { _role: Database["public"]["Enums"]["app_role"] }
         Returns: boolean
       }
+      generate_ticket_number: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       get_dashboard_stats: {
         Args: { target_user_id: string }
         Returns: {
@@ -1979,6 +2238,18 @@ export type Database = {
           _role: Database["public"]["Enums"]["app_role"]
         }
         Returns: boolean
+      }
+      log_user_action: {
+        Args: {
+          p_action: string
+          p_module?: string
+          p_entity_type?: string
+          p_entity_id?: string
+          p_old_value?: Json
+          p_new_value?: Json
+          p_changes?: Json
+        }
+        Returns: string
       }
       update_user_profile: {
         Args: { new_name: string; new_avatar_url?: string }
