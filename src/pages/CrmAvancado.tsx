@@ -3,6 +3,8 @@ import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SegmentacaoAvancada } from "@/components/segmentacao/SegmentacaoAvancada";
 import { CentralAtendimento } from "@/components/tickets/CentralAtendimento";
+import { AuditoriaAvancada } from "@/components/admin/AuditoriaAvancada";
+import { CampanhasIntegradas } from "@/components/campanhas/CampanhasIntegradas";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, MessageSquare, Mail, Shield } from "lucide-react";
 
@@ -44,27 +46,7 @@ const CrmAvancado = () => {
           </TabsContent>
 
           <TabsContent value="campanhas">
-            <div className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Automação de Marketing</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-600 mb-4">
-                    Em desenvolvimento: Campanhas automatizadas baseadas em comportamento
-                  </p>
-                  <div className="bg-blue-50 p-4 rounded-lg">
-                    <h4 className="font-medium text-blue-900 mb-2">Funcionalidades Planejadas:</h4>
-                    <ul className="text-sm text-blue-800 space-y-1">
-                      <li>• Campanhas de email automatizadas</li>
-                      <li>• Triggers baseados em ações dos contatos</li>
-                      <li>• Templates personalizáveis</li>
-                      <li>• Análise de performance em tempo real</li>
-                    </ul>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+            <CampanhasIntegradas />
           </TabsContent>
 
           <TabsContent value="atendimento">
@@ -72,27 +54,7 @@ const CrmAvancado = () => {
           </TabsContent>
 
           <TabsContent value="auditoria">
-            <div className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Auditoria de Ações</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-600 mb-4">
-                    Em desenvolvimento: Log completo de todas as ações do sistema
-                  </p>
-                  <div className="bg-green-50 p-4 rounded-lg">
-                    <h4 className="font-medium text-green-900 mb-2">Funcionalidades Planejadas:</h4>
-                    <ul className="text-sm text-green-800 space-y-1">
-                      <li>• Rastreamento completo de ações dos usuários</li>
-                      <li>• Filtros avançados por módulo e data</li>
-                      <li>• Relatórios de segurança</li>
-                      <li>• Alertas de atividades suspeitas</li>
-                    </ul>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+            <AuditoriaAvancada />
           </TabsContent>
         </Tabs>
       </div>

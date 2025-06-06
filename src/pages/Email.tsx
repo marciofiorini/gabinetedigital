@@ -1,19 +1,12 @@
-
 import { useState } from "react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { CampanhasIntegradas } from "@/components/campanhas/CampanhasIntegradas";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { 
   Send, 
   Plus, 
@@ -121,18 +114,19 @@ const Email = () => {
             Gerencie campanhas de e-mail e comunicação com eleitores
           </p>
         </div>
-        <Button className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-200">
-          <Plus className="w-4 h-4 mr-2" />
-          Nova Campanha
-        </Button>
       </div>
 
-      <Tabs defaultValue="campanhas" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="campanhas">Campanhas</TabsTrigger>
+      <Tabs defaultValue="campanhas-integradas" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="campanhas-integradas">Campanhas Automáticas</TabsTrigger>
+          <TabsTrigger value="campanhas">Campanhas Simples</TabsTrigger>
           <TabsTrigger value="contatos">Contatos</TabsTrigger>
           <TabsTrigger value="nova-campanha">Nova Campanha</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="campanhas-integradas">
+          <CampanhasIntegradas />
+        </TabsContent>
 
         <TabsContent value="campanhas" className="space-y-6">
           {/* Stats Cards */}
