@@ -4,7 +4,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { NotificationSettings } from '@/components/NotificationSettings';
 import { PWAFeatures } from '@/components/PWAFeatures';
-import { Settings, Bell, Smartphone, Shield, Palette, Globe } from 'lucide-react';
+import { Settings, Bell, Smartphone, Shield, Palette, Globe, User } from 'lucide-react';
+import { UserProfileSettings } from '@/components/UserProfileSettings';
+import { SecuritySettings } from '@/components/SecuritySettings';
+import { AppearanceSettings } from '@/components/AppearanceSettings';
+import { GeneralSettings } from '@/components/GeneralSettings';
 
 const Configuracoes = () => {
   return (
@@ -14,8 +18,12 @@ const Configuracoes = () => {
         <h1 className="text-2xl font-bold">Configurações</h1>
       </div>
 
-      <Tabs defaultValue="geral" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
+      <Tabs defaultValue="perfil" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-6">
+          <TabsTrigger value="perfil" className="flex items-center gap-2">
+            <User className="w-4 h-4" />
+            Perfil
+          </TabsTrigger>
           <TabsTrigger value="geral" className="flex items-center gap-2">
             <Settings className="w-4 h-4" />
             Geral
@@ -38,20 +46,12 @@ const Configuracoes = () => {
           </TabsTrigger>
         </TabsList>
 
+        <TabsContent value="perfil">
+          <UserProfileSettings />
+        </TabsContent>
+
         <TabsContent value="geral">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Globe className="w-5 h-5" />
-                Configurações Gerais
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">
-                Configurações gerais do sistema em desenvolvimento.
-              </p>
-            </CardContent>
-          </Card>
+          <GeneralSettings />
         </TabsContent>
 
         <TabsContent value="notificacoes">
@@ -107,35 +107,11 @@ const Configuracoes = () => {
         </TabsContent>
 
         <TabsContent value="seguranca">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Shield className="w-5 h-5" />
-                Configurações de Segurança
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">
-                Configurações de segurança serão implementadas na próxima versão.
-              </p>
-            </CardContent>
-          </Card>
+          <SecuritySettings />
         </TabsContent>
 
         <TabsContent value="aparencia">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Palette className="w-5 h-5" />
-                Configurações de Aparência
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">
-                Configurações de tema e aparência em desenvolvimento.
-              </p>
-            </CardContent>
-          </Card>
+          <AppearanceSettings />
         </TabsContent>
       </Tabs>
     </div>
