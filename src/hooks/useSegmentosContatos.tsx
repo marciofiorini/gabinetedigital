@@ -48,16 +48,21 @@ export const useSegmentosContatos = () => {
     }
   };
 
-  const criarSegmento = async (segmento: Partial<SegmentoContato>) => {
+  const criarSegmento = async (dados: { nome: string; descricao?: string; criterios?: any; [key: string]: any }) => {
     if (!user) return;
 
     try {
+      const segmento = {
+        nome: dados.nome,
+        descricao: dados.descricao,
+        criterios: dados.criterios || {},
+        user_id: user.id,
+        ...dados
+      };
+
       const { data, error } = await supabase
         .from('segmentos_contatos')
-        .insert({
-          ...segmento,
-          user_id: user.id
-        })
+        .insert(segmento)
         .select()
         .single();
 

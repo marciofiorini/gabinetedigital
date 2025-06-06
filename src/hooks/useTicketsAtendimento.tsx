@@ -55,7 +55,15 @@ export const useTicketsAtendimento = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setTickets(data || []);
+      
+      // Transformar dados para o formato esperado
+      const ticketsFormatados = data?.map(ticket => ({
+        ...ticket,
+        anexos: Array.isArray(ticket.anexos) ? ticket.anexos : [],
+        tags: Array.isArray(ticket.tags) ? ticket.tags : []
+      })) || [];
+      
+      setTickets(ticketsFormatados);
     } catch (error) {
       console.error('Erro ao buscar tickets:', error);
       toast({
@@ -68,28 +76,43 @@ export const useTicketsAtendimento = () => {
     }
   };
 
-  const criarTicket = async (ticket: Partial<TicketAtendimento>) => {
+  const criarTicket = async (dados: { assunto: string; descricao: string; [key: string]: any }) => {
     if (!user) return;
 
     try {
+      const ticket = {
+        assunto: dados.assunto,
+        descricao: dados.descricao,
+        numero_ticket: '', // Será gerado automaticamente pelo trigger
+        user_id: user.id,
+        categoria: dados.categoria || 'geral',
+        prioridade: dados.prioridade || 'media',
+        status: dados.status || 'aberto',
+        canal: dados.canal || 'sistema',
+        ...dados
+      };
+
       const { data, error } = await supabase
         .from('tickets_atendimento')
-        .insert({
-          ...ticket,
-          user_id: user.id
-        })
+        .insert(ticket)
         .select()
         .single();
 
       if (error) throw error;
 
-      setTickets(prev => [data, ...prev]);
+      const ticketFormatado = {
+        ...data,
+        anexos: Array.isArray(data.anexos) ? data.anexos : [],
+        tags: Array.isArray(data.tags) ? data.tags : []
+      };
+
+      setTickets(prev => [ticketFormatado, ...prev]);
       toast({
         title: "Sucesso",
         description: "Ticket criado com sucesso!"
       });
 
-      return data;
+      return ticketFormatado;
     } catch (error) {
       console.error('Erro ao criar ticket:', error);
       toast({
@@ -111,13 +134,19 @@ export const useTicketsAtendimento = () => {
 
       if (error) throw error;
 
-      setTickets(prev => prev.map(t => t.id === id ? data : t));
+      const ticketFormatado = {
+        ...data,
+        anexos: Array.isArray(data.anexos) ? data.anexos : [],
+        tags: Array.isArray(data.tags) ? data.tags : []
+      };
+
+      setTickets(prev => prev.map(t => t.id === id ? ticketFormatado : t));
       toast({
         title: "Sucesso",
         description: "Ticket atualizado com sucesso!"
       });
 
-      return data;
+      return ticketFormatado;
     } catch (error) {
       console.error('Erro ao atualizar ticket:', error);
       toast({
@@ -137,7 +166,11 @@ export const useTicketsAtendimento = () => {
         .order('created_at', { ascending: true });
 
       if (error) throw error;
-      return data || [];
+      
+      return data?.map(msg => ({
+        ...msg,
+        anexos: Array.isArray(msg.anexos) ? msg.anexos : []
+      })) || [];
     } catch (error) {
       console.error('Erro ao buscar mensagens do ticket:', error);
       return [];

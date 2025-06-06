@@ -56,16 +56,21 @@ export const useCampanhasMarketing = () => {
     }
   };
 
-  const criarCampanha = async (campanha: Partial<CampanhaMarketing>) => {
+  const criarCampanha = async (dados: { nome: string; tipo?: string; status?: string; [key: string]: any }) => {
     if (!user) return;
 
     try {
+      const campanha = {
+        nome: dados.nome,
+        tipo: dados.tipo || 'email',
+        status: dados.status || 'rascunho',
+        user_id: user.id,
+        ...dados
+      };
+
       const { data, error } = await supabase
         .from('campanhas_marketing')
-        .insert({
-          ...campanha,
-          user_id: user.id
-        })
+        .insert(campanha)
         .select()
         .single();
 
