@@ -20,6 +20,8 @@ interface AuthContextType {
   signInWithGoogle: () => Promise<void>;
   signInWithEmail: (email: string, password: string) => Promise<void>;
   signUpWithEmail: (email: string, password: string, name: string) => Promise<void>;
+  resetPassword: (email: string) => Promise<void>;
+  updatePassword: (password: string) => Promise<void>;
   signOut: () => Promise<void>;
 }
 
@@ -144,6 +146,44 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const resetPassword = async (email: string) => {
+    try {
+      setLoading(true);
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`
+      });
+
+      if (error) throw error;
+
+      toast.success('Email de redefinição de senha enviado! Verifique sua caixa de entrada.');
+    } catch (error: any) {
+      console.error('Erro ao solicitar redefinição de senha:', error);
+      toast.error(error.message || 'Erro ao enviar email de redefinição');
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updatePassword = async (password: string) => {
+    try {
+      setLoading(true);
+      const { error } = await supabase.auth.updateUser({
+        password: password
+      });
+
+      if (error) throw error;
+
+      toast.success('Senha atualizada com sucesso!');
+    } catch (error: any) {
+      console.error('Erro ao atualizar senha:', error);
+      toast.error(error.message || 'Erro ao atualizar senha');
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const signOut = async () => {
     try {
       const { error } = await supabase.auth.signOut();
@@ -169,6 +209,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       signInWithGoogle, 
       signInWithEmail, 
       signUpWithEmail, 
+      resetPassword,
+      updatePassword,
       signOut 
     }}>
       {children}

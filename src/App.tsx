@@ -41,6 +41,7 @@ import AgendaCompleta from "./pages/AgendaCompleta";
 import DashboardComparativo from "./pages/DashboardComparativo";
 import BancoMidia from "./pages/BancoMidia";
 import Integracoes from "./pages/Integracoes";
+import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -53,6 +54,9 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
+            {/* Rota pública para redefinição de senha */}
+            <Route path="/reset-password" element={<ResetPassword />} />
+            
             <Route path="/" element={<ProtectedLayout />}>
               <Route index element={<Index />} />
               <Route path="contatos" element={<Contatos />} />
