@@ -1,6 +1,5 @@
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
@@ -29,7 +28,7 @@ export const useSubscription = (): SubscriptionData => {
     
     setLoading(true);
     try {
-      // Implementação futura - por agora retorna dados mock
+      // Por enquanto retorna dados mock - implementação futura
       setSubscription(null);
       setSubscribed(false);
       setSubscriptionTier('basic');

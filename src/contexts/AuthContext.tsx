@@ -27,24 +27,6 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const STANDARD_ERROR_MESSAGES = {
-  INVALID_CREDENTIALS: 'Email ou senha incorretos',
-  EMAIL_NOT_CONFIRMED: 'Email não confirmado. Verifique sua caixa de entrada.',
-  RATE_LIMITED: 'Muitas tentativas. Tente novamente em alguns minutos.',
-  WEAK_PASSWORD: 'A senha deve ter pelo menos 8 caracteres, incluindo maiúscula, minúscula e número',
-  EMAIL_IN_USE: 'Este email já está em uso',
-  INVALID_EMAIL: 'Email inválido',
-  REQUIRED_FIELDS: 'Todos os campos são obrigatórios',
-  NAME_TOO_SHORT: 'Nome deve ter pelo menos 2 caracteres',
-  GENERAL_ERROR: 'Erro no sistema. Tente novamente.',
-  UNAUTHORIZED_REDIRECT: 'Redirect URL não autorizada',
-  PASSWORD_RESET_SENT: 'Email de redefinição de senha enviado! Verifique sua caixa de entrada.',
-  PASSWORD_UPDATED: 'Senha atualizada com sucesso!',
-  ACCOUNT_CREATED: 'Conta criada com sucesso! Verifique seu email para confirmar a conta.',
-  LOGIN_SUCCESS: 'Login realizado com sucesso!',
-  LOGOUT_SUCCESS: 'Logout realizado'
-};
-
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -52,27 +34,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Configure authentication state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        console.log('Auth state changed:', event);
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        if (event === 'SIGNED_IN' && session?.user) {
-          // Defer profile fetch to prevent callback deadlock
-          setTimeout(() => {
-            fetchUserProfile(session.user.id);
-          }, 0);
-        } else if (event === 'SIGNED_OUT') {
-          setProfile(null);
-        }
-        
-        setLoading(false);
-      }
-    );
-
-    // Check for existing session
+    // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
@@ -81,6 +43,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       setLoading(false);
     });
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        if (event === 'SIGNED_IN' && session?.user) {
+          fetchUserProfile(session.user.id);
+        } else if (event === 'SIGNED_OUT') {
+          setProfile(null);
+        }
+        
+        setLoading(false);
+      }
+    );
 
     return () => subscription.unsubscribe();
   }, []);
@@ -112,7 +90,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) throw error;
     } catch (error: any) {
-      toast.error(STANDARD_ERROR_MESSAGES.GENERAL_ERROR);
+      toast.error('Erro no login com Google');
       throw error;
     } finally {
       setLoading(false);
@@ -124,15 +102,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoading(true);
       
       if (!email || !password) {
-        throw new Error(STANDARD_ERROR_MESSAGES.REQUIRED_FIELDS);
-      }
-      
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        throw new Error(STANDARD_ERROR_MESSAGES.INVALID_EMAIL);
-      }
-
-      if (password.length < 8) {
-        throw new Error(STANDARD_ERROR_MESSAGES.WEAK_PASSWORD);
+        throw new Error('Email e senha são obrigatórios');
       }
 
       const { error } = await supabase.auth.signInWithPassword({
@@ -142,20 +112,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) throw error;
 
-      toast.success(STANDARD_ERROR_MESSAGES.LOGIN_SUCCESS);
+      toast.success('Login realizado com sucesso!');
     } catch (error: any) {
-      let errorMessage = STANDARD_ERROR_MESSAGES.GENERAL_ERROR;
+      let errorMessage = 'Erro no login';
       
       if (error.message?.includes('Invalid login credentials')) {
-        errorMessage = STANDARD_ERROR_MESSAGES.INVALID_CREDENTIALS;
-      } else if (error.message?.includes('Email not confirmed')) {
-        errorMessage = STANDARD_ERROR_MESSAGES.EMAIL_NOT_CONFIRMED;
-      } else if (error.message?.includes('Too many requests')) {
-        errorMessage = STANDARD_ERROR_MESSAGES.RATE_LIMITED;
-      } else if (error.message === STANDARD_ERROR_MESSAGES.WEAK_PASSWORD ||
-                 error.message === STANDARD_ERROR_MESSAGES.REQUIRED_FIELDS ||
-                 error.message === STANDARD_ERROR_MESSAGES.INVALID_EMAIL) {
-        errorMessage = error.message;
+        errorMessage = 'Email ou senha incorretos';
       }
       
       toast.error(errorMessage);
@@ -170,26 +132,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoading(true);
       
       if (!email || !password || !name) {
-        throw new Error(STANDARD_ERROR_MESSAGES.REQUIRED_FIELDS);
+        throw new Error('Todos os campos são obrigatórios');
       }
-      
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        throw new Error(STANDARD_ERROR_MESSAGES.INVALID_EMAIL);
-      }
-      
-      if (password.length < 8) {
-        throw new Error(STANDARD_ERROR_MESSAGES.WEAK_PASSWORD);
-      }
-      
-      if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(password)) {
-        throw new Error(STANDARD_ERROR_MESSAGES.WEAK_PASSWORD);
-      }
-      
-      if (name.trim().length < 2) {
-        throw new Error(STANDARD_ERROR_MESSAGES.NAME_TOO_SHORT);
-      }
-
-      const redirectUrl = window.location.origin;
 
       const { error } = await supabase.auth.signUp({
         email: email.trim().toLowerCase(),
@@ -197,24 +141,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         options: {
           data: {
             name: name.trim()
-          },
-          emailRedirectTo: redirectUrl
+          }
         }
       });
 
       if (error) throw error;
 
-      toast.success(STANDARD_ERROR_MESSAGES.ACCOUNT_CREATED);
+      toast.success('Conta criada com sucesso!');
     } catch (error: any) {
-      let errorMessage = STANDARD_ERROR_MESSAGES.GENERAL_ERROR;
+      let errorMessage = 'Erro ao criar conta';
       
       if (error.message?.includes('already registered')) {
-        errorMessage = STANDARD_ERROR_MESSAGES.EMAIL_IN_USE;
-      } else if (error.message === STANDARD_ERROR_MESSAGES.WEAK_PASSWORD ||
-                 error.message === STANDARD_ERROR_MESSAGES.REQUIRED_FIELDS ||
-                 error.message === STANDARD_ERROR_MESSAGES.INVALID_EMAIL ||
-                 error.message === STANDARD_ERROR_MESSAGES.NAME_TOO_SHORT) {
-        errorMessage = error.message;
+        errorMessage = 'Este email já está em uso';
       }
       
       toast.error(errorMessage);
@@ -228,8 +166,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setLoading(true);
       
-      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        throw new Error(STANDARD_ERROR_MESSAGES.INVALID_EMAIL);
+      if (!email) {
+        throw new Error('Email é obrigatório');
       }
 
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
@@ -238,13 +176,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) throw error;
 
-      toast.success(STANDARD_ERROR_MESSAGES.PASSWORD_RESET_SENT);
+      toast.success('Email de redefinição enviado!');
     } catch (error: any) {
-      const errorMessage = error.message === STANDARD_ERROR_MESSAGES.INVALID_EMAIL 
-        ? error.message 
-        : STANDARD_ERROR_MESSAGES.GENERAL_ERROR;
-      
-      toast.error(errorMessage);
+      toast.error('Erro ao enviar email de redefinição');
       throw error;
     } finally {
       setLoading(false);
@@ -255,12 +189,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setLoading(true);
       
-      if (password.length < 8) {
-        throw new Error(STANDARD_ERROR_MESSAGES.WEAK_PASSWORD);
-      }
-      
-      if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(password)) {
-        throw new Error(STANDARD_ERROR_MESSAGES.WEAK_PASSWORD);
+      if (!password || password.length < 6) {
+        throw new Error('Senha deve ter pelo menos 6 caracteres');
       }
 
       const { error } = await supabase.auth.updateUser({
@@ -269,13 +199,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) throw error;
 
-      toast.success(STANDARD_ERROR_MESSAGES.PASSWORD_UPDATED);
+      toast.success('Senha atualizada com sucesso!');
     } catch (error: any) {
-      const errorMessage = error.message === STANDARD_ERROR_MESSAGES.WEAK_PASSWORD 
-        ? error.message 
-        : STANDARD_ERROR_MESSAGES.GENERAL_ERROR;
-      
-      toast.error(errorMessage);
+      toast.error('Erro ao atualizar senha');
       throw error;
     } finally {
       setLoading(false);
@@ -291,9 +217,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setProfile(null);
       setSession(null);
 
-      toast.success(STANDARD_ERROR_MESSAGES.LOGOUT_SUCCESS);
+      toast.success('Logout realizado');
     } catch (error: any) {
-      toast.error(STANDARD_ERROR_MESSAGES.GENERAL_ERROR);
+      toast.error('Erro no logout');
     }
   };
 
