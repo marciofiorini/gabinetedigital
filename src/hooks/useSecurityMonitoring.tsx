@@ -37,7 +37,7 @@ export const useSecurityMonitoring = () => {
   const calculateThreatLevel = useCallback((events: SecurityEvent[]): 'low' | 'medium' | 'high' | 'critical' => {
     const recentCritical = events.filter(e => 
       e.severity === 'critical' && 
-      new Date(e.timestamp) > new Date(Date.now() - 60 * 60 * 1000) // Last hour
+      new Date(e.timestamp) > new Date(Date.now() - 60 * 60 * 1000)
     ).length;
     
     const recentHigh = events.filter(e => 
@@ -57,7 +57,6 @@ export const useSecurityMonitoring = () => {
     try {
       setLoading(true);
       
-      // Fetch security events from access_logs
       const { data: securityLogs, error } = await supabase
         .from('access_logs')
         .select('*')
@@ -73,7 +72,7 @@ export const useSecurityMonitoring = () => {
         severity: determineSeverity(log.action),
         timestamp: new Date(log.created_at),
         user_id: log.user_id,
-        details: log.changes ? JSON.parse(log.changes) : {}
+        details: log.changes ? JSON.parse(String(log.changes)) : {}
       })) || [];
 
       setRecentEvents(events.slice(0, 20));
@@ -112,7 +111,6 @@ export const useSecurityMonitoring = () => {
         p_details: details
       });
       
-      // Refresh metrics after logging
       await fetchSecurityMetrics();
     } catch (error) {
       console.error('Error logging security event:', error);
@@ -141,7 +139,6 @@ export const useSecurityMonitoring = () => {
     }
   };
 
-  // Set up real-time monitoring
   useEffect(() => {
     fetchSecurityMetrics();
 

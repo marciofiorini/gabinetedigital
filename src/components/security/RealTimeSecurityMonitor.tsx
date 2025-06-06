@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { AlertTriangle, Shield, Activity, Server, Eye } from 'lucide-react';
+import { AlertTriangle, Shield, Activity } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -25,7 +25,6 @@ export const RealTimeSecurityMonitor = () => {
   useEffect(() => {
     if (!user) return;
 
-    // Real-time subscription for security events
     const channel = supabase
       .channel('security-monitor')
       .on(
@@ -37,20 +36,27 @@ export const RealTimeSecurityMonitor = () => {
           filter: 'module=eq.security'
         },
         (payload) => {
-          const event: SecurityEvent = {
-            id: payload.new?.id || payload.old?.id,
-            event_type: payload.new?.action || payload.old?.action,
-            severity: determineSeverity(payload.new?.action),
-            timestamp: new Date(payload.new?.created_at || payload.old?.created_at),
-            details: payload.new?.changes ? JSON.parse(payload.new.changes) : {},
-            user_id: payload.new?.user_id,
-            ip_address: payload.new?.ip_address
-          };
-
-          setSecurityEvents(prev => [event, ...prev.slice(0, 49)]);
+          // Safely access payload properties with type guards
+          const newRecord = payload.new as any;
+          const oldRecord = payload.old as any;
           
-          if (event.severity === 'critical' || event.severity === 'high') {
-            setActiveThreats(prev => prev + 1);
+          if (newRecord || oldRecord) {
+            const record = newRecord || oldRecord;
+            const event: SecurityEvent = {
+              id: record?.id || 'unknown',
+              event_type: record?.action || 'unknown_event',
+              severity: determineSeverity(record?.action || ''),
+              timestamp: new Date(record?.created_at || new Date()),
+              details: record?.changes ? JSON.parse(record.changes) : {},
+              user_id: record?.user_id,
+              ip_address: record?.ip_address
+            };
+
+            setSecurityEvents(prev => [event, ...prev.slice(0, 49)]);
+            
+            if (event.severity === 'critical' || event.severity === 'high') {
+              setActiveThreats(prev => prev + 1);
+            }
           }
         }
       )
@@ -132,6 +138,11 @@ export const RealTimeSecurityMonitor = () => {
               </div>
             </div>
           ))}
+          {securityEvents.length === 0 && (
+            <p className="text-center text-gray-500 py-4">
+              Nenhum evento de segurança detectado
+            </p>
+          )}
         </div>
       </CardContent>
     </Card>
