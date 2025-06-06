@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
@@ -56,11 +55,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Configure authentication state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        // Security: Only log essential information in development
-        if (process.env.NODE_ENV === 'development') {
-          console.log('Auth state changed:', event, session?.user?.id);
-        }
-        
         setSession(session);
         setUser(session?.user ?? null);
         
@@ -101,10 +95,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (error) throw error;
       setProfile(data);
     } catch (error) {
-      // Security: Log error without exposing sensitive information
-      if (process.env.NODE_ENV === 'development') {
-        console.error('Profile fetch error:', error);
-      }
+      // Security: Silent error handling for profile fetch
+      console.error('Profile fetch error');
     }
   };
 

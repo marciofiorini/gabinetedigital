@@ -3,6 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { LoginForm } from '@/components/LoginForm';
 import { Loader2 } from 'lucide-react';
 import { LayoutMain } from '@/components/LayoutMain';
+import { SecurityAlerts } from '@/components/security/SecurityAlerts';
 import { Outlet } from 'react-router-dom';
 
 export const ProtectedLayout = () => {
@@ -25,6 +26,7 @@ export const ProtectedLayout = () => {
 
   return (
     <LayoutMain>
+      <SecurityAlerts />
       <Outlet />
     </LayoutMain>
   );

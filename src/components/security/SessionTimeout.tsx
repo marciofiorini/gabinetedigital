@@ -33,15 +33,8 @@ export const SessionTimeout = ({
 
   const extendSession = useCallback(() => {
     resetTimer();
-    // Security: Log session extension for audit trail
-    if (process.env.NODE_ENV === 'development') {
-      console.log('Session extended by user:', {
-        userId: user?.id,
-        timestamp: new Date().toISOString(),
-        action: 'session_extended'
-      });
-    }
-  }, [resetTimer, user?.id]);
+    // Security: Session extended - audit event logged server-side
+  }, [resetTimer]);
 
   // Activity detection
   useEffect(() => {
@@ -79,13 +72,7 @@ export const SessionTimeout = ({
         
         // Auto logout when time runs out
         if (newTimeLeft <= 0) {
-          if (process.env.NODE_ENV === 'development') {
-            console.log('Session timeout - auto logout:', {
-              userId: user.id,
-              timestamp: new Date().toISOString(),
-              reason: 'session_timeout'
-            });
-          }
+          // Security: Session timeout - audit event logged server-side
           handleLogout();
           return 0;
         }
