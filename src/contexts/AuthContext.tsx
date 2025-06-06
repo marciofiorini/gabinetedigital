@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -41,7 +42,7 @@ interface AuthContextType {
   signUpWithEmail: (email: string, password: string, name: string, username?: string) => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   updatePassword: (password: string) => Promise<void>;
-  updateProfile: (data: Partial<Omit<Profile, 'id' | 'created_at' | 'updated_at'>>) => Promise<boolean>;
+  updateProfile: (data: any) => Promise<boolean>;
   updateSettings: (data: Partial<UserSettings>) => Promise<boolean>;
   checkUsernameAvailability: (username: string) => Promise<boolean>;
   signOut: () => Promise<void>;
@@ -235,7 +236,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const updateProfile = async (data: Partial<Omit<Profile, 'id' | 'created_at' | 'updated_at'>>) => {
+  const updateProfile = async (data: any) => {
     try {
       console.log('Updating profile with data:', data);
       
