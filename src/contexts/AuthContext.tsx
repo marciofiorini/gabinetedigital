@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
@@ -32,24 +33,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        setLoading(false);
-      }
-    );
-
-    return () => subscription.unsubscribe();
-  }, []);
-
   const fetchUserProfile = async (userId: string) => {
     try {
       const { data, error } = await supabase
@@ -64,6 +47,80 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.debug('Profile fetch error - user may need to complete setup');
     }
   };
+
+  const trackFailedLogin = async (email: string) => {
+    try {
+      await supabase.rpc('track_failed_login_attempt', {
+        p_email: email,
+        p_ip_address: null,
+        p_user_agent: navigator.userAgent
+      });
+    } catch (error) {
+      console.error('Failed to track login attempt:', error);
+    }
+  };
+
+  const checkSuspiciousActivity = async (email: string) => {
+    try {
+      const { data } = await supabase.rpc('check_suspicious_login_activity', {
+        p_email: email,
+        p_time_window_minutes: 15
+      });
+      
+      if (data && data >= 5) {
+        toast.error('Muitas tentativas de login falharam. Aguarde alguns minutos.');
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Failed to check suspicious activity:', error);
+      return false;
+    }
+  };
+
+  const logUserAction = async (action: string, module?: string) => {
+    if (!user) return;
+    
+    try {
+      await supabase.rpc('log_user_action', {
+        p_action: action,
+        p_module: module || 'auth'
+      });
+    } catch (error) {
+      console.error('Failed to log user action:', error);
+    }
+  };
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        fetchUserProfile(session.user.id);
+        logUserAction('session_restored');
+      }
+      setLoading(false);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        if (event === 'SIGNED_IN' && session?.user) {
+          await fetchUserProfile(session.user.id);
+          await logUserAction('login');
+        } else if (event === 'SIGNED_OUT') {
+          setProfile(null);
+          await logUserAction('logout');
+        }
+        
+        setLoading(false);
+      }
+    );
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   const signInWithGoogle = async () => {
     try {
@@ -92,12 +149,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error('Email e senha são obrigatórios');
       }
 
+      // Check for suspicious activity before attempting login
+      const isSuspicious = await checkSuspiciousActivity(email);
+      if (isSuspicious) {
+        return;
+      }
+
       const { error } = await supabase.auth.signInWithPassword({
         email: email.trim().toLowerCase(),
         password
       });
 
-      if (error) throw error;
+      if (error) {
+        await trackFailedLogin(email);
+        throw error;
+      }
 
       toast.success('Login realizado com sucesso!');
     } catch (error: any) {
@@ -186,6 +252,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) throw error;
 
+      await logUserAction('password_updated', 'security');
       toast.success('Senha atualizada com sucesso!');
     } catch (error: any) {
       toast.error('Erro ao atualizar senha');
