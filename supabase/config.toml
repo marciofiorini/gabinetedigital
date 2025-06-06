@@ -50,11 +50,22 @@ jwt_expiry = 3600
 enable_signup = true
 email_double_confirm_changes = true
 enable_manual_linking = false
+# Security: Enable leaked password protection
+password_policy = {
+  min_length = 8,
+  require_upper = true,
+  require_lower = true,
+  require_numbers = true,
+  require_symbols = false,
+  check_breached_passwords = true
+}
 
 [auth.email]
 enable_signup = true
 double_confirm_changes = true
 enable_confirmations = false
+# Security: Enable password breach checking
+secure_password_change = true
 
 [functions.create-checkout]
 verify_jwt = true
