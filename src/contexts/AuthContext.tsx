@@ -309,35 +309,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error('Usuário não autenticado');
       }
 
-      // Prepare update data
-      const updateData: any = {
-        updated_at: new Date().toISOString()
+      const updateData = {
+        updated_at: new Date().toISOString(),
+        ...(data.name !== undefined && { name: data.name.trim() }),
+        ...(data.username !== undefined && { username: data.username.trim() || null }),
+        ...(data.phone !== undefined && { phone: data.phone.trim() || null }),
+        ...(data.location !== undefined && { location: data.location.trim() || null }),
+        ...(data.bio !== undefined && { bio: data.bio.trim() || null }),
+        ...(data.avatar_url !== undefined && { avatar_url: data.avatar_url })
       };
-      
-      // Only add fields that are defined
-      if (data.name !== undefined) {
-        updateData.name = data.name.trim();
-      }
-      
-      if (data.username !== undefined) {
-        updateData.username = data.username.trim() === '' ? null : data.username.trim();
-      }
-      
-      if (data.phone !== undefined) {
-        updateData.phone = data.phone.trim() === '' ? null : data.phone.trim();
-      }
-      
-      if (data.location !== undefined) {
-        updateData.location = data.location.trim() === '' ? null : data.location.trim();
-      }
-      
-      if (data.bio !== undefined) {
-        updateData.bio = data.bio.trim() === '' ? null : data.bio.trim();
-      }
-      
-      if (data.avatar_url !== undefined) {
-        updateData.avatar_url = data.avatar_url;
-      }
 
       console.log('Final update data:', updateData);
 
@@ -408,7 +388,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const { data, error } = await supabase
         .from('profiles')
         .select('id')
-        .eq('username', trimmedUsername);
+        .eq('username', trimmedUsername)
+        .neq('id', user?.id || '00000000-0000-0000-0000-000000000000');
 
       if (error) {
         console.error('Username check error:', error);

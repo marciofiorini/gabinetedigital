@@ -38,6 +38,14 @@ export const UserMenu = () => {
     }
   };
 
+  const getAvatarUrl = () => {
+    if (profile?.avatar_url && user) {
+      const avatars = JSON.parse(localStorage.getItem('user_avatars') || '{}');
+      return avatars[user.id] || null;
+    }
+    return null;
+  };
+
   return (
     <div className="flex items-center gap-3 h-8">
       {/* Notificações */}
@@ -103,11 +111,11 @@ export const UserMenu = () => {
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" className="flex items-center gap-2 max-w-xs h-8 px-2">
-            {profile?.avatar_url ? (
+            {getAvatarUrl() ? (
               <img 
-                src={profile.avatar_url} 
+                src={getAvatarUrl()} 
                 alt="Avatar" 
-                className="w-6 h-6 rounded-full"
+                className="w-6 h-6 rounded-full object-cover"
               />
             ) : (
               <div className="w-6 h-6 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
