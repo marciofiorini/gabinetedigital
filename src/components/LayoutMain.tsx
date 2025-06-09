@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Sidebar } from "@/components/Sidebar";
+import { SidebarNew } from "@/components/SidebarNew";
 import { Header } from "@/components/Header";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -18,7 +18,7 @@ export const LayoutMain = ({ children }: LayoutMainProps) => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-100">
-      <Sidebar isOpen={sidebarOpen} />
+      <SidebarNew isOpen={sidebarOpen} />
       
       {/* Mobile backdrop */}
       {isMobile && sidebarOpen && (

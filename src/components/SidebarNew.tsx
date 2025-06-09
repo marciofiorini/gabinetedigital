@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useLocation, Link } from 'react-router-dom';
 import { cn } from "@/lib/utils";
@@ -46,6 +47,7 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 import { useDashboardStats } from '@/hooks/useDashboardStats';
 import { useUserRoles } from '@/hooks/useUserRoles';
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -58,6 +60,7 @@ export const SidebarNew = ({ isOpen }: SidebarProps) => {
   const { profile } = useAuth();
   const { stats, loading } = useDashboardStats();
   const { isAdmin } = useUserRoles();
+  const isMobile = useIsMobile();
   const [openGroups, setOpenGroups] = useState<string[]>(['comunicacao', 'painel', 'gestao']);
 
   console.log('SidebarNew - Renderizando:', { 
@@ -87,19 +90,6 @@ export const SidebarNew = ({ isOpen }: SidebarProps) => {
     { name: 'Projetos de Lei', icon: Scale, path: '/projetos-lei', minPlan: 'basic' as UserPlan },
   ];
 
-  // Grupo de comunicação
-  const comunicacaoGroup = {
-    id: 'comunicacao',
-    label: 'Canais',
-    icon: MessageCircle,
-    items: [
-      { name: 'Comunicação', icon: Zap, path: '/comunicacao', minPlan: 'premium' as UserPlan },
-      { name: 'WhatsApp', icon: MessageCircle, path: '/whatsapp', minPlan: 'premium' as UserPlan },
-      { name: 'Instagram', icon: Instagram, path: '/instagram', minPlan: 'premium' as UserPlan },
-      { name: 'E-mail', icon: Mail, path: '/email', minPlan: 'basic' as UserPlan },
-    ]
-  };
-
   // Grupo Painel
   const painelGroup = {
     id: 'painel',
@@ -115,7 +105,20 @@ export const SidebarNew = ({ isOpen }: SidebarProps) => {
     ]
   };
 
-  // Grupo Gestão - ADICIONADO Gestão Financeira
+  // Grupo de comunicação - Canais
+  const comunicacaoGroup = {
+    id: 'comunicacao',
+    label: 'Canais',
+    icon: MessageCircle,
+    items: [
+      { name: 'Comunicação', icon: Zap, path: '/comunicacao', minPlan: 'premium' as UserPlan },
+      { name: 'WhatsApp', icon: MessageCircle, path: '/whatsapp', minPlan: 'premium' as UserPlan },
+      { name: 'Instagram', icon: Instagram, path: '/instagram', minPlan: 'premium' as UserPlan },
+      { name: 'E-mail', icon: Mail, path: '/email', minPlan: 'basic' as UserPlan },
+    ]
+  };
+
+  // Grupo Gestão - COM Galeria de Fotos ADICIONADA
   const gestaoGroup = {
     id: 'gestao',
     label: 'Gestão',
@@ -126,6 +129,7 @@ export const SidebarNew = ({ isOpen }: SidebarProps) => {
       { name: 'Prestação de Contas', icon: Receipt, path: '/prestacao-contas', minPlan: 'premium' as UserPlan },
       { name: 'Gestão Financeira', icon: CreditCard, path: '/gestao-financeira', minPlan: 'premium' as UserPlan },
       { name: 'Projetos c/ Impacto Financeiro', icon: PieChart, path: '/projetos-financeiro', minPlan: 'premium' as UserPlan },
+      { name: 'Galeria de Fotos', icon: FileText, path: '/galeria-fotos', minPlan: 'basic' as UserPlan },
       { name: 'Configurações', icon: Settings, path: '/configuracoes', minPlan: 'basic' as UserPlan },
     ]
   };
@@ -381,29 +385,24 @@ export const SidebarNew = ({ isOpen }: SidebarProps) => {
     </div>
   );
 
-  return (
-    <>
-      {/* Desktop Sidebar */}
-      <aside
-        className={cn(
-          "fixed left-0 top-0 z-40 h-full w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transition-transform duration-300 flex-shrink-0 hidden lg:block",
-          isOpen ? "translate-x-0" : "-translate-x-full"
-        )}
-      >
-        <SidebarContent />
-      </aside>
-
-      {/* Mobile Sidebar */}
-      <Sheet>
-        <SheetTrigger asChild className="lg:hidden">
-          <Button variant="outline" size="icon">
-            <Menu className="h-4 w-4" />
-          </Button>
-        </SheetTrigger>
-        <SheetContent side="left" className="w-64 p-0">
+  if (isMobile) {
+    return (
+      <Sheet open={isOpen} onOpenChange={() => {}}>
+        <SheetContent side="left" className="w-72 p-0">
           <SidebarContent />
         </SheetContent>
       </Sheet>
-    </>
+    );
+  }
+
+  return (
+    <aside
+      className={cn(
+        "fixed left-0 top-0 z-50 h-full w-64 bg-white border-r border-gray-200 transition-transform",
+        isOpen ? "translate-x-0" : "-translate-x-full"
+      )}
+    >
+      <SidebarContent />
+    </aside>
   );
 };
