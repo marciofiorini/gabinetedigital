@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -188,8 +187,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signUpWithEmail = async (email: string, password: string, name: string, username?: string): Promise<void> => {
     try {
-      console.log('Starting signup process with:', { email, name, username });
-      
       // Check if username is available if provided
       if (username) {
         const isAvailable = await checkUsernameAvailability(username);
@@ -198,7 +195,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       }
 
-      const { data, error } = await supabase.auth.signUp({
+      const { error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -210,31 +207,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       });
       
-      if (error) {
-        console.error('Signup error details:', error);
-        
-        // Handle specific error cases
-        if (error.message.includes('User already registered')) {
-          throw new Error('Este email já está cadastrado no sistema');
-        } else if (error.message.includes('Invalid email')) {
-          throw new Error('Email inválido');
-        } else if (error.message.includes('Password')) {
-          throw new Error('A senha deve ter pelo menos 6 caracteres');
-        }
-        
-        throw error;
-      }
-      
-      console.log('Signup successful:', data);
-      
-      if (data.user && !data.session) {
-        // User created but needs email confirmation
-        toast.success('Conta criada! Verifique seu email para ativar.');
-      } else if (data.user && data.session) {
-        // User created and logged in immediately
-        toast.success('Conta criada e login realizado com sucesso!');
-      }
-      
+      if (error) throw error;
+      toast.success('Conta criada com sucesso! Verifique seu email.');
     } catch (error: any) {
       console.error('Email sign up error:', error);
       toast.error(error.message || 'Erro ao criar conta');
