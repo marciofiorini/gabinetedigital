@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,7 +11,7 @@ import { Camera, User, Mail, Save, Lock, CheckCircle, XCircle } from 'lucide-rea
 import { toast } from 'sonner';
 
 export const UserProfileSettings = () => {
-  const { user, profile, updateProfile, updatePassword, checkUsernameAvailability, loading } = useAuth();
+  const { user, profile, updateProfile, updatePassword, checkUsernameAvailability, uploadAvatar, loading } = useAuth();
   
   const [formData, setFormData] = useState({
     name: '',
@@ -29,7 +29,9 @@ export const UserProfileSettings = () => {
 
   const [usernameStatus, setUsernameStatus] = useState<'available' | 'taken' | 'checking' | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [usernameCheckTimeout, setUsernameCheckTimeout] = useState<NodeJS.Timeout | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     console.log('Profile data changed:', profile);
@@ -50,7 +52,6 @@ export const UserProfileSettings = () => {
   }, [profile, user]);
 
   const checkUsername = async (username: string) => {
-    // Se o username for igual ao atual ou vazio, não precisa verificar
     if (!username || username === profile?.username) {
       setUsernameStatus(null);
       return;
@@ -69,15 +70,12 @@ export const UserProfileSettings = () => {
   const handleUsernameChange = (value: string) => {
     setFormData({ ...formData, username: value });
     
-    // Clear previous timeout
     if (usernameCheckTimeout) {
       clearTimeout(usernameCheckTimeout);
     }
     
-    // Reset status immediately
     setUsernameStatus(null);
     
-    // Set new timeout for username check
     const timeoutId = setTimeout(() => {
       checkUsername(value);
     }, 500);
@@ -103,7 +101,6 @@ export const UserProfileSettings = () => {
     try {
       console.log('Submitting profile update:', formData);
       
-      // Prepare update data - include all fields that might have changed
       const updateData = {
         name: formData.name.trim(),
         username: formData.username.trim() || undefined,
@@ -153,7 +150,32 @@ export const UserProfileSettings = () => {
   };
 
   const handleAvatarClick = () => {
-    toast.info('Funcionalidade de upload de foto será implementada em breve');
+    fileInputRef.current?.click();
+  };
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingAvatar(true);
+    try {
+      await uploadAvatar(file);
+    } catch (error) {
+      console.error('Error uploading avatar:', error);
+    } finally {
+      setIsUploadingAvatar(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  const getAvatarUrl = () => {
+    if (profile?.avatar_url && user) {
+      const avatars = JSON.parse(localStorage.getItem('user_avatars') || '{}');
+      return avatars[user.id] || null;
+    }
+    return null;
   };
 
   return (
@@ -174,7 +196,7 @@ export const UserProfileSettings = () => {
             {/* Avatar */}
             <div className="flex items-center gap-6">
               <Avatar className="w-20 h-20">
-                <AvatarImage src={profile?.avatar_url} />
+                <AvatarImage src={getAvatarUrl()} />
                 <AvatarFallback className="text-lg">
                   {formData.name.charAt(0).toUpperCase() || 'U'}
                 </AvatarFallback>
@@ -186,13 +208,21 @@ export const UserProfileSettings = () => {
                   size="sm" 
                   className="flex items-center gap-2"
                   onClick={handleAvatarClick}
+                  disabled={isUploadingAvatar}
                 >
                   <Camera className="w-4 h-4" />
-                  Alterar Foto
+                  {isUploadingAvatar ? 'Enviando...' : 'Alterar Foto'}
                 </Button>
                 <p className="text-sm text-muted-foreground mt-2">
-                  JPG, PNG ou GIF. Máximo 2MB.
+                  JPG, PNG ou GIF. Máximo 5MB.
                 </p>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleAvatarChange}
+                  className="hidden"
+                />
               </div>
             </div>
 

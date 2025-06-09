@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -54,6 +53,7 @@ interface AuthContextType {
   updateProfile: (data: ProfileUpdateData) => Promise<boolean>;
   updateSettings: (data: Partial<UserSettings>) => Promise<boolean>;
   checkUsernameAvailability: (username: string) => Promise<boolean>;
+  uploadAvatar: (file: File) => Promise<string | null>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
@@ -82,7 +82,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       console.log('Profile fetched successfully:', data);
-      return data as Profile;
+      return data;
     } catch (error) {
       console.error('Error in fetchProfile:', error);
       return null;
@@ -104,7 +104,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       console.log('Settings fetched successfully:', data);
-      return data as UserSettings;
+      return data;
     } catch (error) {
       console.error('Error in fetchSettings:', error);
       return null;
@@ -119,6 +119,65 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     setProfile(profileData);
     setSettings(settingsData);
+  };
+
+  const uploadAvatar = async (file: File): Promise<string | null> => {
+    try {
+      if (!user) {
+        toast.error('Usuário não autenticado');
+        return null;
+      }
+
+      if (!file.type.startsWith('image/')) {
+        toast.error('Por favor, selecione apenas arquivos de imagem');
+        return null;
+      }
+
+      if (file.size > 5 * 1024 * 1024) { // 5MB
+        toast.error('A imagem deve ter no máximo 5MB');
+        return null;
+      }
+
+      const reader = new FileReader();
+      
+      return new Promise((resolve, reject) => {
+        reader.onload = async () => {
+          try {
+            const base64 = reader.result as string;
+            
+            const avatars = JSON.parse(localStorage.getItem('user_avatars') || '{}');
+            avatars[user.id] = base64;
+            localStorage.setItem('user_avatars', JSON.stringify(avatars));
+            
+            const avatarUrl = `avatar_${user.id}_${Date.now()}`;
+            const success = await updateProfile({ avatar_url: avatarUrl });
+            
+            if (success) {
+              toast.success('Foto do perfil atualizada com sucesso!');
+              resolve(avatarUrl);
+            } else {
+              reject(new Error('Erro ao atualizar perfil'));
+            }
+          } catch (error) {
+            console.error('Error uploading avatar:', error);
+            toast.error('Erro ao fazer upload da foto');
+            reject(error);
+          }
+        };
+        
+        reader.onerror = () => {
+          toast.error('Erro ao processar a imagem');
+          reject(new Error('Erro ao processar imagem'));
+        };
+        
+        reader.readAsDataURL(file);
+      });
+
+    } catch (error: any) {
+      console.error('Upload avatar error:', error);
+      toast.error('Erro ao fazer upload da foto');
+      return null;
+    }
   };
 
   const signInWithGoogle = async (): Promise<void> => {
@@ -166,7 +225,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signInWithUsername = async (username: string, password: string): Promise<void> => {
     try {
-      // First, find the email associated with this username
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('email')
@@ -177,7 +235,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error('Nome de usuário não encontrado');
       }
 
-      // Then sign in with email and password
       await signInWithEmail(profileData.email, password);
     } catch (error: any) {
       console.error('Username sign in error:', error);
@@ -188,7 +245,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signUpWithEmail = async (email: string, password: string, name: string, username?: string): Promise<void> => {
     try {
-      // Check if username is available if provided
       if (username) {
         const isAvailable = await checkUsernameAvailability(username);
         if (!isAvailable) {
@@ -253,11 +309,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error('Usuário não autenticado');
       }
 
-      // Clean data - remove undefined values and empty strings
       const cleanData: Record<string, any> = {};
       for (const [key, value] of Object.entries(data)) {
         if (value !== undefined && value !== null) {
-          // Para username, permitir string vazia para remover o username
           if (key === 'username') {
             cleanData[key] = value === '' ? null : value;
           } else if (value !== '') {
@@ -288,7 +342,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       console.log('Profile updated successfully');
       
-      // Refresh profile data
       await refreshProfile();
       toast.success('Perfil atualizado com sucesso!');
       return true;
@@ -315,7 +368,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) throw error;
 
-      // Update local state
       setSettings(prev => prev ? { ...prev, ...data } : null);
       toast.success('Configurações salvas com sucesso!');
       return true;
@@ -330,14 +382,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       console.log('Checking username availability:', username);
       
-      // Skip check if username is empty
       if (!username || username.trim() === '') {
         return true;
       }
 
       const trimmedUsername = username.trim();
       
-      // Se o username for igual ao atual do usuário, consideramos disponível
       if (profile?.username === trimmedUsername) {
         return true;
       }
@@ -379,7 +429,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
-    // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log('Auth state changed:', event, session?.user?.email);
@@ -388,7 +437,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Fetch profile and settings after login
           setTimeout(async () => {
             const profileData = await fetchProfile(session.user.id);
             const settingsData = await fetchSettings(session.user.id);
@@ -405,13 +453,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     );
 
-    // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
         setSession(session);
         setUser(session.user);
         
-        // Fetch profile and settings for existing session
         fetchProfile(session.user.id).then(setProfile);
         fetchSettings(session.user.id).then(setSettings);
       }
@@ -436,6 +482,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     updateProfile,
     updateSettings,
     checkUsernameAvailability,
+    uploadAvatar,
     signOut,
     refreshProfile
   };
