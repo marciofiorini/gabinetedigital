@@ -31,8 +31,8 @@ export const ContatosPage = () => {
     observacoes: ''
   });
 
-  const [filterTag, setFilterTag] = useState('');
-  const [filterType, setFilterType] = useState('');
+  const [filterTag, setFilterTag] = useState('all');
+  const [filterType, setFilterType] = useState('all');
 
   const filteredContatos = contatos.filter(contato =>
     contato.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -327,7 +327,7 @@ export const ContatosPage = () => {
                   <SelectValue placeholder="Todas as tags" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todas as tags</SelectItem>
+                  <SelectItem value="all">Todas as tags</SelectItem>
                 </SelectContent>
               </Select>
               <Select value={filterType} onValueChange={setFilterType}>
@@ -335,7 +335,7 @@ export const ContatosPage = () => {
                   <SelectValue placeholder="Todos os tipos" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos os tipos</SelectItem>
+                  <SelectItem value="all">Todos os tipos</SelectItem>
                 </SelectContent>
               </Select>
               <Button variant="outline">
