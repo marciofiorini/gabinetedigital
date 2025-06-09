@@ -43,6 +43,7 @@ import OrcamentoPublico from '@/pages/OrcamentoPublico';
 import PrestacaoContas from '@/pages/PrestacaoContas';
 import ProjetosFinanceiro from '@/pages/ProjetosFinanceiro';
 import SistemaVotacoes from '@/pages/SistemaVotacoes';
+import GaleriaFotos from '@/pages/GaleriaFotos';
 import Ajuda from '@/pages/Ajuda';
 import { LoginForm } from '@/components/LoginForm';
 import ResetPassword from '@/pages/ResetPassword';
@@ -104,6 +105,7 @@ function App() {
                 <Route path="projetos-financeiro" element={<ProjetosFinanceiro />} />
                 <Route path="mapa-influencia" element={<MapaInfluencia />} />
                 <Route path="sistema-votacoes" element={<SistemaVotacoes />} />
+                <Route path="galeria-fotos" element={<GaleriaFotos />} />
                 <Route path="assistente-ia" element={<AssistenteIA />} />
                 <Route path="ajuda" element={<Ajuda />} />
                 <Route path="*" element={<NotFound />} />

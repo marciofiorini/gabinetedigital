@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -66,7 +67,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchProfile = async (userId: string) => {
+  const fetchProfile = async (userId: string): Promise<Profile | null> => {
     try {
       console.log('Fetching profile for user:', userId);
       const { data, error } = await supabase
@@ -81,14 +82,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       console.log('Profile fetched successfully:', data);
-      return data;
+      return data as Profile;
     } catch (error) {
       console.error('Error in fetchProfile:', error);
       return null;
     }
   };
 
-  const fetchSettings = async (userId: string) => {
+  const fetchSettings = async (userId: string): Promise<UserSettings | null> => {
     try {
       console.log('Fetching settings for user:', userId);
       const { data, error } = await supabase
@@ -103,7 +104,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       console.log('Settings fetched successfully:', data);
-      return data;
+      return data as UserSettings;
     } catch (error) {
       console.error('Error in fetchSettings:', error);
       return null;
