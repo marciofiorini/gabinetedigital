@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAuth } from '@/contexts/AuthContext';
-import { Camera, User, Mail, Save, Lock, CheckCircle, XCircle } from 'lucide-react';
+import { Camera, User, Save, Lock, CheckCircle, XCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
 export const UserProfileSettings = () => {
@@ -103,10 +103,10 @@ export const UserProfileSettings = () => {
       
       const updateData = {
         name: formData.name.trim(),
-        username: formData.username.trim() || undefined,
-        phone: formData.phone.trim() || undefined,
-        location: formData.location.trim() || undefined,
-        bio: formData.bio.trim() || undefined
+        username: formData.username.trim(),
+        phone: formData.phone.trim(),
+        location: formData.location.trim(),
+        bio: formData.bio.trim()
       };
 
       console.log('Update data prepared:', updateData);
@@ -276,16 +276,13 @@ export const UserProfileSettings = () => {
               {/* Email */}
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
-                <div className="relative">
-                  <Input
-                    id="email"
-                    type="email"
-                    value={formData.email}
-                    disabled
-                    className="pl-10"
-                  />
-                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                </div>
+                <Input
+                  id="email"
+                  type="email"
+                  value={formData.email}
+                  disabled
+                  className="bg-muted"
+                />
                 <p className="text-xs text-muted-foreground">
                   O email não pode ser alterado. Entre em contato com o suporte se necessário.
                 </p>

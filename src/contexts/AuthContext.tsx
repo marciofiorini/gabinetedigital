@@ -309,15 +309,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error('Usuário não autenticado');
       }
 
+      // Prepare clean data for update - only include fields that have actual values
       const cleanData: Record<string, any> = {};
-      for (const [key, value] of Object.entries(data)) {
-        if (value !== undefined && value !== null) {
-          if (key === 'username') {
-            cleanData[key] = value === '' ? null : value;
-          } else if (value !== '') {
-            cleanData[key] = value;
-          }
-        }
+      
+      if (data.name !== undefined && data.name.trim() !== '') {
+        cleanData.name = data.name.trim();
+      }
+      
+      if (data.username !== undefined) {
+        cleanData.username = data.username.trim() === '' ? null : data.username.trim();
+      }
+      
+      if (data.phone !== undefined) {
+        cleanData.phone = data.phone.trim() === '' ? null : data.phone.trim();
+      }
+      
+      if (data.location !== undefined) {
+        cleanData.location = data.location.trim() === '' ? null : data.location.trim();
+      }
+      
+      if (data.bio !== undefined) {
+        cleanData.bio = data.bio.trim() === '' ? null : data.bio.trim();
+      }
+      
+      if (data.avatar_url !== undefined) {
+        cleanData.avatar_url = data.avatar_url;
       }
 
       console.log('Clean data for update:', cleanData);
@@ -388,6 +404,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       const trimmedUsername = username.trim();
       
+      // If it's the current user's username, it's available for them
       if (profile?.username === trimmedUsername) {
         return true;
       }
