@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -278,7 +279,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       // Clean data - remove undefined values and empty strings
-      const cleanData: any = {};
+      const cleanData: Record<string, any> = {};
       for (const [key, value] of Object.entries(data)) {
         if (value !== undefined && value !== null) {
           // Para username, permitir string vazia para remover o username
