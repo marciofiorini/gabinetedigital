@@ -279,7 +279,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       // Clean data - remove undefined values and empty strings
-      const cleanData: { [key: string]: any } = {};
+      const cleanData: any = {};
       for (const [key, value] of Object.entries(data)) {
         if (value !== undefined && value !== null) {
           // Para username, permitir string vazia para remover o username
