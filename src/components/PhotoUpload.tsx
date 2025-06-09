@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Upload, Camera, X, Image as ImageIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface PhotoUploadProps {
   onPhotoSelected?: (file: File) => void;
@@ -27,6 +28,7 @@ export const PhotoUpload: React.FC<PhotoUploadProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const { user } = useAuth();
+  const isMobile = useIsMobile();
 
   const handleFileSelect = (file: File) => {
     if (!file.type.startsWith('image/')) {
@@ -104,34 +106,34 @@ export const PhotoUpload: React.FC<PhotoUploadProps> = ({
   };
 
   return (
-    <Card className="w-full max-w-md mx-auto">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <ImageIcon className="w-5 h-5" />
+    <Card className="w-full">
+      <CardHeader className="pb-3 lg:pb-6">
+        <CardTitle className="flex items-center gap-2 text-lg lg:text-xl">
+          <ImageIcon className="w-4 h-4 lg:w-5 lg:h-5" />
           {title}
         </CardTitle>
-        <CardDescription>{description}</CardDescription>
+        <CardDescription className="text-sm">{description}</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-3 lg:space-y-4 p-4 lg:p-6">
         {preview ? (
           <div className="relative">
             <img
               src={preview}
               alt="Preview"
-              className="w-full h-48 object-cover rounded-lg border"
+              className="w-full h-32 sm:h-40 lg:h-48 object-cover rounded-lg border"
             />
             <Button
               variant="destructive"
               size="sm"
-              className="absolute top-2 right-2"
+              className="absolute top-1 lg:top-2 right-1 lg:right-2 p-1 lg:p-2 h-auto"
               onClick={removePhoto}
             >
-              <X className="w-4 h-4" />
+              <X className="w-3 h-3 lg:w-4 lg:h-4" />
             </Button>
           </div>
         ) : (
           <div
-            className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+            className={`border-2 border-dashed rounded-lg p-4 lg:p-8 text-center transition-colors ${
               isDragging
                 ? 'border-blue-500 bg-blue-50'
                 : 'border-gray-300 hover:border-gray-400'
@@ -140,19 +142,19 @@ export const PhotoUpload: React.FC<PhotoUploadProps> = ({
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
           >
-            <Upload className="w-12 h-12 mx-auto text-gray-400 mb-4" />
-            <p className="text-gray-600 mb-2">
-              Arraste uma foto aqui ou clique para selecionar
+            <Upload className="w-8 h-8 lg:w-12 lg:h-12 mx-auto text-gray-400 mb-2 lg:mb-4" />
+            <p className="text-gray-600 mb-1 lg:mb-2 text-sm lg:text-base">
+              {isMobile ? 'Toque para selecionar' : 'Arraste uma foto aqui ou clique para selecionar'}
             </p>
-            <p className="text-sm text-gray-500">
+            <p className="text-xs lg:text-sm text-gray-500">
               Suporta JPG, PNG até 5MB
             </p>
           </div>
         )}
 
         <div className="flex gap-2">
-          <Button onClick={openFileDialog} className="flex-1">
-            <Camera className="w-4 h-4 mr-2" />
+          <Button onClick={openFileDialog} className="flex-1 text-sm lg:text-base">
+            <Camera className="w-3 h-3 lg:w-4 lg:h-4 mr-2" />
             Selecionar Foto
           </Button>
         </div>
