@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -309,21 +310,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error('Usuário não autenticado');
       }
 
-      const updateData = {
-        updated_at: new Date().toISOString(),
-        ...(data.name !== undefined && { name: data.name.trim() }),
-        ...(data.username !== undefined && { username: data.username.trim() || null }),
-        ...(data.phone !== undefined && { phone: data.phone.trim() || null }),
-        ...(data.location !== undefined && { location: data.location.trim() || null }),
-        ...(data.bio !== undefined && { bio: data.bio.trim() || null }),
-        ...(data.avatar_url !== undefined && { avatar_url: data.avatar_url })
+      const updatePayload: Record<string, any> = {
+        updated_at: new Date().toISOString()
       };
+      
+      if (data.name !== undefined) updatePayload.name = data.name.trim();
+      if (data.username !== undefined) updatePayload.username = data.username.trim() || null;
+      if (data.phone !== undefined) updatePayload.phone = data.phone.trim() || null;
+      if (data.location !== undefined) updatePayload.location = data.location.trim() || null;
+      if (data.bio !== undefined) updatePayload.bio = data.bio.trim() || null;
+      if (data.avatar_url !== undefined) updatePayload.avatar_url = data.avatar_url;
 
-      console.log('Final update data:', updateData);
+      console.log('Final update data:', updatePayload);
 
       const { error } = await supabase
         .from('profiles')
-        .update(updateData)
+        .update(updatePayload)
         .eq('id', user.id);
 
       if (error) {
@@ -389,7 +391,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .from('profiles')
         .select('id')
         .eq('username', trimmedUsername)
-        .neq('id', user?.id || '00000000-0000-0000-0000-000000000000');
+        .neq('id', user?.id || '');
 
       if (error) {
         console.error('Username check error:', error);
