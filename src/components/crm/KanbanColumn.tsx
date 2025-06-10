@@ -2,18 +2,20 @@
 import React from "react";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { LeadCard } from "./LeadCard";
+import { useDroppable } from '@dnd-kit/core';
+import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { DraggableLeadCard } from "./DraggableLeadCard";
 
 interface Lead {
-  id: number;
+  id: string;
   nome: string;
-  email: string;
-  telefone: string;
-  regiao: string;
-  interesse: string;
-  score: number;
-  ultimoContato: string;
-  tags: string[];
+  email?: string;
+  telefone?: string;
+  status: string;
+  interesse?: string;
+  tags?: string[];
+  created_at: string;
+  updated_at: string;
 }
 
 interface Column {
@@ -26,9 +28,14 @@ interface Column {
 interface KanbanColumnProps {
   column: Column;
   leads: Lead[];
+  onEditLead: (lead: Lead) => void;
 }
 
-export const KanbanColumn = ({ column, leads }: KanbanColumnProps) => {
+export const KanbanColumn = ({ column, leads, onEditLead }: KanbanColumnProps) => {
+  const { setNodeRef } = useDroppable({
+    id: column.id,
+  });
+
   return (
     <div className="space-y-4">
       {/* Header da Coluna */}
@@ -40,17 +47,23 @@ export const KanbanColumn = ({ column, leads }: KanbanColumnProps) => {
               <CardTitle className="text-sm font-medium">{column.titulo}</CardTitle>
             </div>
             <Badge variant="secondary" className="text-xs">
-              {column.count}
+              {leads.length}
             </Badge>
           </div>
         </CardHeader>
       </Card>
 
       {/* Cards dos Leads */}
-      <div className="space-y-3">
-        {leads?.map((lead) => (
-          <LeadCard key={lead.id} lead={lead} />
-        ))}
+      <div ref={setNodeRef} className="space-y-3 min-h-[200px]">
+        <SortableContext items={leads.map(lead => lead.id)} strategy={verticalListSortingStrategy}>
+          {leads.map((lead) => (
+            <DraggableLeadCard 
+              key={lead.id} 
+              lead={lead} 
+              onEdit={onEditLead}
+            />
+          ))}
+        </SortableContext>
       </div>
     </div>
   );
