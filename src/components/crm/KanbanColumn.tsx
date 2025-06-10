@@ -2,20 +2,18 @@
 import React from "react";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useDroppable } from '@dnd-kit/core';
-import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { DraggableLeadCard } from "./DraggableLeadCard";
+import { LeadCard } from "./LeadCard";
 
 interface Lead {
-  id: string;
+  id: number;
   nome: string;
-  email?: string;
-  telefone?: string;
-  status: string;
-  interesse?: string;
-  tags?: string[];
-  created_at: string;
-  updated_at: string;
+  email: string;
+  telefone: string;
+  regiao: string;
+  interesse: string;
+  score: number;
+  ultimoContato: string;
+  tags: string[];
 }
 
 interface Column {
@@ -28,14 +26,9 @@ interface Column {
 interface KanbanColumnProps {
   column: Column;
   leads: Lead[];
-  onEditLead: (lead: Lead) => void;
 }
 
-export const KanbanColumn = ({ column, leads, onEditLead }: KanbanColumnProps) => {
-  const { setNodeRef } = useDroppable({
-    id: column.id,
-  });
-
+export const KanbanColumn = ({ column, leads }: KanbanColumnProps) => {
   return (
     <div className="space-y-4">
       {/* Header da Coluna */}
@@ -47,23 +40,17 @@ export const KanbanColumn = ({ column, leads, onEditLead }: KanbanColumnProps) =
               <CardTitle className="text-sm font-medium">{column.titulo}</CardTitle>
             </div>
             <Badge variant="secondary" className="text-xs">
-              {leads.length}
+              {column.count}
             </Badge>
           </div>
         </CardHeader>
       </Card>
 
       {/* Cards dos Leads */}
-      <div ref={setNodeRef} className="space-y-3 min-h-[200px]">
-        <SortableContext items={leads.map(lead => lead.id)} strategy={verticalListSortingStrategy}>
-          {leads.map((lead) => (
-            <DraggableLeadCard 
-              key={lead.id} 
-              lead={lead} 
-              onEdit={onEditLead}
-            />
-          ))}
-        </SortableContext>
+      <div className="space-y-3">
+        {leads?.map((lead) => (
+          <LeadCard key={lead.id} lead={lead} />
+        ))}
       </div>
     </div>
   );
