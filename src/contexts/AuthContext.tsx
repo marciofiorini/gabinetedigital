@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
@@ -289,7 +290,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const updateSettings = async (newSettings: Partial<UserSettings>) => {
     try {
       // Map UserSettings to database fields
-      const dbSettings: any = {};
+      const dbSettings: Record<string, any> = {};
       
       if (newSettings.theme !== undefined) dbSettings.theme = newSettings.theme;
       if (newSettings.language !== undefined) dbSettings.language = newSettings.language;
