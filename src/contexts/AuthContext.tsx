@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
@@ -18,8 +17,14 @@ interface Profile {
 
 interface UserSettings {
   theme: string;
-  notifications: boolean;
   language: string;
+  notifications: boolean;
+  email_notifications?: boolean;
+  push_notifications?: boolean;
+  dark_mode?: boolean;
+  timezone?: string;
+  keyboard_shortcuts_enabled?: boolean;
+  tour_completed?: boolean;
 }
 
 interface AuthContextType {
@@ -81,7 +86,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             .eq('user_id', session.user.id)
             .single();
           
-          setSettings(settingsData || { theme: 'light', notifications: true, language: 'pt' });
+          if (settingsData) {
+            setSettings({
+              theme: settingsData.theme || 'light',
+              language: settingsData.language || 'pt-BR',
+              notifications: settingsData.email_notifications ?? true,
+              email_notifications: settingsData.email_notifications ?? true,
+              push_notifications: settingsData.push_notifications ?? true,
+              dark_mode: settingsData.dark_mode ?? false,
+              timezone: settingsData.timezone || 'America/Sao_Paulo',
+              keyboard_shortcuts_enabled: settingsData.keyboard_shortcuts_enabled ?? true,
+              tour_completed: settingsData.tour_completed ?? false
+            });
+          } else {
+            setSettings({
+              theme: 'light',
+              language: 'pt-BR',
+              notifications: true,
+              email_notifications: true,
+              push_notifications: true,
+              dark_mode: false,
+              timezone: 'America/Sao_Paulo',
+              keyboard_shortcuts_enabled: true,
+              tour_completed: false
+            });
+          }
         } else {
           setProfile(null);
           setSettings(null);
@@ -259,9 +288,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const updateSettings = async (newSettings: Partial<UserSettings>) => {
     try {
+      // Map UserSettings to database fields
+      const dbSettings: any = {};
+      
+      if (newSettings.theme !== undefined) dbSettings.theme = newSettings.theme;
+      if (newSettings.language !== undefined) dbSettings.language = newSettings.language;
+      if (newSettings.notifications !== undefined) dbSettings.email_notifications = newSettings.notifications;
+      if (newSettings.email_notifications !== undefined) dbSettings.email_notifications = newSettings.email_notifications;
+      if (newSettings.push_notifications !== undefined) dbSettings.push_notifications = newSettings.push_notifications;
+      if (newSettings.dark_mode !== undefined) dbSettings.dark_mode = newSettings.dark_mode;
+      if (newSettings.timezone !== undefined) dbSettings.timezone = newSettings.timezone;
+      if (newSettings.keyboard_shortcuts_enabled !== undefined) dbSettings.keyboard_shortcuts_enabled = newSettings.keyboard_shortcuts_enabled;
+      if (newSettings.tour_completed !== undefined) dbSettings.tour_completed = newSettings.tour_completed;
+
       const { error } = await supabase
         .from('user_settings')
-        .update(newSettings)
+        .update(dbSettings)
         .eq('user_id', user?.id);
 
       if (error) {
