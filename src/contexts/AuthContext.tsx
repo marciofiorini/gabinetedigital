@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
@@ -20,12 +19,12 @@ interface UserSettings {
   theme: string;
   language: string;
   notifications: boolean;
-  email_notifications?: boolean;
-  push_notifications?: boolean;
-  dark_mode?: boolean;
-  timezone?: string;
-  keyboard_shortcuts_enabled?: boolean;
-  tour_completed?: boolean;
+  email_notifications: boolean;
+  push_notifications: boolean;
+  dark_mode: boolean;
+  timezone: string;
+  keyboard_shortcuts_enabled: boolean;
+  tour_completed: boolean;
 }
 
 interface AuthContextType {
@@ -290,7 +289,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const updateSettings = async (newSettings: Partial<UserSettings>) => {
     try {
       // Map UserSettings to database fields
-      const dbSettings: { [key: string]: any } = {};
+      const dbSettings: any = {};
       
       if (newSettings.theme !== undefined) dbSettings.theme = newSettings.theme;
       if (newSettings.language !== undefined) dbSettings.language = newSettings.language;
