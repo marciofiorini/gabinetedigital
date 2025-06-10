@@ -5,14 +5,11 @@ import { SegmentacaoAvancada } from "@/components/segmentacao/SegmentacaoAvancad
 import { CentralAtendimento } from "@/components/tickets/CentralAtendimento";
 import { AuditoriaAvancada } from "@/components/admin/AuditoriaAvancada";
 import { CampanhasIntegradas } from "@/components/campanhas/CampanhasIntegradas";
-import { LeadScoringSystem } from "@/components/crm/LeadScoringSystem";
-import { AutoFollowUpSystem } from "@/components/crm/AutoFollowUpSystem";
-import { LeadConversionReports } from "@/components/analytics/LeadConversionReports";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, MessageSquare, Mail, Shield, Target, Clock, BarChart3 } from "lucide-react";
+import { Users, MessageSquare, Mail, Shield } from "lucide-react";
 
 const CrmAvancado = () => {
-  const [activeTab, setActiveTab] = useState("scoring");
+  const [activeTab, setActiveTab] = useState("segmentacao");
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -25,19 +22,7 @@ const CrmAvancado = () => {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-7">
-            <TabsTrigger value="scoring" className="flex items-center gap-2">
-              <Target className="w-4 h-4" />
-              Lead Scoring
-            </TabsTrigger>
-            <TabsTrigger value="followup" className="flex items-center gap-2">
-              <Clock className="w-4 h-4" />
-              Follow-ups
-            </TabsTrigger>
-            <TabsTrigger value="relatorios" className="flex items-center gap-2">
-              <BarChart3 className="w-4 h-4" />
-              Relatórios
-            </TabsTrigger>
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="segmentacao" className="flex items-center gap-2">
               <Users className="w-4 h-4" />
               Segmentação
@@ -55,18 +40,6 @@ const CrmAvancado = () => {
               Auditoria
             </TabsTrigger>
           </TabsList>
-
-          <TabsContent value="scoring">
-            <LeadScoringSystem />
-          </TabsContent>
-
-          <TabsContent value="followup">
-            <AutoFollowUpSystem />
-          </TabsContent>
-
-          <TabsContent value="relatorios">
-            <LeadConversionReports />
-          </TabsContent>
 
           <TabsContent value="segmentacao">
             <SegmentacaoAvancada />
