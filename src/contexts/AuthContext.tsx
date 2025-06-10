@@ -290,7 +290,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const updateSettings = async (newSettings: Partial<UserSettings>) => {
     try {
       // Map UserSettings to database fields
-      const dbSettings: Record<string, any> = {};
+      const dbSettings: { [key: string]: any } = {};
       
       if (newSettings.theme !== undefined) dbSettings.theme = newSettings.theme;
       if (newSettings.language !== undefined) dbSettings.language = newSettings.language;
