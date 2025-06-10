@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
@@ -288,22 +289,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const updateSettings = async (newSettings: Partial<UserSettings>) => {
     try {
-      // Map UserSettings to database fields
-      const dbSettings: any = {};
+      const updateData: Record<string, any> = {};
       
-      if (newSettings.theme !== undefined) dbSettings.theme = newSettings.theme;
-      if (newSettings.language !== undefined) dbSettings.language = newSettings.language;
-      if (newSettings.notifications !== undefined) dbSettings.email_notifications = newSettings.notifications;
-      if (newSettings.email_notifications !== undefined) dbSettings.email_notifications = newSettings.email_notifications;
-      if (newSettings.push_notifications !== undefined) dbSettings.push_notifications = newSettings.push_notifications;
-      if (newSettings.dark_mode !== undefined) dbSettings.dark_mode = newSettings.dark_mode;
-      if (newSettings.timezone !== undefined) dbSettings.timezone = newSettings.timezone;
-      if (newSettings.keyboard_shortcuts_enabled !== undefined) dbSettings.keyboard_shortcuts_enabled = newSettings.keyboard_shortcuts_enabled;
-      if (newSettings.tour_completed !== undefined) dbSettings.tour_completed = newSettings.tour_completed;
+      if (newSettings.theme !== undefined) updateData.theme = newSettings.theme;
+      if (newSettings.language !== undefined) updateData.language = newSettings.language;
+      if (newSettings.notifications !== undefined) updateData.email_notifications = newSettings.notifications;
+      if (newSettings.email_notifications !== undefined) updateData.email_notifications = newSettings.email_notifications;
+      if (newSettings.push_notifications !== undefined) updateData.push_notifications = newSettings.push_notifications;
+      if (newSettings.dark_mode !== undefined) updateData.dark_mode = newSettings.dark_mode;
+      if (newSettings.timezone !== undefined) updateData.timezone = newSettings.timezone;
+      if (newSettings.keyboard_shortcuts_enabled !== undefined) updateData.keyboard_shortcuts_enabled = newSettings.keyboard_shortcuts_enabled;
+      if (newSettings.tour_completed !== undefined) updateData.tour_completed = newSettings.tour_completed;
 
       const { error } = await supabase
         .from('user_settings')
-        .update(dbSettings)
+        .update(updateData)
         .eq('user_id', user?.id);
 
       if (error) {
