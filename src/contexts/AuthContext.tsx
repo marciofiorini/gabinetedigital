@@ -1,20 +1,44 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { User } from '@supabase/supabase-js';
+import { User, Session } from '@supabase/supabase-js';
+import { toast } from 'sonner';
 
 interface Profile {
   id: string;
   name: string;
   email: string;
+  username?: string;
+  phone?: string;
+  location?: string;
+  bio?: string;
   avatar_url?: string;
+  created_at?: string;
+}
+
+interface UserSettings {
+  theme: string;
+  notifications: boolean;
+  language: string;
 }
 
 interface AuthContextType {
   user: User | null;
   profile: Profile | null;
+  session: Session | null;
+  settings: UserSettings | null;
   loading: boolean;
   signOut: () => Promise<void>;
+  signInWithEmail: (email: string, password: string) => Promise<void>;
+  signInWithUsername: (username: string, password: string) => Promise<void>;
+  signUpWithEmail: (email: string, password: string, name: string, username?: string) => Promise<void>;
+  signInWithGoogle: () => Promise<void>;
+  resetPassword: (email: string) => Promise<void>;
+  updatePassword: (newPassword: string) => Promise<void>;
+  updateProfile: (data: Partial<Profile>) => Promise<boolean>;
+  updateSettings: (settings: Partial<UserSettings>) => Promise<void>;
+  checkUsernameAvailability: (username: string) => Promise<boolean>;
+  uploadAvatar: (file: File) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -29,12 +53,15 @@ export const useAuth = () => {
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [settings, setSettings] = useState<UserSettings | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        setSession(session);
         setUser(session?.user ?? null);
         
         if (session?.user) {
@@ -46,8 +73,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             .single();
           
           setProfile(profileData);
+
+          // Fetch settings
+          const { data: settingsData } = await supabase
+            .from('user_settings')
+            .select('*')
+            .eq('user_id', session.user.id)
+            .single();
+          
+          setSettings(settingsData || { theme: 'light', notifications: true, language: 'pt' });
         } else {
           setProfile(null);
+          setSettings(null);
         }
         
         setLoading(false);
@@ -61,11 +98,246 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     await supabase.auth.signOut();
   };
 
+  const signInWithEmail = async (email: string, password: string) => {
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        toast.error(error.message);
+        throw error;
+      }
+
+      toast.success('Login realizado com sucesso!');
+    } catch (error) {
+      console.error('Error signing in with email:', error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const signInWithUsername = async (username: string, password: string) => {
+    setLoading(true);
+    try {
+      // First, get the email associated with the username
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('email')
+        .eq('username', username)
+        .single();
+
+      if (profileError || !profileData) {
+        toast.error('Nome de usuário não encontrado');
+        throw new Error('Username not found');
+      }
+
+      // Then sign in with the email
+      await signInWithEmail(profileData.email, password);
+    } catch (error) {
+      console.error('Error signing in with username:', error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const signUpWithEmail = async (email: string, password: string, name: string, username?: string) => {
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            name,
+            username,
+          },
+          emailRedirectTo: `${window.location.origin}/`,
+        },
+      });
+
+      if (error) {
+        toast.error(error.message);
+        throw error;
+      }
+
+      toast.success('Conta criada com sucesso! Verifique seu email.');
+    } catch (error) {
+      console.error('Error signing up:', error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const signInWithGoogle = async () => {
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/`,
+        },
+      });
+
+      if (error) {
+        toast.error(error.message);
+        throw error;
+      }
+    } catch (error) {
+      console.error('Error signing in with Google:', error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const resetPassword = async (email: string) => {
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+
+      if (error) {
+        toast.error(error.message);
+        throw error;
+      }
+
+      toast.success('Email de redefinição enviado!');
+    } catch (error) {
+      console.error('Error resetting password:', error);
+      throw error;
+    }
+  };
+
+  const updatePassword = async (newPassword: string) => {
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword,
+      });
+
+      if (error) {
+        toast.error(error.message);
+        throw error;
+      }
+
+      toast.success('Senha alterada com sucesso!');
+    } catch (error) {
+      console.error('Error updating password:', error);
+      throw error;
+    }
+  };
+
+  const updateProfile = async (data: Partial<Profile>) => {
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          ...data,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', user?.id);
+
+      if (error) {
+        toast.error('Erro ao atualizar perfil');
+        throw error;
+      }
+
+      // Update local state
+      setProfile(prev => prev ? { ...prev, ...data } : null);
+      toast.success('Perfil atualizado com sucesso!');
+      return true;
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      return false;
+    }
+  };
+
+  const updateSettings = async (newSettings: Partial<UserSettings>) => {
+    try {
+      const { error } = await supabase
+        .from('user_settings')
+        .update(newSettings)
+        .eq('user_id', user?.id);
+
+      if (error) {
+        toast.error('Erro ao atualizar configurações');
+        throw error;
+      }
+
+      setSettings(prev => prev ? { ...prev, ...newSettings } : null);
+      toast.success('Configurações atualizadas!');
+    } catch (error) {
+      console.error('Error updating settings:', error);
+      throw error;
+    }
+  };
+
+  const checkUsernameAvailability = async (username: string) => {
+    try {
+      const { data } = await supabase.rpc('check_username_availability', {
+        check_username: username,
+      });
+
+      return data;
+    } catch (error) {
+      console.error('Error checking username availability:', error);
+      return false;
+    }
+  };
+
+  const uploadAvatar = async (file: File) => {
+    try {
+      if (!user) throw new Error('User not authenticated');
+
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}/avatar.${fileExt}`;
+
+      // For now, we'll just store the avatar URL in local storage
+      // In a real implementation, you'd upload to Supabase Storage
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const dataUrl = e.target?.result as string;
+        
+        // Store in localStorage for demo purposes
+        const avatars = JSON.parse(localStorage.getItem('user_avatars') || '{}');
+        avatars[user.id] = dataUrl;
+        localStorage.setItem('user_avatars', JSON.stringify(avatars));
+
+        // Update profile
+        await updateProfile({ avatar_url: fileName });
+      };
+      reader.readAsDataURL(file);
+
+      toast.success('Avatar atualizado com sucesso!');
+    } catch (error) {
+      console.error('Error uploading avatar:', error);
+      toast.error('Erro ao fazer upload do avatar');
+      throw error;
+    }
+  };
+
   const value = {
     user,
     profile,
+    session,
+    settings,
     loading,
-    signOut
+    signOut,
+    signInWithEmail,
+    signInWithUsername,
+    signUpWithEmail,
+    signInWithGoogle,
+    resetPassword,
+    updatePassword,
+    updateProfile,
+    updateSettings,
+    checkUsernameAvailability,
+    uploadAvatar,
   };
 
   return (
