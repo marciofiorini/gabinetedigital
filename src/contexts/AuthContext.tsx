@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
@@ -16,23 +15,11 @@ interface Profile {
   created_at?: string;
 }
 
-interface UserSettings {
-  theme: string;
-  language: string;
-  notifications: boolean;
-  email_notifications: boolean;
-  push_notifications: boolean;
-  dark_mode: boolean;
-  timezone: string;
-  keyboard_shortcuts_enabled: boolean;
-  tour_completed: boolean;
-}
-
 interface AuthContextType {
   user: User | null;
   profile: Profile | null;
   session: Session | null;
-  settings: UserSettings | null;
+  settings: any | null;
   loading: boolean;
   signOut: () => Promise<void>;
   signInWithEmail: (email: string, password: string) => Promise<void>;
@@ -42,7 +29,7 @@ interface AuthContextType {
   resetPassword: (email: string) => Promise<void>;
   updatePassword: (newPassword: string) => Promise<void>;
   updateProfile: (data: Partial<Profile>) => Promise<boolean>;
-  updateSettings: (settings: Partial<UserSettings>) => Promise<void>;
+  updateSettings: (settings: any) => Promise<void>;
   checkUsernameAvailability: (username: string) => Promise<boolean>;
   uploadAvatar: (file: File) => Promise<void>;
 }
@@ -61,7 +48,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [settings, setSettings] = useState<UserSettings | null>(null);
+  const [settings, setSettings] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -287,7 +274,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const updateSettings = async (newSettings: Partial<UserSettings>) => {
+  const updateSettings = async (newSettings: any) => {
     try {
       const updateData: Record<string, any> = {};
       
