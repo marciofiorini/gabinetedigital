@@ -147,7 +147,7 @@ export const VirtualAssistant = () => {
         content: response.content,
         role: 'assistant',
         timestamp: new Date(),
-        type: response.type || 'text'
+        type: (response.type as 'text' | 'action' | 'recommendation') || 'text'
       };
 
       setMessages(prev => [...prev, assistantMessage]);

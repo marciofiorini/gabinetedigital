@@ -1,10 +1,9 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { TrendingUp, Users, Calendar, Target, Download, Refresh } from 'lucide-react';
+import { TrendingUp, Users, Calendar, Target, Download, RefreshCw } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -87,7 +86,7 @@ export const AnalyticsDashboard = () => {
 
     const leadsPorFonte = Object.entries(fontes).map(([fonte, quantidade]) => ({
       fonte,
-      quantidade
+      quantidade: quantidade as number
     }));
 
     // Conversões por dia (últimos 7 dias)
@@ -191,7 +190,7 @@ export const AnalyticsDashboard = () => {
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={fetchAnalytics}>
-            <Refresh className="w-4 h-4 mr-2" />
+            <RefreshCw className="w-4 h-4 mr-2" />
             Atualizar
           </Button>
           <Button onClick={exportReport}>

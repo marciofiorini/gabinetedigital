@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -47,7 +46,21 @@ export const NotificationSystemAdvanced = () => {
         .limit(50);
 
       if (error) throw error;
-      setNotifications(data || []);
+      
+      // Mapear os dados para garantir que os tipos estão corretos
+      const mappedNotifications = (data || []).map(notification => ({
+        id: notification.id,
+        title: notification.title,
+        message: notification.message,
+        type: (['info', 'warning', 'error', 'success'].includes(notification.type) 
+          ? notification.type 
+          : 'info') as 'info' | 'warning' | 'error' | 'success',
+        read: notification.read,
+        created_at: notification.created_at,
+        action_url: notification.action_url
+      }));
+      
+      setNotifications(mappedNotifications);
     } catch (error) {
       console.error('Erro ao buscar notificações:', error);
     }
@@ -67,7 +80,18 @@ export const NotificationSystemAdvanced = () => {
           filter: `user_id=eq.${user.id}`
         },
         (payload) => {
-          const newNotification = payload.new as Notification;
+          const newNotification = {
+            id: payload.new.id,
+            title: payload.new.title,
+            message: payload.new.message,
+            type: (['info', 'warning', 'error', 'success'].includes(payload.new.type) 
+              ? payload.new.type 
+              : 'info') as 'info' | 'warning' | 'error' | 'success',
+            read: payload.new.read,
+            created_at: payload.new.created_at,
+            action_url: payload.new.action_url
+          };
+          
           setNotifications(prev => [newNotification, ...prev]);
           
           // Show toast notification
