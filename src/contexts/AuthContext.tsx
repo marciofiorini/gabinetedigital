@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
@@ -65,6 +66,46 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
+// Input validation functions
+const validateEmail = (email: string): boolean => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+};
+
+const validatePassword = (password: string): boolean => {
+  // Minimum 8 characters, at least one uppercase, one lowercase, one number
+  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d@$!%*?&]{8,}$/;
+  return passwordRegex.test(password);
+};
+
+const sanitizeInput = (input: string): string => {
+  return input.replace(/[<>]/g, '');
+};
+
+// Rate limiting for authentication attempts
+let failedAttempts: Map<string, number> = new Map();
+let lastAttemptTime: Map<string, number> = new Map();
+
+const checkRateLimit = (email: string): boolean => {
+  const now = Date.now();
+  const attempts = failedAttempts.get(email) || 0;
+  const lastTime = lastAttemptTime.get(email) || 0;
+  
+  // Reset counter if more than 15 minutes have passed
+  if (now - lastTime > 15 * 60 * 1000) {
+    failedAttempts.set(email, 0);
+    return false;
+  }
+  
+  return attempts >= 5;
+};
+
+const recordFailedAttempt = (email: string) => {
+  const current = failedAttempts.get(email) || 0;
+  failedAttempts.set(email, current + 1);
+  lastAttemptTime.set(email, Date.now());
+};
+
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   console.log('AuthProvider: Componente iniciado');
   
@@ -108,6 +149,22 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  const logSecurityEvent = async (action: string, details?: any) => {
+    try {
+      await supabase.from('access_logs').insert({
+        user_id: user?.id || null,
+        changed_by: user?.id || null,
+        action,
+        module: 'authentication',
+        changes: details ? JSON.stringify(details) : null,
+        ip_address: null, // Would need additional setup to get real IP
+        user_agent: navigator.userAgent
+      });
+    } catch (error) {
+      console.error('Error logging security event:', error);
+    }
+  };
+
   useEffect(() => {
     console.log('AuthProvider: useEffect iniciado');
     
@@ -123,6 +180,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         if (session?.user) {
           await fetchProfile(session.user.id);
           await fetchSettings(session.user.id);
+          await logSecurityEvent('session_validated');
         }
         
         setLoading(false);
@@ -142,8 +200,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          await fetchProfile(session.user.id);
-          await fetchSettings(session.user.id);
+          // Use setTimeout to prevent infinite recursion
+          setTimeout(() => {
+            fetchProfile(session.user.id);
+            fetchSettings(session.user.id);
+          }, 0);
+          
+          await logSecurityEvent('auth_state_change', { event });
         } else {
           setProfile(null);
           setSettings(null);
@@ -159,20 +222,36 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const signUp = async (email: string, password: string, userData?: any) => {
     try {
       console.log('AuthProvider: Tentando criar conta para:', email);
+      
+      // Input validation
+      if (!validateEmail(email)) {
+        throw new Error('Email inválido');
+      }
+      
+      if (!validatePassword(password)) {
+        throw new Error('Senha deve ter pelo menos 8 caracteres, incluindo maiúscula, minúscula e número');
+      }
+
+      const sanitizedEmail = sanitizeInput(email);
+      const redirectUrl = `${window.location.origin}/`;
+      
       const { data, error } = await supabase.auth.signUp({
-        email,
+        email: sanitizedEmail,
         password,
         options: {
-          data: userData
+          data: userData,
+          emailRedirectTo: redirectUrl
         }
       });
       
       if (error) throw error;
       
+      await logSecurityEvent('sign_up_attempt', { email: sanitizedEmail });
       toast.success('Conta criada com sucesso! Verifique seu email.');
       return { error: null };
     } catch (error: any) {
       console.error('AuthProvider: Erro ao criar conta:', error);
+      await logSecurityEvent('sign_up_failed', { email, error: error.message });
       toast.error(error.message || 'Erro ao criar conta');
       return { error };
     }
@@ -181,14 +260,36 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const signIn = async (email: string, password: string) => {
     try {
       console.log('AuthProvider: Tentando fazer login para:', email);
+      
+      // Input validation
+      if (!validateEmail(email)) {
+        throw new Error('Email inválido');
+      }
+
+      const sanitizedEmail = sanitizeInput(email);
+      
+      // Check rate limiting
+      if (checkRateLimit(sanitizedEmail)) {
+        throw new Error('Muitas tentativas de login. Tente novamente em 15 minutos.');
+      }
+      
       const { data, error } = await supabase.auth.signInWithPassword({
-        email,
+        email: sanitizedEmail,
         password
       });
       
-      if (error) throw error;
+      if (error) {
+        recordFailedAttempt(sanitizedEmail);
+        await logSecurityEvent('login_failed', { email: sanitizedEmail, error: error.message });
+        throw error;
+      }
+      
+      // Reset failed attempts on successful login
+      failedAttempts.delete(sanitizedEmail);
+      lastAttemptTime.delete(sanitizedEmail);
       
       console.log('AuthProvider: Login realizado com sucesso');
+      await logSecurityEvent('login_success', { email: sanitizedEmail });
       toast.success('Login realizado com sucesso!');
       return { error: null };
     } catch (error: any) {
@@ -201,6 +302,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const signOut = async () => {
     try {
       console.log('AuthProvider: Fazendo logout');
+      await logSecurityEvent('logout');
       await supabase.auth.signOut();
       toast.success('Logout realizado com sucesso!');
     } catch (error: any) {
@@ -213,21 +315,29 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     if (!user) return false;
 
     try {
+      // Sanitize text inputs
+      const sanitizedUpdates = {
+        ...updates,
+        name: updates.name ? sanitizeInput(updates.name) : updates.name,
+        bio: updates.bio ? sanitizeInput(updates.bio) : updates.bio,
+        location: updates.location ? sanitizeInput(updates.location) : updates.location,
+        updated_at: new Date().toISOString()
+      };
+
       const { error } = await supabase
         .from('profiles')
-        .update({
-          ...updates,
-          updated_at: new Date().toISOString()
-        })
+        .update(sanitizedUpdates)
         .eq('id', user.id);
 
       if (error) throw error;
 
       await fetchProfile(user.id);
+      await logSecurityEvent('profile_updated', { updates: Object.keys(updates) });
       toast.success('Perfil atualizado com sucesso!');
       return true;
     } catch (error: any) {
       console.error('Error updating profile:', error);
+      await logSecurityEvent('profile_update_failed', { error: error.message });
       toast.error('Erro ao atualizar perfil');
       return false;
     }
@@ -235,17 +345,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const updatePassword = async (newPassword: string) => {
     try {
+      if (!validatePassword(newPassword)) {
+        throw new Error('Senha deve ter pelo menos 8 caracteres, incluindo maiúscula, minúscula e número');
+      }
+
       const { error } = await supabase.auth.updateUser({
         password: newPassword
       });
 
       if (error) throw error;
 
+      await logSecurityEvent('password_updated');
       toast.success('Senha atualizada com sucesso!');
       return true;
     } catch (error: any) {
       console.error('Error updating password:', error);
-      toast.error('Erro ao atualizar senha');
+      await logSecurityEvent('password_update_failed', { error: error.message });
+      toast.error(error.message || 'Erro ao atualizar senha');
       return false;
     }
   };
@@ -265,10 +381,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (error) throw error;
 
       await fetchSettings(user.id);
+      await logSecurityEvent('settings_updated', { updates: Object.keys(updates) });
       toast.success('Configurações atualizadas com sucesso!');
       return true;
     } catch (error: any) {
       console.error('Error updating settings:', error);
+      await logSecurityEvent('settings_update_failed', { error: error.message });
       toast.error('Erro ao atualizar configurações');
       return false;
     }
@@ -276,23 +394,35 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const resetPassword = async (email: string) => {
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email);
+      if (!validateEmail(email)) {
+        throw new Error('Email inválido');
+      }
+
+      const sanitizedEmail = sanitizeInput(email);
+      const redirectUrl = `${window.location.origin}/reset-password`;
+      
+      const { error } = await supabase.auth.resetPasswordForEmail(sanitizedEmail, {
+        redirectTo: redirectUrl
+      });
       
       if (error) throw error;
       
+      await logSecurityEvent('password_reset_requested', { email: sanitizedEmail });
       toast.success('Email de recuperação enviado!');
       return { error: null };
     } catch (error: any) {
       console.error('Error resetting password:', error);
-      toast.error('Erro ao enviar email de recuperação');
+      await logSecurityEvent('password_reset_failed', { email, error: error.message });
+      toast.error(error.message || 'Erro ao enviar email de recuperação');
       return { error };
     }
   };
 
   const checkUsernameAvailability = async (username: string): Promise<boolean> => {
     try {
+      const sanitizedUsername = sanitizeInput(username);
       const { data, error } = await supabase.rpc('check_username_availability', {
-        check_username: username
+        check_username: sanitizedUsername
       });
 
       if (error) throw error;
@@ -307,8 +437,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     if (!user) return false;
 
     try {
-      // For demo purposes, we'll store the avatar in local storage
-      // In production, you would upload to Supabase storage
+      // Validate file type and size
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+      if (!allowedTypes.includes(file.type)) {
+        throw new Error('Formato de arquivo não suportado. Use JPEG, PNG ou WebP.');
+      }
+
+      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+        throw new Error('Arquivo muito grande. Máximo 5MB.');
+      }
+
+      // For now, store locally until Supabase Storage is configured
       const reader = new FileReader();
       reader.onload = () => {
         const avatars = JSON.parse(localStorage.getItem('user_avatars') || '{}');
@@ -318,11 +457,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       reader.readAsDataURL(file);
 
       await updateProfile({ avatar_url: `local_${user.id}` });
+      await logSecurityEvent('avatar_uploaded', { fileSize: file.size, fileType: file.type });
       toast.success('Avatar atualizado com sucesso!');
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error uploading avatar:', error);
-      toast.error('Erro ao fazer upload do avatar');
+      await logSecurityEvent('avatar_upload_failed', { error: error.message });
+      toast.error(error.message || 'Erro ao fazer upload do avatar');
       return false;
     }
   };
