@@ -48,9 +48,6 @@ import ProjetosFinanceiro from '@/pages/ProjetosFinanceiro';
 import SistemaVotacoes from '@/pages/SistemaVotacoes';
 import GaleriaFotos from '@/pages/GaleriaFotos';
 import Ajuda from '@/pages/Ajuda';
-import { LoginForm } from '@/components/LoginForm';
-import ResetPassword from '@/pages/ResetPassword';
-import NotFound from '@/pages/NotFound';
 
 const queryClient = new QueryClient({
   defaultOptions: {
