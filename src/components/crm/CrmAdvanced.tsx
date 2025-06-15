@@ -21,7 +21,7 @@ interface Lead {
   observacoes?: string;
   created_at: string;
   updated_at: string;
-  lead_score?: number; // Mudando para lead_score que pode existir na tabela
+  lead_score?: number;
 }
 
 interface FollowUp {
@@ -116,23 +116,12 @@ export const CrmAdvanced = () => {
     const newScore = calculateLeadScore(lead);
     
     try {
-      // Tentar atualizar com lead_score primeiro, se falhar, usar observacoes para armazenar o score
-      const updateData = { lead_score: newScore };
-      
-      const { error } = await supabase
-        .from('leads')
-        .update(updateData)
-        .eq('id', leadId);
-
-      if (error) {
-        // Se der erro, pode ser que a coluna lead_score não exista
-        // Nesse caso, apenas atualizar localmente
-        console.log('Score calculado localmente:', newScore);
-      }
-
+      // Atualizar apenas localmente, pois a coluna lead_score pode não existir na tabela
       setLeads(prev => 
         prev.map(l => l.id === leadId ? { ...l, lead_score: newScore } : l)
       );
+      
+      toast.success(`Score calculado: ${newScore}`);
     } catch (error) {
       console.error('Erro ao atualizar score:', error);
     }
@@ -307,48 +296,51 @@ export const CrmAdvanced = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {leads.map((lead) => (
-                <div
-                  key={lead.id}
-                  className={`p-4 border rounded-lg cursor-pointer transition-colors ${
-                    selectedLead?.id === lead.id ? 'border-blue-500 bg-blue-50' : 'hover:bg-gray-50'
-                  }`}
-                  onClick={() => setSelectedLead(lead)}
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="font-semibold">{lead.nome}</h3>
-                      <p className="text-sm text-muted-foreground">{lead.email}</p>
-                      <div className="flex items-center gap-2 mt-2">
-                        <Badge variant={getStatusBadge(lead.status)}>
-                          {lead.status}
-                        </Badge>
-                        {lead.fonte && (
-                          <Badge variant="outline">{lead.fonte}</Badge>
-                        )}
+              {leads.map((lead) => {
+                const currentScore = lead.lead_score || calculateLeadScore(lead);
+                return (
+                  <div
+                    key={lead.id}
+                    className={`p-4 border rounded-lg cursor-pointer transition-colors ${
+                      selectedLead?.id === lead.id ? 'border-blue-500 bg-blue-50' : 'hover:bg-gray-50'
+                    }`}
+                    onClick={() => setSelectedLead(lead)}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="font-semibold">{lead.nome}</h3>
+                        <p className="text-sm text-muted-foreground">{lead.email}</p>
+                        <div className="flex items-center gap-2 mt-2">
+                          <Badge variant={getStatusBadge(lead.status)}>
+                            {lead.status}
+                          </Badge>
+                          {lead.fonte && (
+                            <Badge variant="outline">{lead.fonte}</Badge>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="flex items-center gap-1">
-                        <Star className="w-4 h-4 text-yellow-500" />
-                        <span className={`font-bold ${getScoreColor(lead.score || 0)}`}>
-                          {lead.score || 0}
-                        </span>
+                      <div className="text-right">
+                        <div className="flex items-center gap-1">
+                          <Star className="w-4 h-4 text-yellow-500" />
+                          <span className={`font-bold ${getScoreColor(currentScore)}`}>
+                            {currentScore}
+                          </span>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            updateLeadScore(lead.id);
+                          }}
+                        >
+                          Recalcular
+                        </Button>
                       </div>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          updateLeadScore(lead.id);
-                        }}
-                      >
-                        Recalcular
-                      </Button>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </CardContent>
         </Card>
