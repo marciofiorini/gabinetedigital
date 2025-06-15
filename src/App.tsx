@@ -5,6 +5,9 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/sonner';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { ProtectedLayout } from '@/components/ProtectedLayout';
+import { LoginForm } from '@/components/LoginForm';
+import ResetPassword from '@/pages/ResetPassword';
+import NotFound from '@/pages/NotFound';
 
 // Pages
 import Index from '@/pages/Index';
@@ -59,6 +62,8 @@ const queryClient = new QueryClient({
 });
 
 function App() {
+  console.log('App.tsx: Componente App renderizado');
+  
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>

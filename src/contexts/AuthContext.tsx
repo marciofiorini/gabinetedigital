@@ -1,8 +1,9 @@
-
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
 import { toast } from 'sonner';
+
+console.log('AuthContext.tsx: Módulo carregado');
 
 interface Profile {
   id: string;
@@ -65,6 +66,8 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+  console.log('AuthProvider: Componente iniciado');
+  
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [settings, setSettings] = useState<UserSettings | null>(null);
@@ -73,6 +76,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const fetchProfile = async (userId: string) => {
     try {
+      console.log('AuthProvider: Buscando perfil para usuário:', userId);
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -81,13 +85,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       if (error) throw error;
       setProfile(data);
+      console.log('AuthProvider: Perfil carregado:', data);
     } catch (error) {
-      console.error('Error fetching profile:', error);
+      console.error('AuthProvider: Erro ao buscar perfil:', error);
     }
   };
 
   const fetchSettings = async (userId: string) => {
     try {
+      console.log('AuthProvider: Buscando configurações para usuário:', userId);
       const { data, error } = await supabase
         .from('user_settings')
         .select('*')
@@ -96,29 +102,42 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       if (error) throw error;
       setSettings(data);
+      console.log('AuthProvider: Configurações carregadas:', data);
     } catch (error) {
-      console.error('Error fetching settings:', error);
+      console.error('AuthProvider: Erro ao buscar configurações:', error);
     }
   };
 
   useEffect(() => {
+    console.log('AuthProvider: useEffect iniciado');
+    
     const getSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      if (session?.user) {
-        await fetchProfile(session.user.id);
-        await fetchSettings(session.user.id);
+      try {
+        console.log('AuthProvider: Verificando sessão existente');
+        const { data: { session } } = await supabase.auth.getSession();
+        console.log('AuthProvider: Sessão obtida:', session);
+        
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        if (session?.user) {
+          await fetchProfile(session.user.id);
+          await fetchSettings(session.user.id);
+        }
+        
+        setLoading(false);
+        console.log('AuthProvider: Inicialização concluída');
+      } catch (error) {
+        console.error('AuthProvider: Erro na inicialização:', error);
+        setLoading(false);
       }
-      
-      setLoading(false);
     };
 
     getSession();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log('AuthProvider: Auth state changed:', event, session);
         setSession(session);
         setUser(session?.user ?? null);
         
@@ -139,6 +158,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const signUp = async (email: string, password: string, userData?: any) => {
     try {
+      console.log('AuthProvider: Tentando criar conta para:', email);
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -152,7 +172,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       toast.success('Conta criada com sucesso! Verifique seu email.');
       return { error: null };
     } catch (error: any) {
-      console.error('Error signing up:', error);
+      console.error('AuthProvider: Erro ao criar conta:', error);
       toast.error(error.message || 'Erro ao criar conta');
       return { error };
     }
@@ -160,6 +180,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const signIn = async (email: string, password: string) => {
     try {
+      console.log('AuthProvider: Tentando fazer login para:', email);
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
@@ -167,10 +188,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       if (error) throw error;
       
+      console.log('AuthProvider: Login realizado com sucesso');
       toast.success('Login realizado com sucesso!');
       return { error: null };
     } catch (error: any) {
-      console.error('Error signing in:', error);
+      console.error('AuthProvider: Erro no login:', error);
       toast.error(error.message || 'Erro ao fazer login');
       return { error };
     }
@@ -178,10 +200,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const signOut = async () => {
     try {
+      console.log('AuthProvider: Fazendo logout');
       await supabase.auth.signOut();
       toast.success('Logout realizado com sucesso!');
     } catch (error: any) {
-      console.error('Error signing out:', error);
+      console.error('AuthProvider: Erro no logout:', error);
       toast.error('Erro ao fazer logout');
     }
   };
@@ -320,6 +343,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     checkUsernameAvailability,
     uploadAvatar
   };
+
+  console.log('AuthProvider: Renderizando provider com valor:', { user: !!user, loading });
 
   return (
     <AuthContext.Provider value={value}>

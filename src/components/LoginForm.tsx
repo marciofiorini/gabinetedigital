@@ -5,30 +5,25 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
 import { Eye, EyeOff, Loader2, Mail, Lock } from 'lucide-react';
-import { SocialAuthButtons } from '@/components/SocialAuthButtons';
-import { ResetPasswordModal } from '@/components/ResetPasswordModal';
 
-interface LoginFormProps {
-  onToggleSignUp?: () => void;
-}
-
-export const LoginForm: React.FC<LoginFormProps> = ({ onToggleSignUp }) => {
+export const LoginForm: React.FC = () => {
+  console.log('LoginForm: Componente renderizado');
+  
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [showResetModal, setShowResetModal] = useState(false);
   
   const { signIn } = useAuth();
-
-  console.log('LoginForm: Componente renderizado');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    console.log('LoginForm: Formulário submetido');
+    
     if (!email || !password) {
+      console.log('LoginForm: Email ou senha vazios');
       return;
     }
 
@@ -38,7 +33,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onToggleSignUp }) => {
       console.log('LoginForm: Tentando fazer login');
       await signIn(email, password);
     } catch (error) {
-      console.error('Login error:', error);
+      console.error('LoginForm: Erro no login:', error);
     } finally {
       setIsLoading(false);
     }
@@ -107,42 +102,8 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onToggleSignUp }) => {
               )}
             </Button>
           </form>
-
-          <div className="text-center">
-            <button
-              type="button"
-              onClick={() => setShowResetModal(true)}
-              className="text-sm text-blue-600 hover:text-blue-500 underline"
-            >
-              Esqueceu sua senha?
-            </button>
-          </div>
-
-          <Separator />
-
-          <SocialAuthButtons />
-
-          {onToggleSignUp && (
-            <div className="text-center">
-              <span className="text-sm text-gray-600">
-                Não tem uma conta?{' '}
-                <button
-                  type="button"
-                  onClick={onToggleSignUp}
-                  className="text-blue-600 hover:text-blue-500 underline"
-                >
-                  Criar conta
-                </button>
-              </span>
-            </div>
-          )}
         </CardContent>
       </Card>
-
-      <ResetPasswordModal 
-        open={showResetModal} 
-        onOpenChange={setShowResetModal} 
-      />
     </div>
   );
 };
