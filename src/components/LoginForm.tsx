@@ -137,8 +137,8 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onToggleSignUp }) => {
       </Card>
 
       <ResetPasswordModal 
-        isOpen={showResetModal} 
-        onClose={() => setShowResetModal(false)} 
+        open={showResetModal} 
+        onOpenChange={setShowResetModal} 
       />
     </>
   );

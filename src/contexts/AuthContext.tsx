@@ -46,6 +46,8 @@ interface AuthContextType {
   updatePassword: (newPassword: string) => Promise<boolean>;
   updateSettings: (updates: Partial<UserSettings>) => Promise<boolean>;
   resetPassword: (email: string) => Promise<{ error?: any }>;
+  checkUsernameAvailability: (username: string) => Promise<boolean>;
+  uploadAvatar: (file: File) => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -264,6 +266,44 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  const checkUsernameAvailability = async (username: string): Promise<boolean> => {
+    try {
+      const { data, error } = await supabase.rpc('check_username_availability', {
+        check_username: username
+      });
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error checking username availability:', error);
+      return false;
+    }
+  };
+
+  const uploadAvatar = async (file: File): Promise<boolean> => {
+    if (!user) return false;
+
+    try {
+      // For demo purposes, we'll store the avatar in local storage
+      // In production, you would upload to Supabase storage
+      const reader = new FileReader();
+      reader.onload = () => {
+        const avatars = JSON.parse(localStorage.getItem('user_avatars') || '{}');
+        avatars[user.id] = reader.result;
+        localStorage.setItem('user_avatars', JSON.stringify(avatars));
+      };
+      reader.readAsDataURL(file);
+
+      await updateProfile({ avatar_url: `local_${user.id}` });
+      toast.success('Avatar atualizado com sucesso!');
+      return true;
+    } catch (error) {
+      console.error('Error uploading avatar:', error);
+      toast.error('Erro ao fazer upload do avatar');
+      return false;
+    }
+  };
+
   const value: AuthContextType = {
     user,
     profile,
@@ -276,7 +316,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     updateProfile,
     updatePassword,
     updateSettings,
-    resetPassword
+    resetPassword,
+    checkUsernameAvailability,
+    uploadAvatar
   };
 
   return (
