@@ -38,8 +38,13 @@ interface AuthContextType {
   settings: UserSettings | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<boolean>;
+  signInWithEmail: (email: string, password: string) => Promise<boolean>;
+  signInWithUsername: (username: string, password: string) => Promise<boolean>;
   signUp: (email: string, password: string, name: string) => Promise<boolean>;
+  signUpWithEmail: (email: string, password: string, name: string) => Promise<boolean>;
+  signInWithGoogle: () => Promise<boolean>;
   signOut: () => Promise<void>;
+  resetPassword: (email: string) => Promise<boolean>;
   updateProfile: (data: Partial<Profile>) => Promise<boolean>;
   updatePassword: (newPassword: string) => Promise<boolean>;
   updateSettings: (data: Partial<UserSettings>) => Promise<boolean>;
@@ -141,6 +146,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const signInWithEmail = async (email: string, password: string): Promise<boolean> => {
+    return signIn(email, password);
+  };
+
+  const signInWithUsername = async (username: string, password: string): Promise<boolean> => {
+    try {
+      // First, find the email associated with the username
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('email')
+        .eq('username', username)
+        .single();
+
+      if (profileError || !profileData) {
+        toast.error('Usuário não encontrado');
+        return false;
+      }
+
+      return signIn(profileData.email, password);
+    } catch (error) {
+      console.error('Sign in with username error:', error);
+      toast.error('Erro no login com username');
+      return false;
+    }
+  };
+
   const signUp = async (email: string, password: string, name: string): Promise<boolean> => {
     try {
       setLoading(true);
@@ -168,6 +199,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const signUpWithEmail = async (email: string, password: string, name: string): Promise<boolean> => {
+    return signUp(email, password, name);
+  };
+
+  const signInWithGoogle = async (): Promise<boolean> => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+      });
+      
+      if (error) {
+        toast.error(error.message);
+        return false;
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('Google sign in error:', error);
+      toast.error('Erro no login com Google');
+      return false;
+    }
+  };
+
   const signOut = async (): Promise<void> => {
     try {
       const { error } = await supabase.auth.signOut();
@@ -179,6 +233,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (error) {
       console.error('Sign out error:', error);
       toast.error('Erro no logout');
+    }
+  };
+
+  const resetPassword = async (email: string): Promise<boolean> => {
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email);
+      
+      if (error) {
+        toast.error(error.message);
+        return false;
+      }
+      
+      toast.success('Email de recuperação enviado!');
+      return true;
+    } catch (error) {
+      console.error('Reset password error:', error);
+      toast.error('Erro ao enviar email de recuperação');
+      return false;
     }
   };
 
@@ -298,8 +370,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     settings,
     loading,
     signIn,
+    signInWithEmail,
+    signInWithUsername,
     signUp,
+    signUpWithEmail,
+    signInWithGoogle,
     signOut,
+    resetPassword,
     updateProfile,
     updatePassword,
     updateSettings,

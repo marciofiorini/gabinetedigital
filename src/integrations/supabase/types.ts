@@ -769,6 +769,39 @@ export type Database = {
         }
         Relationships: []
       }
+      data_processing_log: {
+        Row: {
+          activity_type: string
+          created_at: string
+          data_processed: string[]
+          id: string
+          legal_basis: string
+          purpose: string
+          retention_period: string
+          user_id: string
+        }
+        Insert: {
+          activity_type: string
+          created_at?: string
+          data_processed?: string[]
+          id?: string
+          legal_basis: string
+          purpose: string
+          retention_period: string
+          user_id: string
+        }
+        Update: {
+          activity_type?: string
+          created_at?: string
+          data_processed?: string[]
+          id?: string
+          legal_basis?: string
+          purpose?: string
+          retention_period?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       demandas: {
         Row: {
           categoria: string | null
@@ -2079,6 +2112,45 @@ export type Database = {
           },
         ]
       }
+      user_consents: {
+        Row: {
+          consent_type: string
+          created_at: string
+          granted: boolean
+          granted_at: string
+          id: string
+          purpose: string
+          revoked_at: string | null
+          updated_at: string
+          user_id: string
+          version: string
+        }
+        Insert: {
+          consent_type: string
+          created_at?: string
+          granted?: boolean
+          granted_at?: string
+          id?: string
+          purpose: string
+          revoked_at?: string | null
+          updated_at?: string
+          user_id: string
+          version?: string
+        }
+        Update: {
+          consent_type?: string
+          created_at?: string
+          granted?: boolean
+          granted_at?: string
+          id?: string
+          purpose?: string
+          revoked_at?: string | null
+          updated_at?: string
+          user_id?: string
+          version?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           granted_at: string | null
@@ -2264,6 +2336,10 @@ export type Database = {
           p_changes?: Json
         }
         Returns: string
+      }
+      notify_consent_expiration: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
       track_failed_login: {
         Args: { p_email: string; p_ip_address?: string; p_user_agent?: string }
