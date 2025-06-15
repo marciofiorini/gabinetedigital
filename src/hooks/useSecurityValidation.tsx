@@ -23,18 +23,15 @@ export const useSecurityValidation = () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return false;
 
-      // Use existing validate_user_session function instead
-      const { data: isValid, error } = await supabase.rpc('validate_user_session', {
-        p_user_id: user.id,
-        p_session_timeout_minutes: 30
-      });
-
-      if (error) {
-        console.error('Session validation error:', error);
+      // Simple session validation - just check if session exists and is not expired
+      const now = new Date().getTime();
+      const sessionExpiry = session.expires_at ? session.expires_at * 1000 : 0;
+      
+      if (sessionExpiry && now > sessionExpiry) {
         return false;
       }
 
-      return Boolean(isValid);
+      return true;
     } catch (error) {
       console.error('Session validation failed:', error);
       return false;
