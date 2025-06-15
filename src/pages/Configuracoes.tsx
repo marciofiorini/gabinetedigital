@@ -4,11 +4,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { NotificationSettings } from '@/components/NotificationSettings';
 import { PWAFeatures } from '@/components/PWAFeatures';
-import { Settings, Bell, Smartphone, Shield, Palette, Globe, User } from 'lucide-react';
+import { Settings, Bell, Smartphone, Shield, Palette, Globe, User, Database, FileCheck } from 'lucide-react';
 import { UserProfileSettings } from '@/components/UserProfileSettings';
 import { SecuritySettings } from '@/components/SecuritySettings';
 import { AppearanceSettings } from '@/components/AppearanceSettings';
 import { GeneralSettings } from '@/components/GeneralSettings';
+import { BackupSettings } from '@/components/BackupSettings';
+import { LGPDCompliance } from '@/components/LGPDCompliance';
+import { PrivacyReports } from '@/components/PrivacyReports';
 
 const Configuracoes = () => {
   return (
@@ -19,7 +22,7 @@ const Configuracoes = () => {
       </div>
 
       <Tabs defaultValue="perfil" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-8">
           <TabsTrigger value="perfil" className="flex items-center gap-2">
             <User className="w-4 h-4" />
             Perfil
@@ -39,6 +42,14 @@ const Configuracoes = () => {
           <TabsTrigger value="seguranca" className="flex items-center gap-2">
             <Shield className="w-4 h-4" />
             Segurança
+          </TabsTrigger>
+          <TabsTrigger value="backup" className="flex items-center gap-2">
+            <Database className="w-4 h-4" />
+            Backup
+          </TabsTrigger>
+          <TabsTrigger value="lgpd" className="flex items-center gap-2">
+            <FileCheck className="w-4 h-4" />
+            LGPD
           </TabsTrigger>
           <TabsTrigger value="aparencia" className="flex items-center gap-2">
             <Palette className="w-4 h-4" />
@@ -108,6 +119,17 @@ const Configuracoes = () => {
 
         <TabsContent value="seguranca">
           <SecuritySettings />
+        </TabsContent>
+
+        <TabsContent value="backup">
+          <BackupSettings />
+        </TabsContent>
+
+        <TabsContent value="lgpd">
+          <div className="space-y-6">
+            <LGPDCompliance />
+            <PrivacyReports />
+          </div>
         </TabsContent>
 
         <TabsContent value="aparencia">
