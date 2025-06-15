@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -434,16 +435,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log('Auth state changed:', event, session?.user?.email);
+      async (event, currentSession) => {
+        console.log('Auth state changed:', event, currentSession?.user?.email);
         
-        setSession(session);
-        setUser(session?.user ?? null);
+        setSession(currentSession);
+        setUser(currentSession?.user ?? null);
         
-        if (session?.user) {
+        if (currentSession?.user) {
           setTimeout(async () => {
-            const profileData = await fetchProfile(session.user.id);
-            const settingsData = await fetchSettings(session.user.id);
+            const profileData = await fetchProfile(currentSession.user.id);
+            const settingsData = await fetchSettings(currentSession.user.id);
             
             setProfile(profileData);
             setSettings(settingsData);
@@ -457,13 +458,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     );
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        setSession(session);
-        setUser(session.user);
+    supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
+      if (currentSession) {
+        setSession(currentSession);
+        setUser(currentSession.user);
         
-        fetchProfile(session.user.id).then(setProfile);
-        fetchSettings(session.user.id).then(setSettings);
+        fetchProfile(currentSession.user.id).then(setProfile);
+        fetchSettings(currentSession.user.id).then(setSettings);
       }
       setLoading(false);
     });
