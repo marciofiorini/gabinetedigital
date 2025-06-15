@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -38,6 +39,17 @@ interface ProfileUpdateData {
   avatar_url?: string;
 }
 
+interface SettingsUpdateData {
+  language?: string;
+  timezone?: string;
+  keyboard_shortcuts_enabled?: boolean;
+  theme?: string;
+  dark_mode?: boolean;
+  email_notifications?: boolean;
+  push_notifications?: boolean;
+  tour_completed?: boolean;
+}
+
 interface AuthContextType {
   user: User | null;
   profile: Profile | null;
@@ -51,7 +63,7 @@ interface AuthContextType {
   resetPassword: (email: string) => Promise<void>;
   updatePassword: (password: string) => Promise<void>;
   updateProfile: (data: ProfileUpdateData) => Promise<boolean>;
-  updateSettings: (data: Partial<UserSettings>) => Promise<boolean>;
+  updateSettings: (data: SettingsUpdateData) => Promise<boolean>;
   checkUsernameAvailability: (username: string) => Promise<boolean>;
   uploadAvatar: (file: File) => Promise<string | null>;
   signOut: () => Promise<void>;
@@ -343,7 +355,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const updateSettings = async (data: Partial<UserSettings>): Promise<boolean> => {
+  const updateSettings = async (data: SettingsUpdateData): Promise<boolean> => {
     try {
       if (!user) {
         throw new Error('Usuário não autenticado');
