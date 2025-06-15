@@ -21,7 +21,7 @@ interface Lead {
   observacoes?: string;
   created_at: string;
   updated_at: string;
-  lead_score?: number;
+  score?: number;
 }
 
 interface FollowUp {
@@ -116,9 +116,9 @@ export const CrmAdvanced = () => {
     const newScore = calculateLeadScore(lead);
     
     try {
-      // Atualizar apenas localmente, pois a coluna lead_score pode não existir na tabela
+      // Atualizar apenas localmente
       setLeads(prev => 
-        prev.map(l => l.id === leadId ? { ...l, lead_score: newScore } : l)
+        prev.map(l => l.id === leadId ? { ...l, score: newScore } : l)
       );
       
       toast.success(`Score calculado: ${newScore}`);
@@ -260,7 +260,7 @@ export const CrmAdvanced = () => {
                 <p className="text-sm text-muted-foreground">Score Médio</p>
                 <p className="text-2xl font-bold">
                   {leads.length > 0 ? Math.round(
-                    leads.reduce((acc, lead) => acc + (lead.lead_score || calculateLeadScore(lead)), 0) / leads.length
+                    leads.reduce((acc, lead) => acc + (lead.score || calculateLeadScore(lead)), 0) / leads.length
                   ) : 0}
                 </p>
               </div>
@@ -297,7 +297,7 @@ export const CrmAdvanced = () => {
           <CardContent>
             <div className="space-y-4">
               {leads.map((lead) => {
-                const currentScore = lead.lead_score || calculateLeadScore(lead);
+                const currentScore = lead.score || calculateLeadScore(lead);
                 return (
                   <div
                     key={lead.id}

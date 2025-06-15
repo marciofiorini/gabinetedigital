@@ -1,393 +1,275 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { MessageSquare, Send, Bot, User, Mic, Volume2 } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
+import { Bot, MessageSquare, Lightbulb, TrendingUp, Users } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
-interface Message {
+interface AssistantSuggestion {
   id: string;
-  content: string;
-  role: 'user' | 'assistant';
-  timestamp: Date;
-  type?: 'text' | 'action' | 'recommendation';
-}
-
-interface Recommendation {
-  id: string;
-  type: 'lead_followup' | 'campaign_optimization' | 'contact_engagement';
-  title: string;
-  description: string;
-  priority: 'high' | 'medium' | 'low';
-  action?: () => void;
+  tipo: 'lead_analysis' | 'campaign_suggestion' | 'automation' | 'insight';
+  titulo: string;
+  descricao: string;
+  dados_suporte: any;
+  confianca: number;
+  criado_em: string;
 }
 
 export const VirtualAssistant = () => {
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [inputValue, setInputValue] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
-  const [isListening, setIsListening] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [mensagem, setMensagem] = useState('');
+  const [conversas, setConversas] = useState<any[]>([]);
+  const [suggestions, setSuggestions] = useState<AssistantSuggestion[]>([]);
+  const [loading, setLoading] = useState(false);
   const { user } = useAuth();
 
   useEffect(() => {
     if (user) {
-      initializeAssistant();
-      generateRecommendations();
+      generateSuggestions();
     }
   }, [user]);
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  const initializeAssistant = () => {
-    const welcomeMessage: Message = {
-      id: Date.now().toString(),
-      content: `Olá! Sou seu assistente virtual de CRM. Posso ajudar você com análises de leads, sugestões de campanhas, automação de follow-ups e muito mais. Como posso ajudar hoje?`,
-      role: 'assistant',
-      timestamp: new Date(),
-      type: 'text'
-    };
-    setMessages([welcomeMessage]);
-  };
-
-  const generateRecommendations = async () => {
+  const generateSuggestions = async () => {
     if (!user) return;
 
     try {
-      // Buscar dados para gerar recomendações
+      // Buscar dados para gerar sugestões
       const { data: leads } = await supabase
         .from('leads')
         .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
+        .eq('user_id', user.id);
 
-      const { data: followUps } = await supabase
-        .from('follow_ups')
+      const { data: contatos } = await supabase
+        .from('contatos')
         .select('*')
-        .eq('user_id', user.id)
-        .eq('status', 'pendente');
+        .eq('user_id', user.id);
 
-      const recs: Recommendation[] = [];
+      // Gerar sugestões baseadas nos dados
+      const newSuggestions: AssistantSuggestion[] = [];
 
-      // Recomendação de follow-up para leads sem resposta
-      const staleLeads = leads?.filter(lead => {
-        const daysSinceCreated = Math.floor(
-          (Date.now() - new Date(lead.created_at).getTime()) / (1000 * 60 * 60 * 24)
-        );
-        return daysSinceCreated > 3 && lead.status === 'novo';
-      }) || [];
-
-      if (staleLeads.length > 0) {
-        recs.push({
-          id: 'followup_stale_leads',
-          type: 'lead_followup',
-          title: `${staleLeads.length} leads precisam de follow-up`,
-          description: 'Leads antigos sem contato podem estar perdendo interesse',
-          priority: 'high',
-          action: () => {
-            toast.success('Criando follow-ups automáticos...');
-          }
-        });
-      }
-
-      // Recomendação de otimização de campanha
-      if (leads && leads.length > 10) {
-        const conversionRate = (leads.filter(l => l.status === 'convertido').length / leads.length) * 100;
-        if (conversionRate < 15) {
-          recs.push({
-            id: 'optimize_campaign',
-            type: 'campaign_optimization',
-            title: 'Taxa de conversão baixa detectada',
-            description: `Sua taxa atual é ${conversionRate.toFixed(1)}%. Posso sugerir melhorias.`,
-            priority: 'medium'
+      // Análise de leads
+      if (leads && leads.length > 0) {
+        const leadsNovos = leads.filter(l => l.status === 'novo').length;
+        if (leadsNovos > 5) {
+          newSuggestions.push({
+            id: 'lead-analysis-1',
+            tipo: 'lead_analysis',
+            titulo: 'Muitos leads novos detectados',
+            descricao: `Você tem ${leadsNovos} leads novos. Recomendo criar uma campanha de follow-up automatizada.`,
+            dados_suporte: { count: leadsNovos },
+            confianca: 85,
+            criado_em: new Date().toISOString()
           });
         }
       }
 
-      setRecommendations(recs);
+      // Sugestão de campanha
+      if (contatos && contatos.length > 10) {
+        newSuggestions.push({
+          id: 'campaign-1',
+          tipo: 'campaign_suggestion',
+          titulo: 'Oportunidade de engajamento',
+          descricao: `Com ${contatos.length} contatos, você pode criar uma campanha segmentada para aumentar o engajamento.`,
+          dados_suporte: { total_contatos: contatos.length },
+          confianca: 90,
+          criado_em: new Date().toISOString()
+        });
+      }
+
+      setSuggestions(newSuggestions);
     } catch (error) {
-      console.error('Erro ao gerar recomendações:', error);
+      console.error('Erro ao gerar sugestões:', error);
     }
   };
 
-  const processMessage = async (content: string) => {
-    if (!content.trim() || !user) return;
+  const handleSendMessage = async () => {
+    if (!mensagem.trim() || !user) return;
 
-    const userMessage: Message = {
+    setLoading(true);
+    const novaMensagem = {
       id: Date.now().toString(),
-      content: content.trim(),
-      role: 'user',
-      timestamp: new Date(),
-      type: 'text'
+      tipo: 'user',
+      conteudo: mensagem,
+      timestamp: new Date().toISOString()
     };
 
-    setMessages(prev => [...prev, userMessage]);
-    setInputValue('');
-    setIsLoading(true);
+    setConversas(prev => [...prev, novaMensagem]);
 
     try {
-      // Simular processamento de IA
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      const response = await generateAIResponse(content);
+      // Simular resposta da IA
+      const resposta = await generateAIResponse(mensagem);
       
-      const assistantMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        content: response.content,
-        role: 'assistant',
-        timestamp: new Date(),
-        type: (response.type as 'text' | 'action' | 'recommendation') || 'text'
+      const respostaIA = {
+        id: Date.now().toString() + '_ai',
+        tipo: 'assistant',
+        conteudo: resposta,
+        timestamp: new Date().toISOString()
       };
 
-      setMessages(prev => [...prev, assistantMessage]);
+      setConversas(prev => [...prev, respostaIA]);
+      setMensagem('');
     } catch (error) {
       console.error('Erro ao processar mensagem:', error);
-      toast.error('Erro ao processar sua solicitação');
+      toast.error('Erro ao processar sua mensagem');
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
-  const generateAIResponse = async (input: string): Promise<{ content: string; type?: string }> => {
-    const lowerInput = input.toLowerCase();
-
-    // Análise de leads
-    if (lowerInput.includes('lead') || lowerInput.includes('prospect')) {
-      const { data: leads } = await supabase
-        .from('leads')
-        .select('*')
-        .eq('user_id', user!.id);
-
-      const totalLeads = leads?.length || 0;
-      const newLeads = leads?.filter(l => l.status === 'novo').length || 0;
-      const convertedLeads = leads?.filter(l => l.status === 'convertido').length || 0;
-      const conversionRate = totalLeads > 0 ? (convertedLeads / totalLeads * 100).toFixed(1) : '0';
-
-      return {
-        content: `📊 **Análise de Leads:**\n\n• Total de leads: ${totalLeads}\n• Leads novos: ${newLeads}\n• Leads convertidos: ${convertedLeads}\n• Taxa de conversão: ${conversionRate}%\n\n${newLeads > 5 ? '⚠️ Você tem muitos leads novos. Recomendo criar follow-ups automáticos!' : '✅ Sua pipeline está equilibrada.'}`,
-        type: 'text'
-      };
+  const generateAIResponse = async (mensagem: string): Promise<string> => {
+    // Simulação de resposta da IA baseada na mensagem
+    const lowerMessage = mensagem.toLowerCase();
+    
+    if (lowerMessage.includes('lead') || lowerMessage.includes('leads')) {
+      return 'Com base nos seus dados, vejo que você tem leads ativos. Recomendo focar nos leads com score alto e criar follow-ups personalizados.';
+    }
+    
+    if (lowerMessage.includes('campanha')) {
+      return 'Para suas campanhas, sugiro segmentar por zona e interesse. Isso pode aumentar a taxa de engajamento em até 40%.';
+    }
+    
+    if (lowerMessage.includes('contato') || lowerMessage.includes('contatos')) {
+      return 'Seus contatos podem ser organizados melhor com tags e segmentação. Isso facilitará campanhas direcionadas no futuro.';
     }
 
-    // Análise de campanhas
-    if (lowerInput.includes('campanha') || lowerInput.includes('marketing')) {
-      return {
-        content: `🎯 **Sugestões de Campanha:**\n\n• **Email Drip Campaign**: Para leads que não responderam em 3 dias\n• **Segmentação por Interesse**: Separar leads por área de interesse\n• **A/B Testing**: Testar diferentes assuntos de email\n• **Retargeting**: Focar em leads com alta pontuação\n\nQual tipo de campanha gostaria de criar?`,
-        type: 'recommendation'
-      };
-    }
-
-    // Análise de performance
-    if (lowerInput.includes('performance') || lowerInput.includes('resultado')) {
-      return {
-        content: `📈 **Análise de Performance:**\n\n• **Melhor fonte de leads**: Website (45%)\n• **Horário ideal para contato**: 14h-16h\n• **Taxa de resposta**: 23% (acima da média!)\n• **Tempo médio de conversão**: 7 dias\n\n🔥 **Oportunidades identificadas:**\n• Otimizar follow-ups por WhatsApp\n• Implementar chatbot no site\n• Criar campanhas para fim de semana`,
-        type: 'text'
-      };
-    }
-
-    // Automação
-    if (lowerInput.includes('automação') || lowerInput.includes('automatizar')) {
-      return {
-        content: `🤖 **Automações Disponíveis:**\n\n1. **Follow-up Automático**\n   • Email 24h após primeiro contato\n   • WhatsApp após 3 dias sem resposta\n   • Ligação para leads quentes\n\n2. **Scoring Automático**\n   • Pontuação baseada em comportamento\n   • Priorização automática\n\n3. **Campanhas Inteligentes**\n   • Segmentação automática\n   • Personalização de conteúdo\n\nQual automação gostaria de configurar?`,
-        type: 'action'
-      };
-    }
-
-    // Resposta padrão
-    return {
-      content: `Entendi sua solicitação sobre "${input}". Como assistente de CRM, posso ajudar com:\n\n• 📊 Análise de leads e performance\n• 🎯 Sugestões de campanhas\n• 🤖 Configuração de automações\n• 📈 Relatórios e insights\n• 💡 Recomendações personalizadas\n\nSobre qual tópico gostaria de conversar?`,
-      type: 'text'
-    };
+    return 'Entendi sua pergunta. Com base nos dados do seu gabinete, posso ajudar com análises de leads, sugestões de campanhas e automações. O que gostaria de saber especificamente?';
   };
 
-  const startVoiceRecognition = () => {
-    if ('webkitSpeechRecognition' in window) {
-      const recognition = new (window as any).webkitSpeechRecognition();
-      recognition.lang = 'pt-BR';
-      recognition.continuous = false;
-      recognition.interimResults = false;
-
-      recognition.onstart = () => {
-        setIsListening(true);
-      };
-
-      recognition.onresult = (event: any) => {
-        const transcript = event.results[0][0].transcript;
-        setInputValue(transcript);
-        setIsListening(false);
-      };
-
-      recognition.onerror = () => {
-        setIsListening(false);
-        toast.error('Erro no reconhecimento de voz');
-      };
-
-      recognition.onend = () => {
-        setIsListening(false);
-      };
-
-      recognition.start();
-    } else {
-      toast.error('Reconhecimento de voz não suportado');
+  const applySuggestion = async (suggestion: AssistantSuggestion) => {
+    try {
+      // Aqui implementaríamos a aplicação da sugestão
+      toast.success(`Aplicando sugestão: ${suggestion.titulo}`);
+      
+      // Remover a sugestão aplicada
+      setSuggestions(prev => prev.filter(s => s.id !== suggestion.id));
+    } catch (error) {
+      console.error('Erro ao aplicar sugestão:', error);
+      toast.error('Erro ao aplicar sugestão');
     }
   };
 
-  const speakText = (text: string) => {
-    if ('speechSynthesis' in window) {
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'pt-BR';
-      speechSynthesis.speak(utterance);
+  const getSuggestionIcon = (tipo: string) => {
+    switch (tipo) {
+      case 'lead_analysis': return <Users className="w-4 h-4" />;
+      case 'campaign_suggestion': return <TrendingUp className="w-4 h-4" />;
+      case 'automation': return <Bot className="w-4 h-4" />;
+      default: return <Lightbulb className="w-4 h-4" />;
     }
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      {/* Chat Interface */}
-      <Card className="lg:col-span-2">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Bot className="w-5 h-5" />
-            Assistente Virtual CRM
-          </CardTitle>
-          <CardDescription>
-            Seu assistente inteligente para gestão de relacionamento
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col h-96">
-            {/* Messages */}
-            <div className="flex-1 overflow-y-auto space-y-4 mb-4">
-              {messages.map((message) => (
-                <div
-                  key={message.id}
-                  className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                >
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Chat Principal */}
+        <Card className="lg:col-span-2">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Bot className="w-5 h-5" />
+              Assistente Virtual IA
+            </CardTitle>
+            <CardDescription>
+              Seu assistente inteligente para gestão política
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {/* Área de conversas */}
+            <div className="h-64 border rounded-lg p-4 mb-4 overflow-y-auto space-y-3">
+              {conversas.length === 0 ? (
+                <div className="text-center text-muted-foreground">
+                  <Bot className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                  <p>Olá! Sou seu assistente IA. Como posso ajudar hoje?</p>
+                </div>
+              ) : (
+                conversas.map((conversa) => (
                   <div
-                    className={`max-w-[80%] p-3 rounded-lg ${
-                      message.role === 'user'
-                        ? 'bg-blue-500 text-white'
-                        : 'bg-gray-100 text-gray-900'
-                    }`}
+                    key={conversa.id}
+                    className={`flex ${conversa.tipo === 'user' ? 'justify-end' : 'justify-start'}`}
                   >
-                    <div className="flex items-start gap-2">
-                      {message.role === 'assistant' && (
-                        <Bot className="w-4 h-4 mt-1 flex-shrink-0" />
-                      )}
-                      {message.role === 'user' && (
-                        <User className="w-4 h-4 mt-1 flex-shrink-0" />
-                      )}
-                      <div className="flex-1">
-                        <div className="whitespace-pre-wrap">{message.content}</div>
-                        {message.role === 'assistant' && (
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="mt-2 h-6 px-2"
-                            onClick={() => speakText(message.content)}
-                          >
-                            <Volume2 className="w-3 h-3" />
-                          </Button>
-                        )}
-                      </div>
+                    <div
+                      className={`max-w-xs p-3 rounded-lg ${
+                        conversa.tipo === 'user'
+                          ? 'bg-blue-500 text-white'
+                          : 'bg-gray-100 text-gray-900'
+                      }`}
+                    >
+                      <p className="text-sm">{conversa.conteudo}</p>
+                      <span className="text-xs opacity-70">
+                        {new Date(conversa.timestamp).toLocaleTimeString('pt-BR')}
+                      </span>
                     </div>
                   </div>
-                </div>
-              ))}
-              {isLoading && (
-                <div className="flex justify-start">
-                  <div className="bg-gray-100 p-3 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <Bot className="w-4 h-4" />
-                      <div className="flex space-x-1">
-                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                ))
               )}
-              <div ref={messagesEndRef} />
             </div>
 
-            {/* Input */}
+            {/* Input de mensagem */}
             <div className="flex gap-2">
               <Input
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
                 placeholder="Digite sua pergunta..."
-                onKeyPress={(e) => e.key === 'Enter' && processMessage(inputValue)}
-                disabled={isLoading}
+                value={mensagem}
+                onChange={(e) => setMensagem(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                disabled={loading}
               />
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={startVoiceRecognition}
-                disabled={isListening}
-              >
-                <Mic className={`w-4 h-4 ${isListening ? 'text-red-500' : ''}`} />
-              </Button>
-              <Button onClick={() => processMessage(inputValue)} disabled={isLoading || !inputValue.trim()}>
-                <Send className="w-4 h-4" />
+              <Button onClick={handleSendMessage} disabled={loading || !mensagem.trim()}>
+                <MessageSquare className="w-4 h-4" />
               </Button>
             </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
 
-      {/* Recommendations Panel */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Recomendações IA</CardTitle>
-          <CardDescription>Insights personalizados para seu negócio</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {recommendations.map((rec) => (
-              <div key={rec.id} className="p-3 border rounded-lg">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <h4 className="font-medium">{rec.title}</h4>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {rec.description}
-                    </p>
-                    <Badge 
-                      variant={rec.priority === 'high' ? 'destructive' : rec.priority === 'medium' ? 'default' : 'secondary'}
-                      className="mt-2"
-                    >
-                      {rec.priority === 'high' ? 'Alta' : rec.priority === 'medium' ? 'Média' : 'Baixa'}
+        {/* Sugestões IA */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Lightbulb className="w-5 h-5" />
+              Sugestões IA
+            </CardTitle>
+            <CardDescription>
+              Insights automáticos baseados nos seus dados
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {suggestions.map((suggestion) => (
+                <div key={suggestion.id} className="p-3 border rounded-lg">
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      {getSuggestionIcon(suggestion.tipo)}
+                      <span className="font-medium text-sm">{suggestion.titulo}</span>
+                    </div>
+                    <Badge variant="outline" className="text-xs">
+                      {suggestion.confianca}%
                     </Badge>
                   </div>
-                </div>
-                {rec.action && (
-                  <Button size="sm" className="w-full mt-3" onClick={rec.action}>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    {suggestion.descricao}
+                  </p>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => applySuggestion(suggestion)}
+                    className="w-full"
+                  >
                     Aplicar Sugestão
                   </Button>
-                )}
-              </div>
-            ))}
+                </div>
+              ))}
 
-            {recommendations.length === 0 && (
-              <div className="text-center py-8 text-muted-foreground">
-                <Bot className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                <p>Analisando seus dados...</p>
-                <p className="text-sm">Recomendações aparecerão aqui</p>
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+              {suggestions.length === 0 && (
+                <div className="text-center text-muted-foreground py-8">
+                  <Lightbulb className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                  <p className="text-sm">Nenhuma sugestão no momento</p>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };

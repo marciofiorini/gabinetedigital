@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -68,9 +69,6 @@ export const AnalyticsDashboard = () => {
     // Filtrar dados pelo período
     const recentLeads = leads.filter(lead => 
       new Date(lead.created_at) >= cutoffDate
-    );
-    const recentContatos = contatos.filter(contato => 
-      new Date(contato.created_at) >= cutoffDate
     );
 
     // Calcular métricas
@@ -293,12 +291,12 @@ export const AnalyticsDashboard = () => {
                   cx="50%"
                   cy="50%"
                   labelLine={false}
-                  label={({ nome, percent }) => `${nome} ${(percent * 100).toFixed(0)}%`}
+                  label={({ fonte, percent }) => `${fonte} ${(percent * 100).toFixed(0)}%`}
                   outerRadius={80}
                   fill="#8884d8"
                   dataKey="quantidade"
                 >
-                  {data?.leads_por_fonte.map((entry, index) => (
+                  {data?.leads_por_fonte?.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
