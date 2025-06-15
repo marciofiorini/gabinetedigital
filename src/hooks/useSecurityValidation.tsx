@@ -23,10 +23,10 @@ export const useSecurityValidation = () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return false;
 
-      // Call our security validation function
-      const { data: isValid, error } = await supabase.rpc('validate_session_security', {
+      // Use existing validate_user_session function instead
+      const { data: isValid, error } = await supabase.rpc('validate_user_session', {
         p_user_id: user.id,
-        p_max_idle_minutes: 30
+        p_session_timeout_minutes: 30
       });
 
       if (error) {
@@ -34,7 +34,7 @@ export const useSecurityValidation = () => {
         return false;
       }
 
-      return isValid || false;
+      return Boolean(isValid);
     } catch (error) {
       console.error('Session validation failed:', error);
       return false;
