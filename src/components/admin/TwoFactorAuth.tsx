@@ -2,8 +2,6 @@
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import { useToastEnhanced } from '@/hooks/useToastEnhanced';
@@ -165,7 +163,7 @@ export const TwoFactorAuth = () => {
                   </div>
                   
                   <div className="space-y-3">
-                    <Label>Digite o código de 6 dígitos do seu aplicativo:</Label>
+                    <label className="text-sm font-medium">Digite o código de 6 dígitos do seu aplicativo:</label>
                     <div className="flex justify-center">
                       <InputOTP
                         maxLength={6}

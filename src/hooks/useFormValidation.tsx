@@ -209,9 +209,12 @@ export const useFormValidation = <T extends Record<string, any>>(schema: z.ZodSc
 
   const validateField = (fieldName: string, value: any): string | undefined => {
     try {
-      const fieldSchema = schema.shape[fieldName as keyof typeof schema.shape];
-      if (fieldSchema) {
-        fieldSchema.parse(value);
+      // Para schemas Zod, não podemos acessar .shape diretamente
+      // Então vamos validar o objeto inteiro e pegar apenas o erro deste campo
+      const testData = { [fieldName]: value } as Partial<T>;
+      const result = schema.safeParse(testData);
+      
+      if (result.success) {
         // Remove error for this field if validation passes
         setErrors(prev => {
           const newErrors = { ...prev };
@@ -224,14 +227,21 @@ export const useFormValidation = <T extends Record<string, any>>(schema: z.ZodSc
           return newErrors;
         });
         return undefined;
+      } else {
+        // Find error for this specific field
+        const fieldError = result.error.errors.find(err => err.path[0] === fieldName);
+        if (fieldError) {
+          const message = fieldError.message;
+          setErrors(prev => ({ ...prev, [fieldName]: message }));
+          setFieldErrors(prev => ({ ...prev, [fieldName]: [message] }));
+          return message;
+        }
       }
     } catch (error) {
-      if (error instanceof z.ZodError) {
-        const message = error.errors[0]?.message || 'Campo inválido';
-        setErrors(prev => ({ ...prev, [fieldName]: message }));
-        setFieldErrors(prev => ({ ...prev, [fieldName]: [message] }));
-        return message;
-      }
+      const message = 'Campo inválido';
+      setErrors(prev => ({ ...prev, [fieldName]: message }));
+      setFieldErrors(prev => ({ ...prev, [fieldName]: [message] }));
+      return message;
     }
     return undefined;
   };
