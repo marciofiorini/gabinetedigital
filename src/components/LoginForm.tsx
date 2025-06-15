@@ -23,6 +23,8 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onToggleSignUp }) => {
   
   const { signIn } = useAuth();
 
+  console.log('LoginForm: Componente renderizado');
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -33,6 +35,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onToggleSignUp }) => {
     setIsLoading(true);
     
     try {
+      console.log('LoginForm: Tentando fazer login');
       await signIn(email, password);
     } catch (error) {
       console.error('Login error:', error);
@@ -42,7 +45,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onToggleSignUp }) => {
   };
 
   return (
-    <>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-100 flex items-center justify-center p-4">
       <Card className="w-full max-w-md mx-auto">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold text-center">
@@ -140,6 +143,6 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onToggleSignUp }) => {
         open={showResetModal} 
         onOpenChange={setShowResetModal} 
       />
-    </>
+    </div>
   );
 };
