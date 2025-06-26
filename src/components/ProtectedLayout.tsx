@@ -9,14 +9,9 @@ interface ProtectedLayoutProps {
 }
 
 export const ProtectedLayout = ({ children }: ProtectedLayoutProps) => {
-  console.log('ProtectedLayout: Componente renderizado');
-  
   const { user, loading } = useAuth();
 
-  console.log('ProtectedLayout: Estado atual - user:', !!user, 'loading:', loading);
-
   if (loading) {
-    console.log('ProtectedLayout: Exibindo tela de carregamento');
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-100 flex items-center justify-center">
         <div className="text-center">
@@ -28,11 +23,9 @@ export const ProtectedLayout = ({ children }: ProtectedLayoutProps) => {
   }
 
   if (!user) {
-    console.log('ProtectedLayout: Usuário não autenticado, exibindo LoginForm');
     return <LoginForm />;
   }
 
-  console.log('ProtectedLayout: Usuário autenticado, exibindo LayoutMain');
   return (
     <LayoutMain>
       {children}
