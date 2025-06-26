@@ -19,11 +19,9 @@ export const useSecurityValidation = () => {
     try {
       setIsValidating(true);
       
-      // Check if session is still valid
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return false;
 
-      // Simple session validation - just check if session exists and is not expired
       const now = new Date().getTime();
       const sessionExpiry = session.expires_at ? session.expires_at * 1000 : 0;
       
@@ -44,12 +42,10 @@ export const useSecurityValidation = () => {
     const errors: string[] = [];
     const warnings: string[] = [];
 
-    // Basic XSS protection
     if (/<script|javascript:|on\w+=/i.test(input)) {
       errors.push('Input contém conteúdo potencialmente perigoso');
     }
 
-    // SQL injection basic checks
     if (/'|;|--|\/\*|\*\/|xp_|sp_/i.test(input)) {
       errors.push('Input contém caracteres não permitidos');
     }
@@ -96,8 +92,8 @@ export const useSecurityValidation = () => {
 
   const sanitizeInput = useCallback((input: string): string => {
     return input
-      .replace(/[<>]/g, '') // Remove potential HTML tags
-      .replace(/['";]/g, '') // Remove potential SQL injection chars
+      .replace(/[<>]/g, '')
+      .replace(/['";]/g, '')
       .trim();
   }, []);
 
