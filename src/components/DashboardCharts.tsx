@@ -1,162 +1,80 @@
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, PieChart, Pie, Cell, LineChart, Line, ResponsiveContainer } from "recharts";
-import { TrendingUp, Users, MessageSquare, Target } from "lucide-react";
-
-const demandasData = [
-  { month: 'Jan', pendentes: 15, concluidas: 25 },
-  { month: 'Fev', pendentes: 12, concluidas: 28 },
-  { month: 'Mar', pendentes: 18, concluidas: 22 },
-  { month: 'Abr', pendentes: 8, concluidas: 35 },
-  { month: 'Mai', pendentes: 14, concluidas: 30 },
-];
-
-const contatosData = [
-  { name: 'Zona Norte', value: 400, color: '#3B82F6' },
-  { name: 'Zona Sul', value: 300, color: '#10B981' },
-  { name: 'Centro', value: 300, color: '#F59E0B' },
-  { name: 'Zona Leste', value: 200, color: '#EF4444' },
-];
-
-const engajamentoData = [
-  { date: '01/05', whatsapp: 85, instagram: 72, email: 68 },
-  { date: '02/05', whatsapp: 88, instagram: 75, email: 70 },
-  { date: '03/05', whatsapp: 82, instagram: 78, email: 65 },
-  { date: '04/05', whatsapp: 90, instagram: 80, email: 72 },
-  { date: '05/05', whatsapp: 87, instagram: 82, email: 74 },
-];
-
-const chartConfig = {
-  pendentes: {
-    label: "Pendentes",
-    color: "#F59E0B",
-  },
-  concluidas: {
-    label: "Concluídas",
-    color: "#10B981",
-  },
-  whatsapp: {
-    label: "WhatsApp",
-    color: "#25D366",
-  },
-  instagram: {
-    label: "Instagram",
-    color: "#E4405F",
-  },
-  email: {
-    label: "E-mail",
-    color: "#3B82F6",
-  },
-};
+import React from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
 
 export const DashboardCharts = () => {
+  const contatosData = [
+    { mes: 'Jan', novos: 45, total: 120 },
+    { mes: 'Fev', novos: 52, total: 172 },
+    { mes: 'Mar', novos: 38, total: 210 },
+    { mes: 'Abr', novos: 61, total: 271 },
+    { mes: 'Mai', novos: 55, total: 326 },
+    { mes: 'Jun', novos: 67, total: 393 }
+  ];
+
+  const demandasData = [
+    { categoria: 'Infraestrutura', quantidade: 45 },
+    { categoria: 'Saúde', quantidade: 32 },
+    { categoria: 'Educação', quantidade: 28 },
+    { categoria: 'Segurança', quantidade: 22 },
+    { categoria: 'Outros', quantidade: 18 }
+  ];
+
+  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
+
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-      {/* Demandas Chart */}
-      <Card className="border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+    <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6">
+      {/* Gráfico de Contatos */}
+      <Card className="xl:col-span-2">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-gray-900 dark:text-gray-100">
-            <Target className="w-5 h-5" />
-            Demandas por Mês
-          </CardTitle>
-          <CardDescription className="dark:text-gray-400">
-            Comparativo entre demandas pendentes e concluídas
+          <CardTitle>Crescimento de Contatos</CardTitle>
+          <CardDescription>
+            Evolução mensal da base de contatos
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <ChartContainer config={chartConfig} className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={demandasData}>
-                <CartesianGrid strokeDasharray="3 3" className="stroke-gray-200 dark:stroke-gray-700" />
-                <XAxis dataKey="month" className="fill-gray-600 dark:fill-gray-400" />
-                <YAxis className="fill-gray-600 dark:fill-gray-400" />
-                <ChartTooltip content={<ChartTooltipContent />} />
-                <Bar dataKey="pendentes" fill="var(--color-pendentes)" radius={4} />
-                <Bar dataKey="concluidas" fill="var(--color-concluidas)" radius={4} />
-              </BarChart>
-            </ResponsiveContainer>
-          </ChartContainer>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={contatosData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="mes" />
+              <YAxis />
+              <Tooltip />
+              <Bar dataKey="novos" fill="#3b82f6" name="Novos Contatos" />
+              <Bar dataKey="total" fill="#10b981" name="Total Acumulado" />
+            </BarChart>
+          </ResponsiveContainer>
         </CardContent>
       </Card>
 
-      {/* Contatos por Zona */}
-      <Card className="border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+      {/* Gráfico de Demandas */}
+      <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-gray-900 dark:text-gray-100">
-            <Users className="w-5 h-5" />
-            Contatos por Zona
-          </CardTitle>
-          <CardDescription className="dark:text-gray-400">
-            Distribuição geográfica dos contatos
+          <CardTitle>Demandas por Categoria</CardTitle>
+          <CardDescription>
+            Distribuição das demandas recebidas
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <ChartContainer config={chartConfig} className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={contatosData}
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={80}
-                  dataKey="value"
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                >
-                  {contatosData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <ChartTooltip content={<ChartTooltipContent />} />
-              </PieChart>
-            </ResponsiveContainer>
-          </ChartContainer>
-        </CardContent>
-      </Card>
-
-      {/* Engajamento */}
-      <Card className="lg:col-span-2 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-gray-900 dark:text-gray-100">
-            <TrendingUp className="w-5 h-5" />
-            Engajamento das Redes Sociais
-          </CardTitle>
-          <CardDescription className="dark:text-gray-400">
-            Performance dos últimos 5 dias
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ChartContainer config={chartConfig} className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={engajamentoData}>
-                <CartesianGrid strokeDasharray="3 3" className="stroke-gray-200 dark:stroke-gray-700" />
-                <XAxis dataKey="date" className="fill-gray-600 dark:fill-gray-400" />
-                <YAxis className="fill-gray-600 dark:fill-gray-400" />
-                <ChartTooltip content={<ChartTooltipContent />} />
-                <Line 
-                  type="monotone" 
-                  dataKey="whatsapp" 
-                  stroke="var(--color-whatsapp)" 
-                  strokeWidth={2}
-                  dot={{ fill: 'var(--color-whatsapp)' }}
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="instagram" 
-                  stroke="var(--color-instagram)" 
-                  strokeWidth={2}
-                  dot={{ fill: 'var(--color-instagram)' }}
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="email" 
-                  stroke="var(--color-email)" 
-                  strokeWidth={2}
-                  dot={{ fill: 'var(--color-email)' }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </ChartContainer>
+          <ResponsiveContainer width="100%" height={300}>
+            <PieChart>
+              <Pie
+                data={demandasData}
+                cx="50%"
+                cy="50%"
+                labelLine={false}
+                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                outerRadius={80}
+                fill="#8884d8"
+                dataKey="quantidade"
+              >
+                {demandasData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Pie>
+              <Tooltip />
+            </PieChart>
+          </ResponsiveContainer>
         </CardContent>
       </Card>
     </div>
