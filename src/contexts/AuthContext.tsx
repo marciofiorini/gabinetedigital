@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
@@ -124,9 +123,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         .eq('id', userId)
         .single();
 
-      if (error) throw error;
-      setProfile(data);
-      console.log('AuthProvider: Perfil carregado:', data);
+      if (error && error.code !== 'PGRST116') {
+        console.error('AuthProvider: Erro ao buscar perfil:', error);
+        return;
+      }
+      
+      if (data) {
+        setProfile(data);
+        console.log('AuthProvider: Perfil carregado:', data);
+      }
     } catch (error) {
       console.error('AuthProvider: Erro ao buscar perfil:', error);
     }
@@ -141,9 +146,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         .eq('user_id', userId)
         .single();
 
-      if (error) throw error;
-      setSettings(data);
-      console.log('AuthProvider: Configurações carregadas:', data);
+      if (error && error.code !== 'PGRST116') {
+        console.error('AuthProvider: Erro ao buscar configurações:', error);
+        return;
+      }
+      
+      if (data) {
+        setSettings(data);
+        console.log('AuthProvider: Configurações carregadas:', data);
+      }
     } catch (error) {
       console.error('AuthProvider: Erro ao buscar configurações:', error);
     }
@@ -172,7 +183,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       try {
         console.log('AuthProvider: Verificando sessão existente');
         const { data: { session } } = await supabase.auth.getSession();
-        console.log('AuthProvider: Sessão obtida:', session);
+        console.log('AuthProvider: Sessão obtida:', !!session);
         
         setSession(session);
         setUser(session?.user ?? null);
@@ -195,12 +206,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('AuthProvider: Auth state changed:', event, session);
+        console.log('AuthProvider: Auth state changed:', event, !!session);
         setSession(session);
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Use setTimeout to prevent infinite recursion
           setTimeout(() => {
             fetchProfile(session.user.id);
             fetchSettings(session.user.id);
@@ -223,7 +233,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       console.log('AuthProvider: Tentando criar conta para:', email);
       
-      // Input validation
       if (!validateEmail(email)) {
         throw new Error('Email inválido');
       }
@@ -261,17 +270,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       console.log('AuthProvider: Tentando fazer login para:', email);
       
-      // Input validation
       if (!validateEmail(email)) {
         throw new Error('Email inválido');
       }
 
       const sanitizedEmail = sanitizeInput(email);
-      
-      // Check rate limiting
-      if (checkRateLimit(sanitizedEmail)) {
-        throw new Error('Muitas tentativas de login. Tente novamente em 15 minutos.');
-      }
       
       const { data, error } = await supabase.auth.signInWithPassword({
         email: sanitizedEmail,
@@ -279,14 +282,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       });
       
       if (error) {
-        recordFailedAttempt(sanitizedEmail);
         await logSecurityEvent('login_failed', { email: sanitizedEmail, error: error.message });
         throw error;
       }
-      
-      // Reset failed attempts on successful login
-      failedAttempts.delete(sanitizedEmail);
-      lastAttemptTime.delete(sanitizedEmail);
       
       console.log('AuthProvider: Login realizado com sucesso');
       await logSecurityEvent('login_success', { email: sanitizedEmail });
@@ -315,7 +313,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     if (!user) return false;
 
     try {
-      // Sanitize text inputs
       const sanitizedUpdates = {
         ...updates,
         name: updates.name ? sanitizeInput(updates.name) : updates.name,
@@ -437,17 +434,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     if (!user) return false;
 
     try {
-      // Validate file type and size
       const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
       if (!allowedTypes.includes(file.type)) {
         throw new Error('Formato de arquivo não suportado. Use JPEG, PNG ou WebP.');
       }
 
-      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+      if (file.size > 5 * 1024 * 1024) {
         throw new Error('Arquivo muito grande. Máximo 5MB.');
       }
 
-      // For now, store locally until Supabase Storage is configured
       const reader = new FileReader();
       reader.onload = () => {
         const avatars = JSON.parse(localStorage.getItem('user_avatars') || '{}');
