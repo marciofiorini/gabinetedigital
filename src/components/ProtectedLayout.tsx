@@ -3,9 +3,12 @@ import { useAuth } from '@/contexts/AuthContext';
 import { LoginForm } from '@/components/LoginForm';
 import { Loader2 } from 'lucide-react';
 import { LayoutMain } from '@/components/LayoutMain';
-import { Outlet } from 'react-router-dom';
 
-export const ProtectedLayout = () => {
+interface ProtectedLayoutProps {
+  children: React.ReactNode;
+}
+
+export const ProtectedLayout = ({ children }: ProtectedLayoutProps) => {
   console.log('ProtectedLayout: Componente renderizado');
   
   const { user, loading } = useAuth();
@@ -32,7 +35,7 @@ export const ProtectedLayout = () => {
   console.log('ProtectedLayout: Usuário autenticado, exibindo LayoutMain');
   return (
     <LayoutMain>
-      <Outlet />
+      {children}
     </LayoutMain>
   );
 };

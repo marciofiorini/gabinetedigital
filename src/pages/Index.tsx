@@ -8,6 +8,9 @@ import { AniversariantesSection } from '@/components/AniversariantesSection';
 import { MetricasEngajamento } from '@/components/MetricasEngajamento';
 import { ProximosEventos } from '@/components/ProximosEventos';
 import { AtividadesRecentes } from '@/components/AtividadesRecentes';
+import { PrevisaoEleitoralCard } from '@/components/dashboard/PrevisaoEleitoralCard';
+import { RecomendacoesDashboard } from '@/components/dashboard/RecomendacoesDashboard';
+import { AlertasProativosDashboard } from '@/components/dashboard/AlertasProativosDashboard';
 
 const Index = () => {
   return (
@@ -36,18 +39,21 @@ const Index = () => {
         {/* Coluna Esquerda */}
         <div className="space-y-4 lg:space-y-6">
           <MetricasEngajamento />
+          <PrevisaoEleitoralCard />
           <FollowUpNotifications />
         </div>
 
         {/* Coluna Direita */}
         <div className="space-y-4 lg:space-y-6">
           <ProximosEventos />
+          <RecomendacoesDashboard />
           <AniversariantesSection />
         </div>
       </div>
 
-      {/* Atividades Recentes - largura completa */}
-      <div className="w-full">
+      {/* Alertas Proativos e Atividades Recentes - largura completa */}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 lg:gap-6">
+        <AlertasProativosDashboard />
         <AtividadesRecentes />
       </div>
 
