@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -11,13 +10,43 @@ interface User {
   avatar_url?: string;
 }
 
+interface Profile {
+  id: string;
+  name: string;
+  username?: string;
+  email?: string;
+  avatar_url?: string;
+  phone?: string;
+  location?: string;
+  bio?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+interface UserSettings {
+  language: string;
+  timezone: string;
+  keyboard_shortcuts_enabled: boolean;
+  theme: string;
+  dark_mode: boolean;
+  email_notifications: boolean;
+  push_notifications: boolean;
+}
+
 interface AuthContextType {
   user: User | null;
+  profile: Profile | null;
+  settings: UserSettings | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   signUp: (email: string, password: string, name?: string) => Promise<{ success: boolean; error?: string }>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ success: boolean; error?: string }>;
+  updateProfile: (profileData: any) => Promise<boolean>;
+  updatePassword: (newPassword: string) => Promise<void>;
+  updateSettings: (newSettings: Partial<UserSettings>) => Promise<void>;
+  checkUsernameAvailability: (username: string) => Promise<boolean>;
+  uploadAvatar: (file: File) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -32,6 +61,8 @@ export const useAuth = () => {
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [settings, setSettings] = useState<UserSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
@@ -114,7 +145,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const handleSignIn = async (session: any) => {
     try {
       // Get user profile
-      const { data: profile, error: profileError } = await supabase
+      const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', session.user.id)
@@ -124,14 +155,50 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.error('Error fetching profile:', profileError);
       }
 
+      // Get user settings
+      const { data: settingsData, error: settingsError } = await supabase
+        .from('user_settings')
+        .select('*')
+        .eq('user_id', session.user.id)
+        .single();
+
+      if (settingsError && settingsError.code !== 'PGRST116') {
+        console.error('Error fetching settings:', settingsError);
+      }
+
       const userData: User = {
         id: session.user.id,
         email: session.user.email || '',
-        name: profile?.name || session.user.user_metadata?.name || '',
-        avatar_url: profile?.avatar_url || session.user.user_metadata?.avatar_url || '',
+        name: profileData?.name || session.user.user_metadata?.name || '',
+        avatar_url: profileData?.avatar_url || session.user.user_metadata?.avatar_url || '',
       };
 
+      const userProfile: Profile | null = profileData ? {
+        id: profileData.id,
+        name: profileData.name || '',
+        username: profileData.username,
+        email: session.user.email,
+        avatar_url: profileData.avatar_url,
+        phone: profileData.phone,
+        location: profileData.location,
+        bio: profileData.bio,
+        created_at: profileData.created_at,
+        updated_at: profileData.updated_at,
+      } : null;
+
+      const userSettings: UserSettings | null = settingsData ? {
+        language: settingsData.language || 'pt-BR',
+        timezone: settingsData.timezone || 'America/Sao_Paulo',
+        keyboard_shortcuts_enabled: settingsData.keyboard_shortcuts_enabled ?? true,
+        theme: settingsData.theme || 'light',
+        dark_mode: settingsData.dark_mode ?? false,
+        email_notifications: settingsData.email_notifications ?? true,
+        push_notifications: settingsData.push_notifications ?? true,
+      } : null;
+
       setUser(userData);
+      setProfile(userProfile);
+      setSettings(userSettings);
       setLastActivity(Date.now());
 
       // Log successful login
@@ -148,7 +215,154 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const handleSignOut = () => {
     setUser(null);
+    setProfile(null);
+    setSettings(null);
     setLastActivity(0);
+  };
+
+  const updateProfile = async (profileData: any): Promise<boolean> => {
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          ...profileData,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', user?.id);
+
+      if (error) {
+        console.error('Error updating profile:', error);
+        toast({
+          title: 'Erro',
+          description: 'Erro ao atualizar perfil',
+          variant: 'destructive',
+        });
+        return false;
+      }
+
+      // Refresh profile data
+      if (user) {
+        const { data: session } = await supabase.auth.getSession();
+        if (session.session) {
+          await handleSignIn(session.session);
+        }
+      }
+
+      toast({
+        title: 'Sucesso',
+        description: 'Perfil atualizado com sucesso',
+      });
+      return true;
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      return false;
+    }
+  };
+
+  const updatePassword = async (newPassword: string): Promise<void> => {
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      toast({
+        title: 'Sucesso',
+        description: 'Senha atualizada com sucesso',
+      });
+    } catch (error: any) {
+      console.error('Error updating password:', error);
+      toast({
+        title: 'Erro',
+        description: error.message || 'Erro ao atualizar senha',
+        variant: 'destructive',
+      });
+      throw error;
+    }
+  };
+
+  const updateSettings = async (newSettings: Partial<UserSettings>): Promise<void> => {
+    try {
+      const { error } = await supabase
+        .from('user_settings')
+        .update(newSettings)
+        .eq('user_id', user?.id);
+
+      if (error) {
+        throw error;
+      }
+
+      setSettings(prev => prev ? { ...prev, ...newSettings } : null);
+      
+      toast({
+        title: 'Sucesso',
+        description: 'Configurações atualizadas com sucesso',
+      });
+    } catch (error: any) {
+      console.error('Error updating settings:', error);
+      toast({
+        title: 'Erro',
+        description: 'Erro ao atualizar configurações',
+        variant: 'destructive',
+      });
+      throw error;
+    }
+  };
+
+  const checkUsernameAvailability = async (username: string): Promise<boolean> => {
+    try {
+      const { data, error } = await supabase
+        .rpc('check_username_availability', { check_username: username });
+
+      if (error) {
+        console.error('Error checking username:', error);
+        return false;
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error checking username availability:', error);
+      return false;
+    }
+  };
+
+  const uploadAvatar = async (file: File): Promise<void> => {
+    try {
+      if (!user) throw new Error('Usuário não autenticado');
+
+      // In a real implementation, you would upload to Supabase Storage
+      // For now, we'll simulate the upload and store locally
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const result = e.target?.result as string;
+        if (result) {
+          // Store in localStorage temporarily
+          const avatars = JSON.parse(localStorage.getItem('user_avatars') || '{}');
+          avatars[user.id] = result;
+          localStorage.setItem('user_avatars', JSON.stringify(avatars));
+          
+          // Update profile with avatar reference
+          updateProfile({ avatar_url: `avatar_${user.id}` });
+        }
+      };
+      reader.readAsDataURL(file);
+
+      toast({
+        title: 'Sucesso',
+        description: 'Avatar atualizado com sucesso',
+      });
+    } catch (error: any) {
+      console.error('Error uploading avatar:', error);
+      toast({
+        title: 'Erro',
+        description: 'Erro ao fazer upload do avatar',
+        variant: 'destructive',
+      });
+      throw error;
+    }
   };
 
   const signIn = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
@@ -332,11 +546,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const value: AuthContextType = {
     user,
+    profile,
+    settings,
     loading,
     signIn,
     signUp,
     signOut,
     resetPassword,
+    updateProfile,
+    updatePassword,
+    updateSettings,
+    checkUsernameAvailability,
+    uploadAvatar,
   };
 
   return (
