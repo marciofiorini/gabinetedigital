@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -150,15 +149,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         avatar_url: SecurityUtils.sanitizeInput(profileData?.avatar_url || session.user.user_metadata?.avatar_url || ''),
       };
 
+      // Safely access properties that may not exist in the database type
       const userProfile: Profile | null = profileData ? {
         id: profileData.id,
         name: SecurityUtils.sanitizeInput(profileData.name || ''),
-        username: profileData.username ? SecurityUtils.sanitizeInput(profileData.username) : undefined,
+        username: (profileData as any).username ? SecurityUtils.sanitizeInput((profileData as any).username) : undefined,
         email: SecurityUtils.sanitizeInput(session.user.email || ''),
         avatar_url: profileData.avatar_url ? SecurityUtils.sanitizeInput(profileData.avatar_url) : undefined,
-        phone: profileData.phone ? SecurityUtils.sanitizeInput(profileData.phone) : undefined,
-        location: profileData.location ? SecurityUtils.sanitizeInput(profileData.location) : undefined,
-        bio: profileData.bio ? SecurityUtils.sanitizeInput(profileData.bio) : undefined,
+        phone: (profileData as any).phone ? SecurityUtils.sanitizeInput((profileData as any).phone) : undefined,
+        location: (profileData as any).location ? SecurityUtils.sanitizeInput((profileData as any).location) : undefined,
+        bio: (profileData as any).bio ? SecurityUtils.sanitizeInput((profileData as any).bio) : undefined,
         created_at: profileData.created_at,
         updated_at: profileData.updated_at,
       } : null;
