@@ -1,55 +1,23 @@
 
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { User, Session } from '@supabase/supabase-js';
-import { toast } from 'sonner';
+import { useToast } from '@/hooks/use-toast';
+import { SecurityUtils } from '@/utils/security';
 
-console.log('AuthContext.tsx: Módulo carregado');
-
-interface Profile {
+interface User {
   id: string;
-  name: string;
   email: string;
+  name?: string;
   avatar_url?: string;
-  username?: string;
-  phone?: string;
-  location?: string;
-  bio?: string;
-  role?: string;
-  created_at?: string;
-  updated_at?: string;
-}
-
-interface UserSettings {
-  id?: string;
-  user_id?: string;
-  language?: string;
-  timezone?: string;
-  keyboard_shortcuts_enabled?: boolean;
-  theme?: string;
-  dark_mode?: boolean;
-  email_notifications?: boolean;
-  push_notifications?: boolean;
-  tour_completed?: boolean;
-  created_at?: string;
-  updated_at?: string;
 }
 
 interface AuthContextType {
   user: User | null;
-  profile: Profile | null;
-  settings: UserSettings | null;
-  session: Session | null;
   loading: boolean;
-  signUp: (email: string, password: string, userData?: any) => Promise<{ error?: any }>;
-  signIn: (email: string, password: string) => Promise<{ error?: any }>;
+  signIn: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  signUp: (email: string, password: string, name?: string) => Promise<{ success: boolean; error?: string }>;
   signOut: () => Promise<void>;
-  updateProfile: (updates: Partial<Profile>) => Promise<boolean>;
-  updatePassword: (newPassword: string) => Promise<boolean>;
-  updateSettings: (updates: Partial<UserSettings>) => Promise<boolean>;
-  resetPassword: (email: string) => Promise<{ error?: any }>;
-  checkUsernameAvailability: (username: string) => Promise<boolean>;
-  uploadAvatar: (file: File) => Promise<boolean>;
+  resetPassword: (email: string) => Promise<{ success: boolean; error?: string }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -62,366 +30,314 @@ export const useAuth = () => {
   return context;
 };
 
-interface AuthProviderProps {
-  children: ReactNode;
-}
-
-const validateEmail = (email: string): boolean => {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email);
-};
-
-const validatePassword = (password: string): boolean => {
-  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d@$!%*?&]{8,}$/;
-  return passwordRegex.test(password);
-};
-
-const sanitizeInput = (input: string): string => {
-  return input.replace(/[<>]/g, '');
-};
-
-export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  console.log('AuthProvider: Componente iniciado');
-  
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [settings, setSettings] = useState<UserSettings | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
-  const fetchProfile = async (userId: string) => {
-    try {
-      console.log('AuthProvider: Buscando perfil para usuário:', userId);
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
-
-      if (error && error.code !== 'PGRST116') {
-        console.error('AuthProvider: Erro ao buscar perfil:', error);
-        return;
-      }
-      
-      if (data) {
-        setProfile(data);
-        console.log('AuthProvider: Perfil carregado:', data);
-      }
-    } catch (error) {
-      console.error('AuthProvider: Erro ao buscar perfil:', error);
-    }
-  };
-
-  const fetchSettings = async (userId: string) => {
-    try {
-      console.log('AuthProvider: Buscando configurações para usuário:', userId);
-      const { data, error } = await supabase
-        .from('user_settings')
-        .select('*')
-        .eq('user_id', userId)
-        .single();
-
-      if (error && error.code !== 'PGRST116') {
-        console.error('AuthProvider: Erro ao buscar configurações:', error);
-        return;
-      }
-      
-      if (data) {
-        setSettings(data);
-        console.log('AuthProvider: Configurações carregadas:', data);
-      }
-    } catch (error) {
-      console.error('AuthProvider: Erro ao buscar configurações:', error);
-    }
-  };
+  // Session timeout management
+  const SESSION_TIMEOUT = 8 * 60 * 60 * 1000; // 8 hours
+  const [lastActivity, setLastActivity] = useState(Date.now());
 
   useEffect(() => {
-    console.log('AuthProvider: useEffect iniciado');
-    
-    const getSession = async () => {
-      try {
-        console.log('AuthProvider: Verificando sessão existente');
-        const { data: { session } } = await supabase.auth.getSession();
-        console.log('AuthProvider: Sessão obtida:', !!session);
-        
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        if (session?.user) {
-          await fetchProfile(session.user.id);
-          await fetchSettings(session.user.id);
-        }
-        
-        setLoading(false);
-        console.log('AuthProvider: Inicialização concluída');
-      } catch (error) {
-        console.error('AuthProvider: Erro na inicialização:', error);
-        setLoading(false);
-      }
-    };
+    // Check initial session
+    checkSession();
 
-    getSession();
-
+    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('AuthProvider: Auth state changed:', event, !!session);
-        setSession(session);
-        setUser(session?.user ?? null);
+        console.log('Auth state changed:', event, !!session);
         
-        if (session?.user) {
-          setTimeout(() => {
-            fetchProfile(session.user.id);
-            fetchSettings(session.user.id);
-          }, 0);
-        } else {
-          setProfile(null);
-          setSettings(null);
+        if (event === 'SIGNED_IN' && session) {
+          await handleSignIn(session);
+        } else if (event === 'SIGNED_OUT') {
+          handleSignOut();
         }
         
         setLoading(false);
       }
     );
 
-    return () => subscription.unsubscribe();
-  }, []);
+    // Set up activity tracking
+    const trackActivity = () => {
+      setLastActivity(Date.now());
+    };
 
-  const signUp = async (email: string, password: string, userData?: any) => {
+    // Track user activity
+    window.addEventListener('mousedown', trackActivity);
+    window.addEventListener('keydown', trackActivity);
+    window.addEventListener('scroll', trackActivity);
+    window.addEventListener('touchstart', trackActivity);
+
+    // Check session timeout periodically
+    const timeoutCheck = setInterval(() => {
+      if (user && Date.now() - lastActivity > SESSION_TIMEOUT) {
+        toast({
+          title: 'Sessão Expirada',
+          description: 'Sua sessão expirou por inatividade. Faça login novamente.',
+          variant: 'destructive',
+        });
+        signOut();
+      }
+    }, 60000); // Check every minute
+
+    return () => {
+      subscription.unsubscribe();
+      window.removeEventListener('mousedown', trackActivity);
+      window.removeEventListener('keydown', trackActivity);
+      window.removeEventListener('scroll', trackActivity);
+      window.removeEventListener('touchstart', trackActivity);
+      clearInterval(timeoutCheck);
+    };
+  }, [user, lastActivity]);
+
+  const checkSession = async () => {
     try {
-      console.log('AuthProvider: Tentando criar conta para:', email);
+      const { data: { session }, error } = await supabase.auth.getSession();
       
-      if (!validateEmail(email)) {
-        throw new Error('Email inválido');
-      }
-      
-      if (!validatePassword(password)) {
-        throw new Error('Senha deve ter pelo menos 8 caracteres, incluindo maiúscula, minúscula e número');
+      if (error) {
+        console.error('Error getting session:', error);
+        setLoading(false);
+        return;
       }
 
-      const sanitizedEmail = sanitizeInput(email);
-      const redirectUrl = `${window.location.origin}/`;
-      
-      const { data, error } = await supabase.auth.signUp({
-        email: sanitizedEmail,
-        password,
-        options: {
-          data: userData,
-          emailRedirectTo: redirectUrl
-        }
-      });
-      
-      if (error) throw error;
-      
-      toast.success('Conta criada com sucesso! Verifique seu email.');
-      return { error: null };
-    } catch (error: any) {
-      console.error('AuthProvider: Erro ao criar conta:', error);
-      toast.error(error.message || 'Erro ao criar conta');
-      return { error };
+      if (session) {
+        await handleSignIn(session);
+      }
+    } catch (error) {
+      console.error('Session check failed:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const signIn = async (email: string, password: string) => {
+  const handleSignIn = async (session: any) => {
     try {
-      console.log('AuthProvider: Tentando fazer login para:', email);
-      
-      if (!validateEmail(email)) {
-        throw new Error('Email inválido');
+      // Get user profile
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', session.user.id)
+        .single();
+
+      if (profileError && profileError.code !== 'PGRST116') {
+        console.error('Error fetching profile:', profileError);
       }
 
-      const sanitizedEmail = sanitizeInput(email);
+      const userData: User = {
+        id: session.user.id,
+        email: session.user.email || '',
+        name: profile?.name || session.user.user_metadata?.name || '',
+        avatar_url: profile?.avatar_url || session.user.user_metadata?.avatar_url || '',
+      };
+
+      setUser(userData);
+      setLastActivity(Date.now());
+
+      // Log successful login
+      await logSecurityEvent('login', {
+        user_id: userData.id,
+        email: userData.email,
+        timestamp: new Date().toISOString(),
+      });
+
+    } catch (error) {
+      console.error('Error handling sign in:', error);
+    }
+  };
+
+  const handleSignOut = () => {
+    setUser(null);
+    setLastActivity(0);
+  };
+
+  const signIn = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
+    try {
+      // Sanitize and validate inputs
+      const sanitizedEmail = SecurityUtils.sanitizeInput(email);
+      const emailValidation = SecurityUtils.validateInput(sanitizedEmail, 'email');
+      const passwordValidation = SecurityUtils.validateInput(password, 'password');
+
+      if (!emailValidation.isValid) {
+        return { success: false, error: emailValidation.errors.join(', ') };
+      }
+
+      // Check rate limiting
+      const rateLimitKey = `login_${sanitizedEmail}`;
+      const rateLimit = SecurityUtils.rateLimit.check(rateLimitKey);
       
+      if (!rateLimit.allowed) {
+        const resetTime = new Date(rateLimit.resetTime).toLocaleTimeString();
+        return { 
+          success: false, 
+          error: `Muitas tentativas de login. Tente novamente às ${resetTime}` 
+        };
+      }
+
       const { data, error } = await supabase.auth.signInWithPassword({
         email: sanitizedEmail,
-        password
+        password: password,
       });
-      
+
       if (error) {
-        throw error;
+        // Log failed login attempt
+        await logSecurityEvent('failed_login', {
+          email: sanitizedEmail,
+          error: error.message,
+          timestamp: new Date().toISOString(),
+        });
+
+        return { success: false, error: 'Email ou senha incorretos' };
       }
+
+      // Reset rate limit on successful login
+      SecurityUtils.rateLimit.reset(rateLimitKey);
+
+      return { success: true };
+    } catch (error) {
+      console.error('Sign in error:', error);
+      return { success: false, error: 'Erro interno. Tente novamente.' };
+    }
+  };
+
+  const signUp = async (email: string, password: string, name?: string): Promise<{ success: boolean; error?: string }> => {
+    try {
+      // Sanitize and validate inputs
+      const sanitizedEmail = SecurityUtils.sanitizeInput(email);
+      const sanitizedName = name ? SecurityUtils.sanitizeInput(name) : '';
       
-      console.log('AuthProvider: Login realizado com sucesso');
-      toast.success('Login realizado com sucesso!');
-      return { error: null };
-    } catch (error: any) {
-      console.error('AuthProvider: Erro no login:', error);
-      toast.error(error.message || 'Erro ao fazer login');
-      return { error };
+      const emailValidation = SecurityUtils.validateInput(sanitizedEmail, 'email');
+      const passwordValidation = SecurityUtils.validateInput(password, 'password');
+
+      if (!emailValidation.isValid) {
+        return { success: false, error: emailValidation.errors.join(', ') };
+      }
+
+      if (!passwordValidation.isValid) {
+        return { success: false, error: passwordValidation.errors.join(', ') };
+      }
+
+      // Check rate limiting
+      const rateLimitKey = `signup_${sanitizedEmail}`;
+      const rateLimit = SecurityUtils.rateLimit.check(rateLimitKey);
+      
+      if (!rateLimit.allowed) {
+        const resetTime = new Date(rateLimit.resetTime).toLocaleTimeString();
+        return { 
+          success: false, 
+          error: `Muitas tentativas de cadastro. Tente novamente às ${resetTime}` 
+        };
+      }
+
+      const { data, error } = await supabase.auth.signUp({
+        email: sanitizedEmail,
+        password: password,
+        options: {
+          data: {
+            name: sanitizedName,
+          },
+        },
+      });
+
+      if (error) {
+        return { success: false, error: error.message };
+      }
+
+      // Reset rate limit on successful signup
+      SecurityUtils.rateLimit.reset(rateLimitKey);
+
+      return { success: true };
+    } catch (error) {
+      console.error('Sign up error:', error);
+      return { success: false, error: 'Erro interno. Tente novamente.' };
     }
   };
 
   const signOut = async () => {
     try {
-      console.log('AuthProvider: Fazendo logout');
-      await supabase.auth.signOut();
-      toast.success('Logout realizado com sucesso!');
-    } catch (error: any) {
-      console.error('AuthProvider: Erro no logout:', error);
-      toast.error('Erro ao fazer logout');
-    }
-  };
-
-  const updateProfile = async (updates: Partial<Profile>) => {
-    if (!user) return false;
-
-    try {
-      const sanitizedUpdates = {
-        ...updates,
-        name: updates.name ? sanitizeInput(updates.name) : updates.name,
-        bio: updates.bio ? sanitizeInput(updates.bio) : updates.bio,
-        location: updates.location ? sanitizeInput(updates.location) : updates.location,
-        updated_at: new Date().toISOString()
-      };
-
-      const { error } = await supabase
-        .from('profiles')
-        .update(sanitizedUpdates)
-        .eq('id', user.id);
-
-      if (error) throw error;
-
-      await fetchProfile(user.id);
-      toast.success('Perfil atualizado com sucesso!');
-      return true;
-    } catch (error: any) {
-      console.error('Error updating profile:', error);
-      toast.error('Erro ao atualizar perfil');
-      return false;
-    }
-  };
-
-  const updatePassword = async (newPassword: string) => {
-    try {
-      if (!validatePassword(newPassword)) {
-        throw new Error('Senha deve ter pelo menos 8 caracteres, incluindo maiúscula, minúscula e número');
+      if (user) {
+        await logSecurityEvent('logout', {
+          user_id: user.id,
+          timestamp: new Date().toISOString(),
+        });
       }
 
-      const { error } = await supabase.auth.updateUser({
-        password: newPassword
-      });
-
-      if (error) throw error;
-
-      toast.success('Senha atualizada com sucesso!');
-      return true;
-    } catch (error: any) {
-      console.error('Error updating password:', error);
-      toast.error(error.message || 'Erro ao atualizar senha');
-      return false;
-    }
-  };
-
-  const updateSettings = async (updates: Partial<UserSettings>) => {
-    if (!user) return false;
-
-    try {
-      const { error } = await supabase
-        .from('user_settings')
-        .update({
-          ...updates,
-          updated_at: new Date().toISOString()
-        })
-        .eq('user_id', user.id);
-
-      if (error) throw error;
-
-      await fetchSettings(user.id);
-      toast.success('Configurações atualizadas com sucesso!');
-      return true;
-    } catch (error: any) {
-      console.error('Error updating settings:', error);
-      toast.error('Erro ao atualizar configurações');
-      return false;
-    }
-  };
-
-  const resetPassword = async (email: string) => {
-    try {
-      if (!validateEmail(email)) {
-        throw new Error('Email inválido');
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error('Sign out error:', error);
       }
-
-      const sanitizedEmail = sanitizeInput(email);
-      const redirectUrl = `${window.location.origin}/reset-password`;
-      
-      const { error } = await supabase.auth.resetPasswordForEmail(sanitizedEmail, {
-        redirectTo: redirectUrl
-      });
-      
-      if (error) throw error;
-      
-      toast.success('Email de recuperação enviado!');
-      return { error: null };
-    } catch (error: any) {
-      console.error('Error resetting password:', error);
-      toast.error(error.message || 'Erro ao enviar email de recuperação');
-      return { error };
-    }
-  };
-
-  const checkUsernameAvailability = async (username: string): Promise<boolean> => {
-    try {
-      const sanitizedUsername = sanitizeInput(username);
-      const { data, error } = await supabase.rpc('check_username_availability', {
-        check_username: sanitizedUsername
-      });
-
-      if (error) throw error;
-      return data;
     } catch (error) {
-      console.error('Error checking username availability:', error);
-      return false;
+      console.error('Sign out error:', error);
     }
   };
 
-  const uploadAvatar = async (file: File): Promise<boolean> => {
-    if (!user) return false;
-
+  const resetPassword = async (email: string): Promise<{ success: boolean; error?: string }> => {
     try {
-      const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
-      if (!allowedTypes.includes(file.type)) {
-        throw new Error('Formato de arquivo não suportado. Use JPEG, PNG ou WebP.');
+      const sanitizedEmail = SecurityUtils.sanitizeInput(email);
+      const emailValidation = SecurityUtils.validateInput(sanitizedEmail, 'email');
+
+      if (!emailValidation.isValid) {
+        return { success: false, error: emailValidation.errors.join(', ') };
       }
 
-      if (file.size > 5 * 1024 * 1024) {
-        throw new Error('Arquivo muito grande. Máximo 5MB.');
+      // Check rate limiting for password reset
+      const rateLimitKey = `reset_${sanitizedEmail}`;
+      const rateLimit = SecurityUtils.rateLimit.check(rateLimitKey);
+      
+      if (!rateLimit.allowed) {
+        const resetTime = new Date(rateLimit.resetTime).toLocaleTimeString();
+        return { 
+          success: false, 
+          error: `Muitas tentativas de reset. Tente novamente às ${resetTime}` 
+        };
       }
 
-      const reader = new FileReader();
-      reader.onload = () => {
-        const avatars = JSON.parse(localStorage.getItem('user_avatars') || '{}');
-        avatars[user.id] = reader.result;
-        localStorage.setItem('user_avatars', JSON.stringify(avatars));
-      };
-      reader.readAsDataURL(file);
+      const { error } = await supabase.auth.resetPasswordForEmail(sanitizedEmail, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
 
-      await updateProfile({ avatar_url: `local_${user.id}` });
-      toast.success('Avatar atualizado com sucesso!');
-      return true;
-    } catch (error: any) {
-      console.error('Error uploading avatar:', error);
-      toast.error(error.message || 'Erro ao fazer upload do avatar');
-      return false;
+      if (error) {
+        return { success: false, error: error.message };
+      }
+
+      // Log password reset attempt
+      await logSecurityEvent('password_reset_requested', {
+        email: sanitizedEmail,
+        timestamp: new Date().toISOString(),
+      });
+
+      return { success: true };
+    } catch (error) {
+      console.error('Reset password error:', error);
+      return { success: false, error: 'Erro interno. Tente novamente.' };
+    }
+  };
+
+  const logSecurityEvent = async (action: string, details: any) => {
+    try {
+      await supabase.from('access_logs').insert({
+        user_id: details.user_id || null,
+        action,
+        module: 'auth',
+        entity_type: 'security_event',
+        changes: details,
+        user_agent: navigator.userAgent,
+        created_at: new Date().toISOString(),
+      });
+    } catch (error) {
+      // Silently fail - logging shouldn't break the flow
+      console.warn('Failed to log security event:', error);
     }
   };
 
   const value: AuthContextType = {
     user,
-    profile,
-    settings,
-    session,
     loading,
-    signUp,
     signIn,
+    signUp,
     signOut,
-    updateProfile,
-    updatePassword,
-    updateSettings,
     resetPassword,
-    checkUsernameAvailability,
-    uploadAvatar
   };
-
-  console.log('AuthProvider: Renderizando provider com valor:', { user: !!user, loading });
 
   return (
     <AuthContext.Provider value={value}>
